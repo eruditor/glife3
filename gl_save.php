@@ -24,7 +24,7 @@ if($_POST['rules']) {
   }
   
   $q = '';
-  $post = ['seed'=>'', 'failed_at'=>'', 'failed_nturn'=>0, 'records'=>'', 'context'=>''];
+  $post = ['seed'=>'', 'failed_at'=>'', 'failed_nturn'=>0, 'records'=>'', 'context'=>''];  // !!! fix seed
   foreach($post as $k=>$v) {
     $post[$k] = MRES($_POST[$k]);
     $q .= ($q?", ":"") . "$k='".$post[$k]."'";

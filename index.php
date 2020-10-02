@@ -217,7 +217,6 @@ elseif($_GET['savedlist']) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {
-  $rand = intval($_GET['seed']) ?: rand(1,getrandmax());
   $ruleset = '';
   
   ////////////////////////////////////////////////////////////////
@@ -347,7 +346,10 @@ else {
   
   ////////////////////////////////////////////////////////////////
   
-  $jsget = "?v=$ver&r=$rand";
+  $fseed = intval($_GET['fseed']) ?: rand(1,getrandmax());
+  $rseed = intval($_GET['rseed']) ?: rand(1,getrandmax());
+  
+  $jsget = "?v=$ver&fseed=$fseed&rseed=$rseed";
   
   $zzt .= "
     <style>
