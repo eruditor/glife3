@@ -30,7 +30,7 @@ if($_POST['family_id']) {
   
   // insert glifetrirun
   $q = '';
-  $post = ['rseed'=>'', 'fseed'=>'', 'stopped_at'=>0, 'stopped_nturn'=>0, 'records'=>'', 'context'=>''];
+  $post = ['rseed'=>'', 'fseed'=>'', 'stopped_at'=>0, 'stopped_nturn'=>0, 'orgasum'=>0, 'records'=>'', 'context'=>''];
   foreach($post as $k=>$v) {
     $post[$k] = MRES($_POST[$k]);
     $q .= ($q?", ":"") . "$k='".$post[$k]."'";
@@ -42,7 +42,7 @@ if($_POST['family_id']) {
   mysql_query("INSERT INTO rr_glogs SET glife_id='$glid', usr_id=0, dt=NOW(), val0='', val1='tri:".MRES($q)."'");
   
   // AvgRun
-  if($gl) $gls = gl3_AvgRuns($gl, true);
+  //if($gl) $gls = gl3_AvgRuns($gl, true);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else if(_local==="1" && $_POST['named']) {
@@ -63,7 +63,7 @@ else if(_local==="1" && $_POST['named']) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+// legacy, but might be used some day
 function gl3_AvgRuns($gl, $inx=false) {
   $gls = [];
   

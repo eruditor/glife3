@@ -8,12 +8,14 @@ $p = mysql_o("SELECT * FROM rr_pages WHERE typ='k' AND url='alife'");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$ver = 302;
+$ver = 303;
 
 $otitle = "GLife3";
 $h1 = "";
 $zabst = "
-  Life game on WebGL2.<br>
+  <b>Life game on WebGL2</b><br><br>
+  
+  &rarr; <a href='/alife/glife3/?paused=1&maxfps=300&muta=1&rseed=1936799038&LF=1&fseed=186356772'>First emergent appearance of Artificial Life in Cellular Automata</a><br><br>
 ";
 $zzt = "";
 $zpubd = "2020-10-01";
@@ -342,7 +344,7 @@ else {
   
   $h1 = "<a href='/k/?alife'>Alife</a> &rarr; " . ($_GET ? "<a href='/alife/glife3/'>$otitle</a>" : $otitle . " <span>v".sprintf("%.2lf", $ver/100)."</span>") . ($stitle ? " &rarr; ".$stitle : "");
   
-  $zabst .= "&rarr; <a href='$_self?savedlist=1'>Database of Genoms found in random-search</a><br>";
+  $zabst .= "&rarr; (old) <a href='$_self?savedlist=1'>Database of Genoms found in random-search</a><br>";
   
   ////////////////////////////////////////////////////////////////
   
