@@ -1,14 +1,43 @@
 <? define("_root","../../");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-include(_root."page.php");
+//include(_root."page.php");
+
+include_once(_root."lib/var.php");
+include_once(_root."lib/db.php");
+include_once(_root."lib/lib.php");
+include_once(_root."lib/tpl.php");
+
+function GetEditor($id) {
+  static $cache=array();
+  $id=intval($id);  if(!$id) return false;
+  if(!isset($cache[$id])) {
+    $cache[$id] = mysql_o("SELECT a.id, a.a_id, a.xname, p.url FROM rr_admns a LEFT JOIN rr_pages p ON p.typ='a' AND p.id=a.a_id WHERE a.id='$id'");
+  }
+  return $cache[$id];
+}
+
+function GetAuthorName($author) {
+  $aunm = $author;
+  if(is_numeric($author)) {
+    $au = GetEditor($author);
+    $aunm = $au->xname;
+    if($au->a_id) $aunm = "<a href='/a/?".($au->url?:$au->id)."'>$aunm</a>";
+  }
+  else {
+    $aunm = RNN($aunm);
+  }
+  return $aunm;
+}
+
 $page->type = "page";
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $p = mysql_o("SELECT * FROM rr_pages WHERE typ='k' AND url='alife'");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$ver = 304;
+$ver = 305;
 
 $Title = "GLife3";
 $H1 = "";
