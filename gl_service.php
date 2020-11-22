@@ -18,7 +18,8 @@ $_tm0 = microtime(true);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if($_GET['resetup']) {
-  exit();  // single-time run to convert to new data format
+  exit("single time use");
+  
   $stitle = "resetup";
   $glids = [];
   $res = mysql_query("
@@ -53,6 +54,89 @@ elseif($_GET['avgruns']) {  // take all runs for this glife and calc their avera
   }
   
   $zzt .= "<div>started=$LP | <a href='$_self?avgruns=1&ll=".($LL+1)."'>next $PP</a></div>";
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+elseif($_GET['import_glifetris']) {
+  exit("single time use");
+  
+  $stitle = "import_glifetris";
+  
+  ini_set("memory_limit", "4000M");
+  set_time_limit(900);
+  
+  $PP = intval($_GET['pp']) ?: 10000;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
+  
+  $nupd = 0; 
+  $resg = mysql_query("SELECT * FROM rr_glifes WHERE gl3_id=0 ORDER BY id LIMIT $LP, $PP");
+  while($gl = mysql_fetch_object($resg)) {
+    $gl3 = new stdClass;
+    preg_match_all("`\[(\d+:\d+)\],`", $gl->rules, $arules);  $arules = $arules[1];
+    if(!$arules) continue;
+    
+    $gl3->id = $gl->id;
+    $gl3->family_id = 1;
+    $gl3->notaset = implode(",", $arules);
+    $gl3->mutaset = "";
+    $gl3->named = $gl->named;
+    $gl3->typed = $gl->typed;
+    $gl3->found_dt = $gl->found_dt;
+    
+    $q = '';
+    foreach($gl3 as $k=>$v) $q .= ($q?",":"") . "$k='".MRES($v)."'";
+    mysql_query("INSERT INTO rr_glifetris SET $q");
+    $id = mysql_insert_id();
+    mysql_query("UPDATE rr_glifes SET gl3_id='$id' WHERE id='$gl->id' LIMIT 1");
+    $nupd ++;
+  }
+  
+  $zzt .= "updated=$nupd<br>";
+  $zzt .= "remaining=" . mysql_r("SELECT COUNT(*) FROM rr_glifes WHERE gl3_id=0") . "<br>";
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+elseif($_GET['import_glifetriruns']) {
+  exit("single time use");
+  
+  $stitle = "import_glifetriruns";
+  
+  ini_set("memory_limit", "4000M");
+  set_time_limit(900);
+  
+  $PP = intval($_GET['pp']) ?: 10;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
+  
+  $nupd = 0; 
+  $resg = mysql_query(
+   "SELECT glrun.*
+   FROM rr_gliferuns glrun
+   JOIN rr_glifes gl ON gl.id=glrun.gl_id
+   WHERE gl3run_id=0 AND gl.gl3_id!=0
+   ORDER BY glrun.id
+   LIMIT $LP, $PP
+  ");
+  while($gl = mysql_fetch_object($resg)) {
+    $gl3 = new stdClass;
+    
+    $gl3->id = $gl->id;
+    $gl3->gl_id = $gl->gl_id;
+    $gl3->dt = $gl->found_dt;
+    $gl3->rseed = 0;
+    $gl3->fseed = 0;
+    $gl3->stopped_at = $gl->failed_at;
+    $gl3->stopped_nturn = $gl->failed_nturn;
+    $gl3->orgasum = -1;
+    $gl3->records = $gl->records;
+    $gl3->context = $gl->context;
+    
+    $q = '';
+    foreach($gl3 as $k=>$v) $q .= ($q?",":"") . "$k='".MRES($v)."'";
+    mysql_query("INSERT INTO rr_glifetriruns SET $q");
+    $id = mysql_insert_id();
+    mysql_query("UPDATE rr_gliferuns SET gl3run_id='$id' WHERE id='$gl->id' LIMIT 1");
+    //$zzt .= "$q<br>";
+    $nupd ++;
+  }
+  
+  $zzt .= "updated=$nupd<br>";
+  $zzt .= "remaining=" . mysql_r("SELECT COUNT(*) FROM rr_gliferuns WHERE gl3run_id=0") . "<br>";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

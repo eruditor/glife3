@@ -35,8 +35,13 @@ if($_POST['family_id']) {
     $post[$k] = MRES($_POST[$k]);
     $q .= ($q?", ":"") . "$k='".$post[$k]."'";
   }
-  mysql_query("INSERT INTO rr_glifetriruns SET gl_id='$glid', dt=NOW(), $q");
-  $id = mysql_insert_id();
+  if($_POST['rerun']) {
+    mysql_query("UPDATE rr_glifetriruns SET $q WHERE gl_id='$glid'");
+  }
+  else {
+    mysql_query("INSERT INTO rr_glifetriruns SET gl_id='$glid', dt=NOW(), $q");
+    $id = mysql_insert_id();
+  }
   
   // insert qlog
   mysql_query("INSERT INTO rr_glogs SET glife_id='$glid', usr_id=0, dt=NOW(), val0='', val1='tri:".MRES($q)."'");
