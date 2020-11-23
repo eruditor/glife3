@@ -735,9 +735,11 @@ function Stats(force=false) {
       SaveGlifetri({'stopped_at':failed_at});
       nGen ++;
       if(cfg.rerun) {
+        cfg.paused = 1;
         window.location.reload();
       }
       else if(nGen>300) {
+        cfg.paused = 1;
         window.location.reload();  // reloading page sometimes to refresh seed for rand32 to avoid cycles
       }
       else {
