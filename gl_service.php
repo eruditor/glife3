@@ -165,8 +165,6 @@ $page->z .= "
     $zzt
   </div>
   
-  <div class=zauth><span title='Автор'>&copy; </span>".GetAuthorName($p->author)."</div>
-  
   <div class=zpubd>$zpubd</div>
 ";
 

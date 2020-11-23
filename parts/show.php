@@ -4,11 +4,10 @@ include_once("backstage.php");
 
 $families = GetFamilies();
 
-$gl_id = intval($_GET['gl_id']);
-$gl_name = MRES($_GET['gl_name']);
+$glife = $_GET['glife'];
 
-    if($gl_name) { $q = "named='$gl_name'";  $isnamed = true;  }
-elseif($gl_id)   { $q = "id='$gl_id'";       $isnamed = false; }
+    if(is_numeric($glife)) { $q = "id='".intval($glife)."'";   $isnamed = false; }
+elseif($glife)             { $q = "named='".MRES($glife)."'";  $isnamed = true;  }
 else die("nothing to show");
 
 $gl = mysql_o("SELECT * FROM rr_glifetris WHERE $q");  if(!$gl) die("no gl found");

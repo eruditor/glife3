@@ -22,8 +22,13 @@ function GetNamed() {
 
 function GetGL4Notaset($notaset) {
   if(!$notaset) $notaset = "Aphrodite";
-  $fld = strpos($notaset,":")===false ? "named" : "notaset";
+  
+  if(is_numeric($notaset))             $fld = "id";
+  elseif(strpos($notaset,":")===false) $fld = "named";
+  else                                 $fld = "notaset";
+  
   $gl = mysql_o("SELECT * FROM rr_glifetris WHERE $fld='".MRES($notaset)."'");  if(!$gl) die("incorrect notaset");
+  
   return $gl;
 }
 
@@ -83,7 +88,7 @@ function GlifeBigInfo($gls) {
     }
     
     $nm = $gl->named ?: $gl->notaset;
-    $nm = $single ? "<u>$nm</u>" : "<a href='$_self?".($gl->named ? "gl_name=".urlencode(SPCQA($gl->named)) : "gl_id=$gl->id")."'>$nm</a>";
+    $nm = $single ? "<u>$nm</u>" : "<a href='$_self?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
     
     $s .= "
       <tr><td>

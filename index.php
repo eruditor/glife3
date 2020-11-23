@@ -1,33 +1,11 @@
 <? define("_root","../../");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//include(_root."page.php");
 
-include_once(_root."lib/var.php");
-include_once(_root."lib/db.php");
-include_once(_root."lib/lib.php");
-include_once(_root."lib/tpl.php");
+include_once("../../lib/db.php");  // connects to MySQL database, this file is located outside of repository
 
-function GetEditor($id) {
-  static $cache=array();
-  $id=intval($id);  if(!$id) return false;
-  if(!isset($cache[$id])) {
-    $cache[$id] = mysql_o("SELECT a.id, a.a_id, a.xname, p.url FROM rr_admns a LEFT JOIN rr_pages p ON p.typ='a' AND p.id=a.a_id WHERE a.id='$id'");
-  }
-  return $cache[$id];
-}
-
-function GetAuthorName($author) {
-  $aunm = $author;
-  if(is_numeric($author)) {
-    $au = GetEditor($author);
-    $aunm = $au->xname;
-    if($au->a_id) $aunm = "<a href='/a/?".($au->url?:$au->id)."'>$aunm</a>";
-  }
-  else {
-    $aunm = RNN($aunm);
-  }
-  return $aunm;
-}
+include_once("lib/var.php");
+include_once("lib/lib.php");
+include_once("lib/tpl.php");
 
 $page->type = "page";
 
@@ -42,8 +20,14 @@ $ver = 305;
 $Title = "GLife3";
 $H1 = "";
 $zabst = "
-  <b>Life game on WebGL2</b><br>
-  &rarr; <a href='/alife/glife3/?paused=1&maxfps=300&nmuta=100&rseed=1936799038&LF=1&fseed=186356772'>First emergent appearance of Artificial Life in Cellular Automata</a><br>
+  <b>GLife is a cellular automata platform based on WebGL2.</b><br>
+  Universal logic: represents both Conway's Game of Life and Langton's Ant as particular examples.<br>
+  2D/3D: multi-layer grids.<br>
+  Cross-platfom: works in (almost every) browser; independent of hardware; doesn't need any software installation.<br>
+  Insanely fast: GPU is ~1000 times faster than CPU due to parallel computing.<br>
+  Open-source: <a href='https://github.com/eruditor/glife3' class=ext>github</a>.<br>
+  It's primary target is the search of artificial life Ч evolving self-repairing self-replicating structures.<br>
+  &rarr; <a href='/alife/glife3/?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
 ";
 $zzt = "";
 $zpubd = "2020-10-01";
@@ -76,7 +60,7 @@ elseif($_GET['view']=='gallery') {
   include("parts/gallery.php");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-elseif($_GET['gl_id'] || $_GET['gl_name']) {
+elseif($_GET['glife']) {
   include("parts/show.php");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,16 +97,16 @@ function GLifeJS($notaset='', $prms=[]) {
     
     <script>$send2js</script>
     
-    <script src='lib/0.params.js$jsget&rseed=$rseed&fseed=$fseed&notaset=".urlencode($gl->notaset)."$plus'></script>
-    <script src='lib/1.math.js$jsget'></script>
-    <script src='lib/2.hardware.js$jsget'></script>
-    <script src='lib/3.spacetime.js$jsget'></script>
-    <script src='lib/4.physics_laws.js$jsget'></script>
-    <script src='lib/5.dynamics.js$jsget'></script>
-    <script src='lib/6.visualisation.js$jsget'></script>
-    <script src='lib/7.analysis.js$jsget'></script>
-    <script src='lib/8.interface.js$jsget'></script>
-    <script src='lib/9.divine_forces.js$jsget'></script>
+    <script src='js/0.params.js$jsget&rseed=$rseed&fseed=$fseed&notaset=".urlencode($gl->notaset)."$plus'></script>
+    <script src='js/1.math.js$jsget'></script>
+    <script src='js/2.hardware.js$jsget'></script>
+    <script src='js/3.spacetime.js$jsget'></script>
+    <script src='js/4.physics_laws.js$jsget'></script>
+    <script src='js/5.dynamics.js$jsget'></script>
+    <script src='js/6.visualisation.js$jsget'></script>
+    <script src='js/7.analysis.js$jsget'></script>
+    <script src='js/8.interface.js$jsget'></script>
+    <script src='js/9.divine_forces.js$jsget'></script>
     <script src='main.js$jsget'></script>
   ";
 }
@@ -133,16 +117,9 @@ $gltitle = "GLife";
 
 $page->title = "Alife: $gltitle".($Title?": ".strip_tags($Title):"")." Ц ERUDITOR.RU";
 
-$H1 = "<a href='/k/?alife'>Alife</a> &rarr; "
+$H1 = "" // <a href='/k/?alife'>Alife</a> &rarr; 
       . ($_GET?"<a href='/alife/glife3/'>$gltitle</a><sup>".sprintf("%.2lf", $ver/100)."</sup>":"$gltitle <span>v".sprintf("%.2lf", $ver/100)."</span>")
       . ($H1?" &rarr; $H1":"");
-
-$zabst .= "<br><b>
-  | <a href='$_self?view=gallery'>Gallery</a>
-  | <a href='$_self?view=library'>Library</a>
-  | <a href='$_self?view=manufacture'>Manufacture</a>
-  | </b><br>
-";
 
 $page->z .= "
   <h1>$H1</h1>
@@ -154,8 +131,6 @@ $page->z .= "
   <div class=zzt>
     $zzt
   </div>
-  
-  <div class=zauth><span title='јвтор'>&copy; </span>".GetAuthorName($p->author)."</div>
   
   <div class=zpubd>$zpubd</div>
 ";

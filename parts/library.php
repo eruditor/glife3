@@ -43,11 +43,11 @@ if($shelf=='typedlist') {
     while($r = mysql_fetch_object($res)) {
       $s .= "
         <tr>
-          <td align=right><a href='$_self?gl_id=$r->id'>$r->id</a></td>
+          <td align=right><a href='$_self?glife=$r->id'>$r->id</a></td>
           <td>".$families[$r->family_id]->name."</td>
           <td><a href='$_self?notaset=$r->notaset&maxfps=300'>$r->notaset</a></td>
           <td class=nrrw>".($r->mutaset?"<a href='$_self?notaset=$r->notaset&mutaset=$r->mutaset&maxfps=300'>".RN($r->mutaset)."</a>":"")."</td>
-          <td><a href='$_self?gl_name=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a></td>
+          <td><a href='$_self?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a></td>
           <td>$r->typed</td>
           <td>$r->found_dt</td>
           ".(_local==="1" ? "
@@ -118,12 +118,12 @@ if($shelf=='typedlist') {
         if($z==0) {
           $tr .= "
             <td rowspan=$FD>
-              <a href='$_self?gl_id=$r->gl_id'>$r->gl_id</a><br>
+              <a href='$_self?glife=$r->gl_id'>$r->gl_id</a><br>
               $r->gr_id
             </td>
             <td rowspan=$FD class=nrrw>$r->dt</td>
             <td rowspan=$FD>".$families[$r->family_id]->name."</td>
-            <td rowspan=$FD>".($r->named ? "<a href='$_self?gl_name=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a>" : "")."</td>
+            <td rowspan=$FD>".($r->named ? "<a href='$_self?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a>" : "")."</td>
             <td rowspan=$FD>$r->typed</td>
           ";
         }
