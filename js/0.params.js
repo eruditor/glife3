@@ -52,7 +52,7 @@ var NM = GetIntParam('nmuta');  // number of random mutations in rules
 
 // FAMILY-SPECIFIC ////////////////////////////////////////////////////////////////
 
-if(Family=='Conway2D') {
+if(Family=='Conway') {
   RB = 2;
   Rgeom = 18;
   Rsymm = 85;

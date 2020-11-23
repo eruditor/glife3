@@ -323,7 +323,7 @@ function RandomNotaset() {
   if(Family=='Langton') {
     // todo
   }
-  else if(Family=='Conway2D' || Family=='Conway3D') {
+  else if(Family=='Conway' || Family=='Conway3D') {
     notaset = ConwayRandomRules();
   }
   return notaset;
@@ -499,7 +499,7 @@ function InitRules() {
   if(Family=='Langton') {
     SetLangtonRules();
   }
-  else if(Family=='Conway2D') {
+  else if(Family=='Conway') {
     SetConway2DRules(Notaset);
   }
   else if(Family=='Conway3D') {

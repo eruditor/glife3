@@ -1,6 +1,8 @@
 <?
 
 $H1 = "Library";
+
+////////////////////////////////////////////////////////////////
   
 $shelves = ['typedlist'=>'TypedList', 'maxorgasum'=>'MaxOrgaSum'];
 
@@ -8,16 +10,33 @@ $shelf = $_GET['shelf'];  if(!$shelves[$shelf]) $shelf = '';
 
 $s = "| ";
 foreach($shelves as $url=>$name) {
-  $t = $url==$shelf ? $name : "<a href='$_self?view=library&shelf=$url'>$name</a>";
+  $t = $url==$shelf ? "<u>$name</u>" : "<a href='$_self?view=library&shelf=$url'>$name</a>";
   $s .= "$t | ";
 }
-$zzt .= "$s<hr>";
+$zzt .= "<h2>Choose Library: $s</h2><hr>";
 
-if($shelf) $H1 .= " &rarr; " . $shelves[$shelf];
-
-include_once("backstage.php");
+////////////////////////////////////////////////////////////////
 
 $families = GetFamilies();
+$famnames = GetFamilies(true);
+
+$famname = $_GET['family'];
+$family = $famnames[$famname];
+$famQplus = $family ? "AND family_id='$family->id'" : "";
+$famUplus = $family ? "&family=$family->name" : "";
+
+if($shelf) {
+  $s = "| ";
+  foreach($famnames as $fam) {
+    $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='$_self?view=library&shelf=$shelf&family=$fam->name'>$fam->name</a>";
+    $s .= "$t | ";
+  }
+  $zzt .= "<h2>Choose Family: $s</h2><hr>";
+}
+
+////////////////////////////////////////////////////////////////
+
+if($shelf) $H1 .= " &rarr; " . $shelves[$shelf];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if($shelf=='typedlist') {
@@ -34,7 +53,7 @@ if($shelf=='typedlist') {
     $res = mysql_query(
      "SELECT SQL_CALC_FOUND_ROWS *
       FROM rr_glifetris
-      WHERE typed='".MRES($typed)."'
+      WHERE typed='".MRES($typed)."' $famQplus
       ORDER BY id DESC
       LIMIT $LP,$PP
     ");
@@ -72,7 +91,7 @@ if($shelf=='typedlist') {
     $stopped  = $_GET['stopped'];
     $goodness = intval($_GET['goodness']);
     
-    $title = "«".SPCQA($stopped)."»";
+    $title = "«".SPCQA($stopped?:"---")."»";
     $H1 = "<a href='$_self?view=library'>Library</a> &rarr; <a href='$_self?view=library&shelf=typedlist'>TypedList</a> &rarr; $title";
     
     $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
@@ -87,7 +106,7 @@ if($shelf=='typedlist') {
      "SELECT SQL_CALC_FOUND_ROWS gr.*, gl.*, gr.id gr_id
       FROM rr_glifetriruns gr
       JOIN rr_glifetris gl ON gl.id=gr.gl_id
-      WHERE stopped_at='".MRES($stopped)."' AND stopped_nturn<10000 AND $Q
+      WHERE stopped_at='".MRES($stopped)."' AND stopped_nturn<10000 AND $Q $famQplus
       ORDER BY gr.id DESC
       LIMIT $LP,$PP
     ");
@@ -180,21 +199,21 @@ if($shelf=='typedlist') {
     $s = '';  $ss = [];
     $clr4nmd = [
       "foam"=>"efe", "brain"=>"efe", "vores"=>"efe", "cyclic"=>"efe", "train"=>"efe", ""=>"efe",
-      "amoeba"=>"ffd", "holey"=>"ffd", "shoal"=>"ffd", "vapor"=>"ffd", "?"=>"ffd",
+      "amoeba"=>"ffd", "holey"=>"ffd", "shoal"=>"ffd", "vapor"=>"ffd", "exglider"=>"ffd", "?"=>"ffd",
       "boil"=>"fee", "extin"=>"fee", "conway"=>"fee", "blink"=>"fee", "gas"=>"fee", "kia"=>"fee",
     ];
     
     $res = mysql_query(
     "SELECT typed, COUNT(*) nn
       FROM rr_glifetris
-      WHERE named<>'' OR typed<>''
+      WHERE (named<>'' OR typed<>'') $famQplus
       GROUP BY typed
       ORDER BY nn DESC
     ");
     while($r = mysql_fetch_object($res)) {
       $ss[0] .= "
         <tr style='background:#".$clr4nmd[$r->typed].";'>
-        <td><a href='$_self?view=library&shelf=$shelf&typed=$r->typed'>".($r->typed?:"-?-")."</a></td>
+        <td><a href='$_self?view=library&shelf=$shelf$famUplus&typed=$r->typed'>".($r->typed?:"-?-")."</a></td>
         <td align=right>$r->nn</td>
         </tr>
       ";
@@ -202,15 +221,16 @@ if($shelf=='typedlist') {
     
     $res = mysql_query(
     "SELECT stopped_at, IF(stopped_nturn>=5000, 1, IF(stopped_nturn>=1000, 2, 3)) goodness, COUNT(*) nn
-      FROM rr_glifetriruns
-      WHERE stopped_at!='x'
+      FROM rr_glifetriruns gr
+      JOIN rr_glifetris gl ON gl.id=gr.gl_id
+      WHERE stopped_at!='x' $famQplus
       GROUP BY stopped_at, goodness
       ORDER BY goodness, nn DESC
     ");
     while($r = mysql_fetch_object($res)) {
       $ss[$r->goodness] .= "
         <tr>
-          <td><a href='$_self?view=library&shelf=$shelf&stopped=$r->stopped_at&goodness=$r->goodness'>".($r->stopped_at?:"---")."</a></td>
+          <td><a href='$_self?view=library&shelf=$shelf$famUplus&stopped=$r->stopped_at&goodness=$r->goodness'>".($r->stopped_at?:"---")."</a></td>
           <td align=right>$r->nn</td>
         </tr>
       ";

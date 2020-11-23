@@ -128,18 +128,8 @@ class Records {  // tracking and writing to DB population characteristics
 
 // SAVE RULES ////////////////////////////////////////////////////////////////
 
-function XHRsave3(q) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'gl_save.php');
-  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  xhr.onload = function() {
-    if(xhr.status==200) { if(xhr.responseText) alert(xhr.responseText); }
-  };
-  xhr.send(q);
-}
-
 function SaveGlifetri(prms={}) {
-  if(Family=='Conway2D') {
+  if(Family=='Conway') {
     prms['family_id'] = 1;
     var notaset = '';
     var notas = ConwayNotaset(Notaset);

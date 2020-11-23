@@ -1,12 +1,15 @@
 <?
 
-function GetFamilies() {
-  static $families = [];
+function GetFamilies($byname=false) {
+  static $families = [], $famnames = [];
   if(!$families) {
     $res = mysql_query("SELECT * FROM rr_glfamilies");
-    while($r = mysql_fetch_object($res)) $families[$r->id] = $r;
+    while($r = mysql_fetch_object($res)) {
+      $families[$r->id] = $r;
+      $famnames[$r->name] = $r;
+    }
   }
-  return $families;
+  return $byname ? $famnames : $families;
 }
 
 
