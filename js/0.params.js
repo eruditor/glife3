@@ -11,7 +11,7 @@ function int10(x) { if(!x) return 0;  return parseInt(x, 10); }
 
 function GetIntParam(nm, def=0)  { return int10(URL.get(nm) || SLF.get(nm)) || def;  }
 function GetStrParam(nm, def='') { return       URL.get(nm) || SLF.get(nm)  || def;  }
-function GetBoolParam(nm)        { return      (URL.get(nm) || SLF.get(nm)) ? 1 : 0; }
+function GetBoolParam(nm)        { return      (URL.get(nm)>0 || SLF.get(nm)>0) ? 1 : 0; }
 
 class Cfg {
   constructor() {

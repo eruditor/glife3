@@ -36,6 +36,20 @@ function GetGL4Notaset($notaset) {
 }
 
 
+function GetFD4GL($gl) {
+  $FD = 0;
+  if($gl->notaset) {
+    $FD = count(explode(",", $gl->notaset));
+  }
+  else {
+    $families = GetFamilies();
+    $fm = $families[$gl->family_id];
+    if($fm->FD) $FD = $fm->FD;
+  }
+  return $FD;
+}
+
+
 function GlifeBigInfo($gls) {
   $families = GetFamilies();
   

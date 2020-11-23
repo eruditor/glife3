@@ -89,7 +89,7 @@ function CreateTopForm() {
   
   var inps = '';
   for(var p of URL.entries()) {
-    if(p[0]=='Rseed' || p[0]=='Fseed' || p[0]=='FW' || p[0]=='FH' || p[0]=='LF') continue;
+    if(p[0]=='rseed' || p[0]=='fseed' || p[0]=='FW' || p[0]=='FH' || p[0]=='LF') continue;
     inps += `` + p[0] + `=<input type=text name='` + p[0] + `' value='` + p[1] + `' size=` + (p[1].length+1) + `>` + sp;
   }
   
@@ -100,8 +100,8 @@ function CreateTopForm() {
       <span title="Field Width ">FW=</span><input type=text name="FW" value="` + FW + `" size=4>` + sp + `
       <span title="Field Height">FH=</span><input type=text name="FH" value="` + FH + `" size=4>` + sp + `
       <span title="% of initially filled area">LF=</span><input type=text name="LF" value="` + round(LF*100) + `" size=3><br>
-      <span title="PRNG seed for Rules">Rseed=</span><input type=text id="rseedinp" name="Rseed" value="` + Rseed + `" size=10>` + sp + `
-      <span title="PRNG seed for Field">Fseed=</span><input type=text id="fseedinp" name="Fseed" value="` + Fseed + `" size=10>` + sp + `
+      <span title="PRNG seed for Rules">Rseed=</span><input type=text id="rseedinp" name="rseed" value="` + Rseed + `" size=10>` + sp + `
+      <span title="PRNG seed for Field">Fseed=</span><input type=text id="fseedinp" name="fseed" value="` + Fseed + `" size=10>` + sp + `
     </td>
     <td><input type=submit value=" OK " style="float:right; height:63px;"></td>
     </tr></table>

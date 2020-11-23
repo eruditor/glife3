@@ -11,7 +11,7 @@ $aRgeoms = [182=>"3D Moore", 142=>"3D von Neumann"];
 $aRsymms = [85=>"8-rotation+parity", 47=>"4-rotation-vector"];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-if($_GET['autore']) {
+if(isset($_GET['autore'])) {
   if(false) {
     // todo
   }

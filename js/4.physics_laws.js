@@ -117,14 +117,27 @@ function AllScalarRotations(rr, l) {
   return ret;
 }
 
+function SliceNeib(rule) {
+  var r0 = rule[0];
+  var pfx = ''+rule[0];
+  if(Rgeom>100) {  // 3D case
+    var rr = rule.slice(1, -2);
+    var l = rr.length;
+    var sfx = ''+rule[l+1]+rule[l+2];
+  }
+  else {  // 2D case
+    var rr = rule.slice(1);
+    var l = rr.length;
+    var sfx = '';
+  }
+  return {'r0':r0, 'pfx':pfx, 'rr':rr, 'l':l, 'sfx':sfx};
+}
+
 function EquivNeibs(b) {
   var ret = {};
   
   var rule = NeibArr4Int(b);
-  var rr = rule.slice(1, -2);
-  var l = rr.length;
-  var pfx = ''+rule[0];
-  var sfx = ''+rule[l+1]+rule[l+2];
+  let {pfx, rr, l, sfx} = SliceNeib(rule);
   
   if(Rsymm==85) {  // rotating by pi/4 (8 cells) plus parity
     var asr = AllScalarRotations(rr, l);
@@ -144,10 +157,7 @@ function EquivRules(b, v) {
   var ret = {};
   
   var rule = NeibArr4Int(b);
-  var r0 = rule[0];
-  var rr = rule.slice(1, -2);
-  var l = rr.length;
-  var sfx = ''+rule[l+1]+rule[l+2];
+  let {r0, rr, l, sfx} = SliceNeib(rule);
   var vv = v;
   var kk = '';
   
@@ -197,7 +207,7 @@ function GenMutas(n=0) {
   for(var z=0; z<FD; z++) mutas[z] = {};
   
   for(var i=0; i<n; i++) {
-    var z  = rndR(0, FD);  if(Family=='Langton') z = 1;
+    var z  = rndR(0, FD);  if(Family=='Langton') z = 1;  if(Family=='Conway') z = 0;
     var b  = rndR(0, RL);
     
     if(typeof mutas[z][b] !== 'undefined') continue;  // no strict duplicates
@@ -251,6 +261,15 @@ function SetMutaRules(mutas) {
           var bb = NeibInt4Str(rule);
           SetRule(z, bb, v);
         }
+      }
+      else if(Family=='Conway') {
+        for(var rule in EquivNeibs(b)) {
+          var bb = NeibInt4Str(rule);
+          SetRule(z, bb, v);
+        }
+      }
+      else {
+        console.log('No mutation formula for this Family');
       }
       
       n ++;

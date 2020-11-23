@@ -12,7 +12,7 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$ver = 307;
+$_ENV->ver = 307;
 
 $Title = "GLife3";
 $H1 = "";
@@ -58,18 +58,23 @@ function GLifeJS($notaset='', $prms=[]) {
   global $gl_bgc4records;
   $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode($gl_bgc4records) . "`);";
   
+  $families = GetFamilies();
+  
   if($notaset=='random') {
     $gl->notaset = 'random';
   }
   else {
     $gl = GetGL4Notaset($notaset);
-    $fl = GetFamilies()[$gl->family_id];
+    $FD = GetFD4GL($gl);
+    if($FD) $prms['FD'] = $FD;
+    $fm = $families[$gl->family_id];
+    $prms['family'] = $fm->name;
   }
   
   $rseed = intval($_GET['rseed']) ?: rand(1,getrandmax());
   $fseed = intval($_GET['fseed']) ?: rand(1,getrandmax());
   
-  $jsget = "?v=$ver";
+  $jsget = "?v=$_ENV->ver";
   if(_local==="1") $jsget .= "&rnd=".rand(1,getrandmax());  // to refresh all scripts every run
   
   $plus = '';  foreach($prms as $k=>$v) $plus .= "&".urlencode($k)."=".urlencode($v);
@@ -100,7 +105,7 @@ $gltitle = "GLife";
 $page->title = "Alife: $gltitle".($Title?": ".strip_tags($Title):"")." – ERUDITOR.RU";
 
 $H1 = "" // <a href='/k/?alife'>Alife</a> &rarr; 
-      . ($_GET?"<a href='$_self'>$gltitle</a><sup>".sprintf("%.2lf", $ver/100)."</sup>":"$gltitle <span>v".sprintf("%.2lf", $ver/100)."</span>")
+      . ($_GET?"<a href='$_self'>$gltitle</a><sup>".sprintf("%.2lf", $_ENV->ver/100)."</sup>":"$gltitle <span>v".sprintf("%.2lf", $_ENV->ver/100)."</span>")
       . ($H1?" &rarr; $H1":"");
 
 $page->z .= "
