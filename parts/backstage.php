@@ -67,6 +67,7 @@ function GlifeBigInfo($gls) {
       $ar_stopped = $r->stopped_at=='x' ? array_fill(0, $FD, 'x') : explode(";", $r->stopped_at);
       if($r->records) {
         $json = json_decode($r->records) ?: [];
+        if($_GET['check_json']) var_dump($json);
         $stb = '';
         for($z=0; $z<$FD; $z++) {
           $t = '';
