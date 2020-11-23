@@ -64,7 +64,7 @@ function MakePage() {
   ';
   
   if(_local) {
-    $rax = "";
+    $rax = "<img src='/i/rax31.gif' width=88 height=31>";
     $yam = "<!--".htmlSPC($yam)."-->";
   }
   
