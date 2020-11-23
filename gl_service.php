@@ -141,7 +141,7 @@ elseif($_GET['import_glifetriruns']) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $page->title = "Alife: $otitle: $stitle – ERUDITOR.RU";
-$h1 = "<a href='/k/?alife'>Alife</a> &rarr; <a href='/alife/glife3/'>$otitle</a> &rarr; $stitle";
+$h1 = " &rarr; $stitle";
 
 $zzt .= "<div>time: " . round(microtime(true) - $_tm0, 3) . "s</div>";
 

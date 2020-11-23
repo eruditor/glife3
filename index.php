@@ -27,7 +27,7 @@ $zabst = "
   Insanely fast: GPU is ~1000 times faster than CPU due to parallel computing.<br>
   Open-source: <a href='https://github.com/eruditor/glife3' class=ext>github</a>.<br>
   It's primary target is the search of artificial life — evolving self-repairing self-replicating structures.<br>
-  &rarr; <a href='/alife/glife3/?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
+  &rarr; <a href='$_self?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
 ";
 $zzt = "";
 $zpubd = "2020-10-01";
@@ -118,7 +118,7 @@ $gltitle = "GLife";
 $page->title = "Alife: $gltitle".($Title?": ".strip_tags($Title):"")." – ERUDITOR.RU";
 
 $H1 = "" // <a href='/k/?alife'>Alife</a> &rarr; 
-      . ($_GET?"<a href='/alife/glife3/'>$gltitle</a><sup>".sprintf("%.2lf", $ver/100)."</sup>":"$gltitle <span>v".sprintf("%.2lf", $ver/100)."</span>")
+      . ($_GET?"<a href='$_self'>$gltitle</a><sup>".sprintf("%.2lf", $ver/100)."</sup>":"$gltitle <span>v".sprintf("%.2lf", $ver/100)."</span>")
       . ($H1?" &rarr; $H1":"");
 
 $page->z .= "

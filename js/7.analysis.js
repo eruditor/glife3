@@ -130,7 +130,7 @@ class Records {  // tracking and writing to DB population characteristics
 
 function XHRsave3(q) {
   var xhr = new XMLHttpRequest();
-  xhr.open('POST', '/alife/glife3/gl_save.php');
+  xhr.open('POST', 'gl_save.php');
   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
   xhr.onload = function() {
     if(xhr.status==200) { if(xhr.responseText) alert(xhr.responseText); }

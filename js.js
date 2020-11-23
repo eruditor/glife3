@@ -47,13 +47,3 @@ function setCookie(name, value, expires, path, domain, secure) {
     ((secure) ? "; secure" : "");
   document.cookie = t;
 }
-
-function XHRsave(q) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', '/alife/glife/gl_save.php');
-  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  xhr.onload = function() {
-    if(xhr.status==200) { if(xhr.responseText) alert(xhr.responseText); }
-  };
-  xhr.send(q);
-}
