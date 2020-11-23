@@ -67,12 +67,12 @@ function GlifeBigInfo($gls) {
       $ar_stopped = $r->stopped_at=='x' ? array_fill(0, $FD, 'x') : explode(";", $r->stopped_at);
       if($r->records) {
         $json = json_decode($r->records) ?: [];
-        if($_GET['check_json']) var_dump($json);
         $stb = '';
         for($z=0; $z<$FD; $z++) {
           $t = '';
           foreach(['fillin','spread','variat'] as $k) {
-            $v = round($json->$k[$z]);
+            $vv = $json->$k;
+            $v = round($vv[$z]);
             $t .= "<td><span style='background:#".gl_Bgc4Records($k, $v).";'>$v%</span></td>";
           }
           $t .= "<td>".($ar_stopped[$z]?:"-")."</td>";
