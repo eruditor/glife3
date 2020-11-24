@@ -24,8 +24,9 @@ $zabst = "
   Insanely fast: GPU is ~1000 times faster than CPU due to parallel computing.<br>
   Open-source: <a href='https://github.com/eruditor/glife3' class=ext>github</a>.<br>
   It's primary target is the search of artificial life — evolving self-repairing self-replicating structures.<br>
-  &rarr; <a href='$_self?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
+  &rarr; <a href='$_self?glife=Harbinger&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
 ";
+// ?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300
 $zzt = "";
 $zpubd = "2020-10-01";
 
@@ -61,12 +62,16 @@ function GLifeJS($notaset='', $prms=[]) {
   $families = GetFamilies();
   
   if($notaset=='random') {
-    $gl->notaset = 'random';
+    $prms['notaset'] = 'random';
   }
   else {
     $gl = GetGL4Notaset($notaset);
+    $prms['notaset'] = $gl->notaset;
+    $prms['mutaset'] = $gl->mutaset;
+    
     $FD = GetFD4GL($gl);
-    if($FD) $prms['FD'] = $FD;
+    $prms['FD'] = $FD;
+    
     $fm = $families[$gl->family_id];
     $prms['family'] = $fm->name;
   }
@@ -77,14 +82,14 @@ function GLifeJS($notaset='', $prms=[]) {
   $jsget = "?v=$_ENV->ver";
   if(_local==="1") $jsget .= "&rnd=".rand(1,getrandmax());  // to refresh all scripts every run
   
-  $plus = '';  foreach($prms as $k=>$v) $plus .= "&".urlencode($k)."=".urlencode($v);
+  $plus = '';  foreach($prms as $k=>$v) if($v) $plus .= "&".urlencode($k)."=".urlencode($v);
   
   return "
     <div id=GLifeCont></div>
     
     <script>$send2js</script>
     
-    <script src='js/0.params.js$jsget&rseed=$rseed&fseed=$fseed&notaset=".urlencode($gl->notaset)."$plus'></script>
+    <script src='js/0.params.js$jsget&rseed=$rseed&fseed=$fseed$plus'></script>
     <script src='js/1.math.js$jsget'></script>
     <script src='js/2.hardware.js$jsget'></script>
     <script src='js/3.spacetime.js$jsget'></script>
@@ -144,6 +149,7 @@ $page->z = "
     
     .valtop, .valtop TD {vertical-align:top;}
     .hlp {cursor:help;}
+    .nrrw {font-family:arial narrow, arial; font-stretch:condensed;}
     
     #glifeStatTB {border:solid 2px #ddd; margin:0 0 10px 0;}
     #glifeStatTB TD, #glifeStatTB TH {padding:2px 4px; text-align:right; vertical-align:top;}

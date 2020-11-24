@@ -313,7 +313,7 @@ function DecodeMutaStr(mutastr) {
 function ConwayRandomRules() {
   function ConwayRandomStrand(min=0) {
     var ret = '';
-    var l = rndR(1,9);
+    var l = rndR(1, 9);
     var r = [];
     for(var j=0; j<l; j++) {
       var d = rndR(min, 9);
@@ -515,21 +515,17 @@ function InitRules() {
     Notaset = RandomNotaset();
   }
   
-  if(Family=='Langton') {
-    SetLangtonRules();
-  }
-  else if(Family=='Conway') {
-    SetConway2DRules(Notaset);
-  }
-  else if(Family=='Conway3D') {
-    SetConway3DRules(Notaset);
-  }
-  else {
-    alert('Unsupported Family');
-  }
+       if(Family=='Langton')  SetLangtonRules();
+  else if(Family=='Conway')   SetConway2DRules(Notaset);
+  else if(Family=='Conway3D') SetConway3DRules(Notaset);
+  else alert('Unsupported Family');
   
-  if(NM>0) Mutas = SetMutaRules(GenMutas(NM));
-  //console.log(Mutas);
+  if(Mutaset)   Mutas = DecodeMutaStr(Mutaset);
+  else if(NM>0) Mutas = GenMutas(NM);
+  
+  if(Mutas) SetMutaRules(Mutas);
+  
+  console.log(Mutas);
   
   SetRulesTexture();
 }

@@ -59,7 +59,14 @@ function GlifeBigInfo($gls) {
     return "";
   }
   elseif(is_string($gls)) {
-    $res = mysql_query("SELECT * FROM rr_glifetris WHERE $gls");
+    $res = mysql_query(
+     "SELECT gl.*, COUNT(*) nruns, SUM(stopped_nturn) sumturns
+      FROM rr_glifetris gl
+      LEFT JOIN rr_glifetriruns gr ON gr.gl_id=gl.id
+      WHERE $gls
+      GROUP BY gl.id
+      ORDER BY sumturns DESC, found_dt DESC
+    ");
     $gls = [];
     while($gl = mysql_fetch_object($res)) {
       $gls[$gl->id] = $gl;
@@ -110,9 +117,9 @@ function GlifeBigInfo($gls) {
     
     $s .= "
       <tr><td>
-        <h3>$nm (".($gl->typed?:"-").")</h3>
+        <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm ".($gl->typed?"<span class=gr>($gl->typed)</span>":"")."</h3>
         ".$families[$gl->family_id]->name.": $gl->notaset<br>
-        <i>".RN($gl->mutaset)."</i>
+        <span class='nrrw gr'>".RN($gl->mutaset)."</span>
       </td>
       <td><table><tr>$srun</tr></table><br></td>
       </tr>

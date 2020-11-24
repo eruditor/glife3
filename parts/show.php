@@ -20,6 +20,6 @@ $H1 = $Title;
 
 $zzt .= GlifeBigInfo($gl);
 
-$zzt .= GLifeJS($gl->notaset, ['family'=>$fm->name, 'FD'=>$FD]);
+$zzt .= GLifeJS($glife);
 
 ?>

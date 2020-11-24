@@ -32,8 +32,9 @@ var cfg = new Cfg();
 
 // global vars for constant things, good for shorter names in formulas
 
-var Family  = GetStrParam('family', 'Conway3D');  // name of rule's family (physics)
-var Notaset = GetStrParam('notaset');  // encoded or named rules (physics)
+var Family  = GetStrParam('family', 'Conway3D');  // name of rule's family
+var Notaset = GetStrParam('notaset');  // encoded or named rules
+var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)
 
 var RB    = GetIntParam('RB',    2);  // number of states for cell
 var Rgeom = GetIntParam('Rgeom', 182);  // neighborhood geometry (see RG)
