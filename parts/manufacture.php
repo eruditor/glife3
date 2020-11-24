@@ -51,7 +51,7 @@ else {
         <tr><td><span title='' class=hlp>FD</span></td><td class=tal><input type=text name='FD' value='3' size=2></td></tr>
         <tr><td><span title='' class=hlp>RB</span></td><td class=tal><input type=text name='RB' value='2' size=2></td></tr>
         <tr><td>nmuta </td><td class=tal><input type=text name='nmuta' value='100' size=8></td></tr>
-        <tr><td>      </td><td><input type=submit value=' OK '></td></tr>
+        <tr><td>      </td><td><input type=submit value=' OK ' disabled></td></tr>
         </table>
       </form>
     </td><td width=30>&nbsp;</td>

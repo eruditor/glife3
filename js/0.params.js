@@ -9,23 +9,27 @@ const SLF = new URLSearchParams(myScript.src);
 
 function int10(x) { if(!x) return 0;  return parseInt(x, 10); }
 
-function GetIntParam(nm, def=0)  { return int10(URL.get(nm) || SLF.get(nm)) || def;  }
-function GetStrParam(nm, def='') { return       URL.get(nm) || SLF.get(nm)  || def;  }
+function GetIntParam(nm, def=0)  { return int10(URL.get(nm)   || SLF.get(nm)) || def;    }
+function GetStrParam(nm, def='') { return       URL.get(nm)   || SLF.get(nm)  || def;    }
 function GetBoolParam(nm)        { return      (URL.get(nm)>0 || SLF.get(nm)>0) ? 1 : 0; }
 
 class Cfg {
   constructor() {
-    this.debug = GetBoolParam('debug');
-    this.paused = GetBoolParam('paused');
+    this.debug     = GetBoolParam('debug');
+    this.paused    = GetBoolParam('paused');
     this.pausestat = GetBoolParam('pausestat');
-    this.maxfps = GetIntParam('maxfps', 60);  // Calc framerate limit
-    this.showiter = GetIntParam('showiter');  if(this.showiter<2) this.showiter = 0;  // Show once per showiter Calcs
-    this.rerun = GetBoolParam('rerun');
+    
+    this.maxfps    = GetIntParam('maxfps', 60);  // Calc framerate limit
+    this.showiter  = GetIntParam('showiter');  if(this.showiter<2) this.showiter = 0;  // Show once per showiter Calcs
+    
+    this.autore    = GetBoolParam('autore');
+    this.rerun     = GetBoolParam('rerun');
+    this.pauseat   = GetIntParam('pauseat');
+    
     this.drawrules = GetBoolParam('drawrules');
-    this.autore = GetBoolParam('autore');
-    this.pauseat = GetIntParam('pauseat');
-    this.orga = GetBoolParam('orga');
-    this.turn4stats = 100;
+    this.orga      = GetBoolParam('orga');
+    
+    this.turn4stats = 100;  // not recommended to change
   }
 }
 var cfg = new Cfg();
@@ -40,16 +44,14 @@ var RB    = GetIntParam('RB',    2);  // number of states for cell
 var Rgeom = GetIntParam('Rgeom', 182);  // neighborhood geometry (see RG)
 var Rsymm = GetIntParam('Rsymm', 85);  // symmetry of rules (rotational, parity, etc)
 
-var FW = GetIntParam('FW', 600);  // field width
-var FH = GetIntParam('FH', 350);  // field height
-var FD = GetIntParam('FD',   3);  // field depth (number of layers)
+var FW    = GetIntParam('FW', 600);  // field width
+var FH    = GetIntParam('FH', 350);  // field height
+var FD    = GetIntParam('FD',   3);  // field depth (number of layers)
 
-var LF = GetIntParam('LF', 90) / 100;  // initially filled piece (percent)
-
+var LF    = GetIntParam('LF', 90) / 100;  // initially filled piece (percent)
+var NM    = GetIntParam('nmuta');  // number of random mutations in rules
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
-
-var NM = GetIntParam('nmuta');  // number of random mutations in rules
 
 // FAMILY-SPECIFIC ////////////////////////////////////////////////////////////////
 
