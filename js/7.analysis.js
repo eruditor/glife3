@@ -87,11 +87,12 @@ class Record {
 
   zero() {
     for(let key in this) {
+      var val = key=='orga_num' || key=='orga_sum' ? -1 : 0;
       if(Array.isArray(this[key])) {
-        for(let z=0; z<FD; z++) this[key][z] = 0;
+        for(let z=0; z<FD; z++) this[key][z] = val;
       }
       else if(Number.isInteger(this[key])) {
-        this[key] = 0;
+        this[key] = val;
       }
     }
   }
@@ -129,6 +130,8 @@ class Records {  // tracking and writing to DB population characteristics
 // SAVE RULES ////////////////////////////////////////////////////////////////
 
 function SaveGlifetri(prms={}) {
+  if(!cfg.orga) StatORGA();  // calc orga stats before saving
+  
   if(Family=='Conway') {
     prms['family_id'] = 1;
     var notaset = '';
@@ -536,7 +539,13 @@ function StatORGA(show=false) {
   
   if(show) ShowORGA();
   
-  return GetORGA();
+  var orga = GetORGA();
+  for(var z=0; z<FD; z++) {
+    rec[S1].orga_num[z] = round(orga.num[z]);
+    rec[S1].orga_sum[z] = round(orga.sum[z]);
+  }
+  
+  return orga;
 }
 
 // INIT STATS ////////////////////////////////////////////////////////////////
@@ -595,11 +604,7 @@ function Stats(force=false) {
   rec[S1].zero();
   
   if(cfg.orga) {
-    var orga = StatORGA();
-    for(var z=0; z<FD; z++) {
-      rec[S1].orga_num[z] = round(orga.num[z]);
-      rec[S1].orga_sum[z] = round(orga.sum[z]);
-    }
+    StatORGA();
   }
   
   gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffers[T0]);  // preparing to fetch Field data from GPU
@@ -752,9 +757,10 @@ function Stats(force=false) {
     SaveGlifetri({'stopped_at':'x'});
   }
   
-  if(S1==1) { S1 = 0;  S0 = 1; } else { S1 = 1;  S0 = 0; }  // flipping time for Stats
-  
   if(sstat) stxtstat.innerHTML = sstat;
+  
+  // flipping time for Stats
+  if(S1==1) { S1 = 0;  S0 = 1; } else { S1 = 1;  S0 = 0; }
   
 }
 

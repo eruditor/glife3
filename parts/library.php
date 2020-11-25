@@ -128,7 +128,7 @@ if($shelf=='typedlist') {
             $a_records[$k][$z] = "<span style='background:#$bgc;'>$t</span>";
           }
         }
-      }//echo gl_Bgc4Records('spread', 50);
+      }
       $FD = count($a_notaset);
       
       $tr = '';

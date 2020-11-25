@@ -7,7 +7,8 @@ include_once("lib/var.php");
 include_once("lib/lib.php");
 include_once("lib/tpl.php");
 
-include_once("lib/service.php");
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +81,7 @@ function GLifeJS($notaset='', $prms=[]) {
   $fseed = intval($_GET['fseed']) ?: rand(1,getrandmax());
   
   $jsget = "?v=$_ENV->ver";
-  if(_local==="1") $jsget .= "&rnd=".rand(1,getrandmax());  // to refresh all scripts every run
+  if(_local==="1") $jsget .= "&rnd=".rand(1,getrandmax());  // to refresh cached scripts every run
   
   $plus = '';  foreach($prms as $k=>$v) if($v) $plus .= "&".urlencode($k)."=".urlencode($v);
   

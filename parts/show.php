@@ -1,7 +1,5 @@
 <?
 
-include_once("backstage.php");
-
 $families = GetFamilies();
 
 $glife = $_GET['glife'];

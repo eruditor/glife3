@@ -2,12 +2,11 @@
 
 $H1 = "Manufacture";
 
-include_once("backstage.php");
-
 $families = GetFamilies();
+$famnames = GetFamilies(true);
 $named = GetNamed();
 
-$aRgeoms = [182=>"3D Moore", 142=>"3D von Neumann"];
+$aRgeoms = [18=>"Moore", 182=>"3D Moore", 142=>"3D von Neumann"];
 $aRsymms = [85=>"8-rotation+parity", 47=>"4-rotation-vector"];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,18 +15,18 @@ if(isset($_GET['autore'])) {
     // todo
   }
   elseif($_GET['family']) {
-    $f_id = 0;
-    foreach($families as $k=>$v) if($v->name==$_GET['family']) { $f_id = $k;  break; }
-    if(!$f_id) die("incorrect family");
+    $fm = $famnames[$_GET['family']];  if(!$fm) die("incorrect family");
     
-    $FD = intval($families[$f_id]->FD || $_GET['FD']);
+    $FD = intval($fm->FD || $_GET['FD']);
     
-    $H1 .= " &rarr; Family=" . $families[$f_id]->name . " (FD=$FD)";
+    $maxfps = intval($_GET['maxfps'] ?: 1001);
     
-    $zzt .= GLifeJS('random', ['FD'=>$FD, 'maxfps'=>1001]);
+    $H1 .= " &rarr; Family=" . $fm->name . " (FD=$FD)";
+    
+    $zzt .= GLifeJS('random', ['FD'=>$FD, 'maxfps'=>$maxfps]);
   }
   elseif($_GET['nota']) {
-    $zzt .= GLifeJS($_GET['nota'], ['maxfps'=>1001]);
+    $zzt .= GLifeJS($_GET['nota'], ['maxfps'=>$maxfps]);
   }
   else {
     die("incorrect parameters");
@@ -38,6 +37,10 @@ else {
   $famopts = "<option value='0'>";  foreach($families as $r) $famopts .= "<option value='$r->name' data-fd='$r->FD'>$r->name";
   $namopts = "<option value=''>";   foreach($named    as $r) $namopts .= "<option value='".SPCQA($r->named)."'>".SPCQA($r->named);
   $famsel = "onchange='var fd=this.options[this.selectedIndex].getAttribute(`data-fd`); var fdinp=document.getElementById(`glfdinp`); fdinp.value=fd>0?fd:3; fdinp.disabled=fd>0?true:false;'";
+  
+  $speeds = [1001, 300, 60];
+  $speedsel = '';  foreach($speeds as $speed) $speedsel .= "<option value='$speed'>$speed";
+  $speedsel = "<select name='maxfps'>$speedsel</select>";
   
   $zzt .= "
     <h2>Random search for extra-universial life</h2>
@@ -63,6 +66,7 @@ else {
         <tr><th colspan=2 class=tal>Iterating family</th></tr>
         <tr><td>family</td><td class=tal><select name='family' $famsel>$famopts</select></td></tr>
         <tr><td><span title='' class=hlp>FD</span></td><td class=tal><input type=number name='FD' value='3' min='1' max='8' id='glfdinp'></td></tr>
+        <tr><td>speed</td><td class=tal>$speedsel</td></tr>
         <tr><td>      </td><td><input type=submit value=' OK '></td></tr>
         </table>
       </form>
@@ -75,6 +79,7 @@ else {
         <tr><th colspan=2 class=tal>Mutating known glife</th></tr>
         <tr><td>named </td><td class=tal><select name='nota'>$namopts</select></td></tr>
         <tr><td>nmuta </td><td class=tal><input type=text name='nmuta' value='100' size=8></td></tr>
+        <tr><td>speed</td><td class=tal>$speedsel</td></tr>
         <tr><td>      </td><td><input type=submit value=' OK '></td></tr>
         </table>
       </form>

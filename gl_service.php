@@ -35,25 +35,6 @@ if($_GET['resetup']) {
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-elseif($_GET['avgruns']) {  // take all runs for this glife and calc their average to put to glife's params
-  $stitle = "avgruns";
-  
-  ini_set("memory_limit", "4000M");
-  set_time_limit(900);
-  
-  include_once("lib/service.php");
-  
-  $PP = intval($_GET['pp']) ?: 10000;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
-  
-  $resg = mysql_query("SELECT * FROM rr_glifes WHERE 1 ORDER BY id LIMIT $LP, $PP");
-  while($gl = mysql_fetch_object($resg)) {
-    $gls = gl_AvgRuns($gl, $_GET['inx']);
-    if($_GET['verbose']) $zzt .= "<div class=stxt>" . print_pre($gls, 1, -1) . "</div>";
-  }
-  
-  $zzt .= "<div>started=$LP | <a href='$_self?avgruns=1&ll=".($LL+1)."'>next $PP</a></div>";
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_GET['import_glifetris']) {
   exit("single time use");
   
