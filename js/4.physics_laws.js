@@ -511,7 +511,7 @@ function SetLangtonRules() {
 function InitRules() {
   for(var z=0; z<FD; z++) R[z].fill(0);
   
-  if(cfg.autore || !Notaset || Notaset=='random') {
+  if(!Notaset || Notaset=='random') {
     Notaset = RandomNotaset();
   }
   
