@@ -30,8 +30,9 @@ $gl_bgc4records = [
   ],
   'stopped_nturn' => [
     1000 => "faa",
-    5000 => "fda",
-    10000 => "afa",
+    4000 => "fda",
+    5000 => "afa",
+    10000 => "8ff",
     99999 => "eee",
   ],
   'orga_num' => [
@@ -51,6 +52,21 @@ $gl_bgc4records = [
     40000 => "8ff",
     60000 => "afa",
     9999999 => "ccc",
+  ],
+  'orga_avg' => [
+    1 => "eee",
+    20 => "faa",
+    40 => "fda",
+    60 => "afa",
+    100 => "8ff",
+    140 => "afa",
+    9999999 => "ccc",
+  ],
+  'orga_z' => [
+    1 => "faa",
+    2 => "8ff",
+    3 => "fda",
+    9 => "ccc",
   ],
 ];
 
@@ -118,7 +134,7 @@ function GetFD4GL($gl) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function GlifeBigInfo($gls) {
+function GlifeBigInfo($gls, $q4runs='') {
   $families = GetFamilies();
   
   $single = false;
@@ -150,13 +166,13 @@ function GlifeBigInfo($gls) {
     $FD = count(explode(",", $gl->notaset));
     
     $srun = '';
-    $res2 = mysql_query("SELECT *, IF(orgasum>=0,1,0) has_orgasum FROM rr_glifetriruns WHERE gl_id='$gl->id' ORDER BY has_orgasum DESC, id DESC LIMIT 3");
+    $res2 = mysql_query("SELECT *, IF(orgasum>=0,1,0) has_orgasum FROM rr_glifetriruns gr WHERE gl_id='$gl->id' $q4runs ORDER BY has_orgasum DESC, id DESC LIMIT 3");
     while($r = mysql_fetch_object($res2)) {
       $srun .= "<td>";
       $srun .= "
         <b>Run #$r->id</b>:
-        <span style='background:#".gl_Bgc4Records('stopped_nturn', $r->stopped_nturn).";'>$r->stopped_nturn</span>
-        ".($r->orgasum>=0 ? "/ <span style='background:#".gl_Bgc4Records('orga_sum', $r->orgasum).";'>$r->orgasum</span>" : "")."
+        <span style='background:#".gl_Bgc4Records('stopped_nturn', $r->stopped_nturn)."'>$r->stopped_nturn</span>
+        ".($r->orgasum>=0 ? "/ <span style='background:#".gl_Bgc4Records('orga_sum', $r->orgasum)."'>$r->orgasum</span>" : "")."
         <br>
       ";
       $ar_stopped = $r->stopped_at=='x' ? array_fill(0, $FD, 'x') : explode(";", $r->stopped_at);
@@ -168,7 +184,7 @@ function GlifeBigInfo($gls) {
           foreach(['fillin','spread','variat'] as $k) {
             $vv = $json->$k;
             $v = round($vv[$z]);
-            $t .= "<td><span style='background:#".gl_Bgc4Records($k, $v).";'>$v%</span></td>";
+            $t .= "<td><span style='background:#".gl_Bgc4Records($k, $v)."'>$v%</span></td>";
           }
           $t .= "<td>".($ar_stopped[$z]?:"-")."</td>";
           foreach(['orga_num','orga_sum'] as $k) {

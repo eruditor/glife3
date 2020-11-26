@@ -13,7 +13,7 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 307;
+$_ENV->ver = 308;
 
 $Title = "GLife3";
 $H1 = "";
@@ -26,6 +26,7 @@ $zabst = "
   Open-source: <a href='https://github.com/eruditor/glife3' class=ext>github</a>.<br>
   It's primary target is the search of artificial life — evolving self-repairing self-replicating structures.<br>
   &rarr; <a href='$_self?glife=Harbinger&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
+  &rarr; <a href='$_self?glife=Plexus&fseed=2779294873&maxfps=300'>Second one</a><br>
 ";
 // ?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300
 $zzt = "";
@@ -46,6 +47,13 @@ elseif($_GET['view']=='gallery') {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_GET['glife']) {
   include("parts/show.php");
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+elseif($_GET['gl_run']) {
+  $gr_id = intval($_GET['gl_run']);  if(!$gr_id) die("#r84238237432");
+  $gr = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$gr_id'");
+  $zzt .= GlifeBigInfo("gl.id='$gr->gl_id'", " AND gr.id='$gr_id'");
+  $zzt .= GLifeJS($gr->gl_id, ['fseed'=>$gr->fseed]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {
@@ -77,8 +85,8 @@ function GLifeJS($notaset='', $prms=[]) {
     $prms['family'] = $fm->name;
   }
   
-  $rseed = intval($_GET['rseed']) ?: rand(1,getrandmax());
-  $fseed = intval($_GET['fseed']) ?: rand(1,getrandmax());
+  $rseed = $prms['rseed'] ?: intval($_GET['rseed']) ?: rand(1,getrandmax());
+  $fseed = $prms['fseed'] ?: intval($_GET['fseed']) ?: rand(1,getrandmax());
   
   $jsget = "?v=$_ENV->ver";
   if(_local==="1") $jsget .= "&rnd=".rand(1,getrandmax());  // to refresh cached scripts every run
@@ -158,9 +166,9 @@ $page->z = "
     #glifeStatTB .tal {text-align:left;}
     
     #SavedListTB TD, #SavedListTB TH {font:normal 11px/13px arial; padding:1px 3px; vertical-align:top;}
-    #SavedListTB TH {text-align:left; font-weight:bold;}
+    #SavedListTB TH {background:#f4f4f4; border-bottom:solid 1px #ddd; text-align:left; font-weight:bold;}
     #SavedListTB TD INPUT {font:normal 11px/11px arial; padding:0;}
-    #SavedListTB TD.tar {text-align:right; font:normal 11px/11px Lucida Console, Monaco, Monospace;}
+    #SavedListTB TD.tar {text-align:right;}
     #SavedListTB TD.nrrw {font-family:arial narrow, arial; font-stretch:condensed;}
   </style>
 " . $page->z;
