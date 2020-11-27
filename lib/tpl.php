@@ -108,10 +108,11 @@ function MakePage() {
 <HTML>
 <head>
   <META http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1251\">".($page->viewport?"
-  <meta name=\"viewport\" content=\"width=$page->viewport\">":"")."
+  <META name=\"viewport\" content=\"width=$page->viewport\">":"")."
   <title>$page->title</title>
   <META name=\"Keywords\" content=\"$page->kws\">
   <META name=\"Description\" content=\"$page->descr\">
+  $page->meta
   <LINK href=\"/style.css?v=40\" rel=stylesheet>
   <script src=\"/js.js?v=2\"></script>".($page->jquery?"
   <script src='//ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js'></script>":"").($page->scripts?"

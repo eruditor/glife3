@@ -264,7 +264,8 @@ if($shelf=='typedlist') {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($shelf=='maxorgasum') {
   $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
-
+  
+  $clean = [];  // non-mutated glife list
   $s = '';
   $res = mysql_query(
    "SELECT SQL_CALC_FOUND_ROWS gr.*, family_id, named, typed, notaset
@@ -277,6 +278,8 @@ elseif($shelf=='maxorgasum') {
   $shwn = mysql_num_rows($res);
   $nttl = mysql_r("SELECT FOUND_ROWS()");
   while($r = mysql_fetch_object($res)) {
+    if(!isset($clean[$r->notaset])) $clean[$r->notaset] = mysql_o("SELECT * FROM rr_glifetris WHERE family_id='".MRES($r->family_id)."' AND notaset='".MRES($r->notaset)."' AND mutaset=''");
+    
     $orga_sum = json_decode($r->records)->orga_sum;
     $orga_z = array_search($r->orgasum, $orga_sum);
     $gllink = SPCQA($r->named) ?: $r->gl_id;
@@ -297,6 +300,7 @@ elseif($shelf=='maxorgasum') {
       <tr>
         <td><a href='$_self?gl_run=$r->id'>$r->id</a></td>
         <td><a href='$_self?glife=$gllink'>$gllink</a></td>
+        <td>".($clean[$r->notaset]->named ?: $clean[$r->notaset]->notaset)."</td>
         <td>".$families[$r->family_id]->name."</td>
         <td class=tar><span style='background:#".gl_Bgc4Records('stopped_nturn', $r->stopped_nturn)."'>$r->stopped_nturn</span></td>
         <td class=tar>".($r->orgasum>=0 ? "<span style='background:#".gl_Bgc4Records('orga_sum', $r->orgasum)."'>$r->orgasum</span>" : "")."</td>
@@ -308,7 +312,7 @@ elseif($shelf=='maxorgasum') {
   }
   $zzt .= "
     <table cellspacing=0 id='SavedListTB' style='border:solid 2px #ddd'>
-    <tr><th>run_id</th><th>glife</th><th>family</th><th>nturn</th><th>orga&Sigma;</th><th>orgaAVG</th><th>z</th><th>stopped</th></tr>
+    <tr><th>run_id</th><th>glife</th><th>clean</th><th>family</th><th>nturn</th><th>orga&Sigma;</th><th>orgaAVG</th><th>z</th><th>stopped</th></tr>
     $s
     </table>
   ";
