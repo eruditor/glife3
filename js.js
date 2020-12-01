@@ -1,5 +1,3 @@
-function wml(s) { var z="@"; var a=s+z+"eruditor.ru"; document.write("<a href='mailto:"+a+"'>"+a+"</a>"); }
-
 function getCookieVal(offset, cookie) {
   var endstr=cookie.indexOf(";", offset);
   if(endstr==-1) {

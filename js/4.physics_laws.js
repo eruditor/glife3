@@ -275,7 +275,11 @@ function SetMutaRules(mutas) {
       n ++;
     }
   }
-  console.log(n + ' random rule mutations:\n' + EncodeMutaStr(mutas));
+  
+  var mutastr = EncodeMutaStr(mutas);
+  divrules.innerHTML += "<pre class='nrrw'><a href='?notaset=" + Notaset + "&mutaset=" + encodeURIComponent(mutastr) + "'>" + mutastr + "</a></pre>";
+  console.log(n + ' random rule mutations:\n' + mutastr);
+  
   return mutas;
 }
 
@@ -332,8 +336,6 @@ function ConwayRandomRules() {
   
   var notaset = '';  for(z in rules) notaset += (notaset?',':'') + rules[z];
   
-  divrules.innerHTML += '<pre>' + notaset + '</pre>';
-  
   return notaset;
 }
 
@@ -345,6 +347,9 @@ function RandomNotaset() {
   else if(Family=='Conway' || Family=='Conway3D') {
     notaset = ConwayRandomRules();
   }
+  
+  divrules.innerHTML += "<pre><a href='?notaset=" + notaset + "'>" + notaset + "</a></pre>";
+  
   return notaset;
 }
 
@@ -511,7 +516,7 @@ function SetLangtonRules() {
 function InitRules() {
   for(var z=0; z<FD; z++) R[z].fill(0);
   
-  if(!Notaset || Notaset=='random') {
+  if(cfg.randrules) {
     Notaset = RandomNotaset();
   }
   
@@ -520,8 +525,8 @@ function InitRules() {
   else if(Family=='Conway3D') SetConway3DRules(Notaset);
   else alert('Unsupported Family');
   
-  if(Mutaset)   Mutas = DecodeMutaStr(Mutaset);
-  else if(NM>0) Mutas = GenMutas(NM);
+  if(Mutaset)          Mutas = DecodeMutaStr(Mutaset);
+  else if(cfg.nmuta>0) Mutas = GenMutas(cfg.nmuta);
   
   if(Mutas) SetMutaRules(Mutas);
   

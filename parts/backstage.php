@@ -2,87 +2,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-global $gl_bgc4records;
-$gl_bgc4records = [
-  'fillin' => [
-      2 => "faa",
-      5 => "fda",
-     10 => "ff8",
-     30 => "afa",
-    999 => "ccc",
-  ],
-  'spread' => [
-      5 => "faa",
-     10 => "fda",
-     30 => "ff8",
-     60 => "afa",
-     80 => "8ff",
-    100 => "eee",
-    999 => "ccc",
-  ],
-  'variat' => [
-    1 => "ccc",
-    5 => "faa",
-    10 => "fda",
-    50 => "ff8",
-    100 => "afa",
-    999 => "8ff",
-  ],
-  'stopped_nturn' => [
-    1000 => "faa",
-    4000 => "fda",
-    5000 => "afa",
-    10000 => "8ff",
-    99999 => "eee",
-  ],
-  'orga_num' => [
-    0 => "eee",
-    50 => "faa",
-    100 => "fda",
-    200 => "afa",
-    400 => "8ff",
-    800 => "afa",
-    9999999 => "ccc",
-  ],
-  'orga_sum' => [
-    0 => "eee",
-    5000 => "faa",
-    10000 => "fda",
-    20000 => "afa",
-    40000 => "8ff",
-    60000 => "afa",
-    9999999 => "ccc",
-  ],
-  'orga_avg' => [
-    1 => "eee",
-    20 => "faa",
-    40 => "fda",
-    60 => "afa",
-    100 => "8ff",
-    140 => "afa",
-    9999999 => "ccc",
-  ],
-  'orga_z' => [
-    1 => "faa",
-    2 => "8ff",
-    3 => "fda",
-    9 => "ccc",
-  ],
-];
-
-function gl_Bgc4Records($k, $v) {
-  global $gl_bgc4records;
-  $bgc = '';
-  if(!$gl_bgc4records[$k]) return "fff";
-  foreach($gl_bgc4records[$k] as $x=>$c) {
-    $bgc = $c;
-    if($v<$x) break;
-  }
-  return $bgc;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function GetFamilies($byname=false) {
   static $families = [], $famnames = [];
   if(!$families) {
@@ -171,8 +90,8 @@ function GlifeBigInfo($gls, $q4runs='') {
       $srun .= "<td>";
       $srun .= "
         <b>Run #$r->id</b>:
-        <span style='background:#".gl_Bgc4Records('stopped_nturn', $r->stopped_nturn)."'>$r->stopped_nturn</span>
-        ".($r->orgasum>=0 ? "/ <span style='background:#".gl_Bgc4Records('orga_sum', $r->orgasum)."'>$r->orgasum</span>" : "")."
+        ".glRecords::RecordsSpan($r, 'stopped_nturn')." / 
+        ".glRecords::RecordsSpan($r, 'orga_sum')."
         <br>
       ";
       $ar_stopped = $r->stopped_at=='x' ? array_fill(0, $FD, 'x') : explode(";", $r->stopped_at);
@@ -184,7 +103,7 @@ function GlifeBigInfo($gls, $q4runs='') {
           foreach(['fillin','spread','variat'] as $k) {
             $vv = $json->$k;
             $v = round($vv[$z]);
-            $t .= "<td><span style='background:#".gl_Bgc4Records($k, $v)."'>$v%</span></td>";
+            $t .= "<td><span style='background:#".glRecords::Bgc4Records($k, $v)."'>$v%</span></td>";
           }
           $t .= "<td>".($ar_stopped[$z]?:"-")."</td>";
           foreach(['orga_num','orga_sum'] as $k) {
@@ -192,7 +111,7 @@ function GlifeBigInfo($gls, $q4runs='') {
             $v = round($vv[$z]);
             $st = '';
             if($r->orgasum<0) { $v = -1;  $st = "color:#aaa;"; }
-            $t .= "<td><span style='background:#".gl_Bgc4Records($k, $v).";$st'>$v</span></td>";
+            $t .= "<td><span style='background:#".glRecords::Bgc4Records($k, $v).";$st'>$v</span></td>";
           }
           $stb .= "<tr><td>$z</td>$t</tr>";
         }

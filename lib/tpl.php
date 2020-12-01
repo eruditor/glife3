@@ -63,7 +63,7 @@ function MakePage() {
   <noscript><div><img src="https://mc.yandex.ru/watch/11332753" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
   ';
   
-  if(_local) {
+  if(_local==="1") {
     $rax = "<img src='/i/rax31.gif' width=88 height=31>";
     $yam = "<!--".htmlSPC($yam)."-->";
   }

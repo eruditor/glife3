@@ -16,18 +16,20 @@ function GetBoolParam(nm)        { return      (URL.get(nm)>0 || SLF.get(nm)>0) 
 class Cfg {
   constructor() {
     this.debug     = GetBoolParam('debug');
+    this.autore    = GetBoolParam('autore');
+    
     this.paused    = GetBoolParam('paused');
     this.pausestat = GetBoolParam('pausestat');
+    this.pauseat   = GetIntParam('pauseat');
     
     this.maxfps    = GetIntParam('maxfps', 60);  // Calc framerate limit
     this.showiter  = GetIntParam('showiter');  if(this.showiter<2) this.showiter = 0;  // Show once per showiter Calcs
     
-    this.autore    = GetBoolParam('autore');
-    this.rerun     = GetBoolParam('rerun');
-    this.pauseat   = GetIntParam('pauseat');
-    
     this.drawrules = GetBoolParam('drawrules');
-    this.orga      = GetBoolParam('orga');
+    this.calcorga  = GetBoolParam('calcorga');
+    
+    this.randrules = GetBoolParam('randrules');
+    this.nmuta     = GetIntParam('nmuta');  // number of random mutations in rules
     
     this.turn4stats = 100;  // not recommended to change
   }
@@ -49,7 +51,7 @@ var FH    = GetIntParam('FH', 350);  // field height
 var FD    = GetIntParam('FD',   3);  // field depth (number of layers)
 
 var LF    = GetIntParam('LF', 90) / 100;  // initially filled piece (percent)
-var NM    = GetIntParam('nmuta');  // number of random mutations in rules
+
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 

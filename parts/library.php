@@ -123,7 +123,7 @@ if($shelf=='typedlist') {
           if(!$records->$k) continue;
           foreach($records->$k as $z=>$v) {
             $v = round($v);
-            $bgc = gl_Bgc4Records($k, $v);
+            $bgc = glRecords::Bgc4Records($k, $v);
             $t = $v>=100 ? "AA" : sprintf("%'.02d", $v);
             $a_records[$k][$z] = "<span style='background:#$bgc'>$t</span>";
           }
@@ -272,7 +272,7 @@ elseif($shelf=='maxorgasum') {
    FROM rr_glifetriruns gr
    JOIN rr_glifetris gl ON gl.id=gr.gl_id
    WHERE stopped_at!='x' $famQplus
-   ORDER BY orgasum DESC
+   ORDER BY rating DESC, orgasum DESC
    LIMIT $LP,$PP
   ");
   $shwn = mysql_num_rows($res);
@@ -280,21 +280,9 @@ elseif($shelf=='maxorgasum') {
   while($r = mysql_fetch_object($res)) {
     if(!isset($clean[$r->notaset])) $clean[$r->notaset] = mysql_o("SELECT * FROM rr_glifetris WHERE family_id='".MRES($r->family_id)."' AND notaset='".MRES($r->notaset)."' AND mutaset=''");
     
-    $orga_sum = json_decode($r->records)->orga_sum;
-    $orga_z = array_search($r->orgasum, $orga_sum);
+    glRecords::EnrichOrgaRatings($r);
+    
     $gllink = SPCQA($r->named) ?: $r->gl_id;
-    
-    $orga_z_num = -1;
-    if($orga_z!==false) {
-      $FD = count(explode(",", $r->notaset));
-      $json = json_decode($r->records) ?: [];
-      $orga_z_num = $json->orga_num[$orga_z];
-    }
-    
-    $orga_z_avg = -1;
-    if($orga_z_num>0) {
-      $orga_z_avg = round($r->orgasum / $orga_z_num);
-    }
     
     $s .= "
       <tr>
@@ -302,28 +290,29 @@ elseif($shelf=='maxorgasum') {
         <td><a href='$_self?glife=$gllink'>$gllink</a></td>
         <td>".($clean[$r->notaset]->named ?: $clean[$r->notaset]->notaset)."</td>
         <td>".$families[$r->family_id]->name."</td>
-        <td class=tar><span style='background:#".gl_Bgc4Records('stopped_nturn', $r->stopped_nturn)."'>$r->stopped_nturn</span></td>
-        <td class=tar>".($r->orgasum>=0 ? "<span style='background:#".gl_Bgc4Records('orga_sum', $r->orgasum)."'>$r->orgasum</span>" : "")."</td>
-        <td class=tar>".($orga_z_avg>=0 ? "<span style='background:#".gl_Bgc4Records('orga_avg', $orga_z_avg)."'>$orga_z_avg</span>" : "")."</td>
-        <td>".($orga_z!==false ? "<span style='background:#".gl_Bgc4Records('orga_z', $orga_z)."'>$orga_z</span>" : "?")."</td>
+        <td class=tar>".glRecords::RecordsSpan($r, 'stopped_nturn')."</td>
+        <td class=tar>".glRecords::RecordsSpan($r, 'orga_sum'     )."</td>
+        <td class=tar>".glRecords::RecordsSpan($r, 'orga_avg'     )."</td>
+        <td class=tar>".glRecords::RecordsSpan($r, 'orga_z'       )."</td>
         <td>$r->stopped_at</td>
+        <td class=tar>".glRecords::RecordsSpan($r, 'rating'       )."</td>
       </tr>
     ";
   }
   $zzt .= "
     <table cellspacing=0 id='SavedListTB' style='border:solid 2px #ddd'>
-    <tr><th>run_id</th><th>glife</th><th>clean</th><th>family</th><th>nturn</th><th>orga&Sigma;</th><th>orgaAVG</th><th>z</th><th>stopped</th></tr>
+    <tr><th>run_id</th><th>glife</th><th>clean</th><th>family</th><th>nturn</th><th>orga&Sigma;</th><th>orgaAVG</th><th>z</th><th>stopped</th><th>rating</th></tr>
     $s
     </table>
   ";
   
   if($nttl>$PP) {  // pagination
-    $q = '';
-    foreach($_GET as $k=>$v) if($k<>'ll') $q .= ($q?"&":"") . "$k=$v";
-    $s = '';
-    $s .= "<td width=160>" . ($LL>0 ? "<a href='$_self?$q&ll=".($LL-1)."'>&larr; prev $PP</a>" : "") . "</td>";
-    $s .= "<td width=240>shown $shwn / $nttl</td>";
-    $s .= "<td width=160>" . ($LP+$shwn<$nttl ? "<a href='$_self?$q&ll=".($LL+1)."'>next $PP &rarr;</a>" : "") . "</td>";
+    $q = '';  foreach($_GET as $k=>$v) if($k<>'ll') $q .= ($q?"&":"") . "$k=$v";
+    $s = "
+      <td width=160>" . ($LL>0 ? "<a href='$_self?$q".($LL>1?"&ll=".($LL-1):"")."'>&larr; prev $PP</a>" : "") . "</td>
+      <td width=240>shown $shwn / $nttl</td>
+      <td width=160>" . ($LP+$shwn<$nttl ? "<a href='$_self?$q&ll=".($LL+1)."'>next $PP &rarr;</a>" : "") . "</td>
+    ";
     $zzt .= "<br><div align=center><table><tr>$s</tr></table></div>";
   }
 }

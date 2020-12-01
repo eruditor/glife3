@@ -1,8 +1,12 @@
-<? define("_root","../../");
+<?
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-include(_root . "lib/var.php");
-include(_root . "lib/db.php");
-include(_root . "lib/lib.php");
+
+include_once("../../lib/db.php");  // connects to MySQL database, this file is located outside of repository
+
+define("_root", "");
+include_once("lib/var.php");
+include_once("lib/lib.php");
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -35,13 +39,13 @@ if($_POST['family_id']) {
     $post[$k] = MRES($_POST[$k]);
     $q .= ($q?", ":"") . "$k='".$post[$k]."'";
   }
-  if($_POST['rerun']) {
-    mysql_query("UPDATE rr_glifetriruns SET $q WHERE gl_id='$glid'");
-  }
-  else {
-    mysql_query("INSERT INTO rr_glifetriruns SET gl_id='$glid', dt=NOW(), $q");
-    $id = mysql_insert_id();
-  }
+  mysql_query("INSERT INTO rr_glifetriruns SET gl_id='$glid', dt=NOW(), $q");
+  $id = mysql_insert_id();
+  
+  // calc rating
+  $r = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$id'");
+  glRecords::EnrichOrgaRatings($r);
+  if(property_exists($r, 'rating')) mysql_query("UPDATE rr_glifetriruns SET rating='$r->rating' WHERE id='$r->id'");
   
   // insert qlog
   mysql_query("INSERT INTO rr_glogs SET glife_id='$glid', usr_id=0, dt=NOW(), val0='', val1='tri:".MRES($q)."'");

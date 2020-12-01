@@ -130,7 +130,7 @@ class Records {  // tracking and writing to DB population characteristics
 // SAVE RULES ////////////////////////////////////////////////////////////////
 
 function SaveGlifetri(prms={}) {
-  if(!cfg.orga) StatORGA();  // calc orga stats before saving
+  if(!cfg.calcorga) StatORGA();  // calc orga stats before saving
   
   if(Family=='Conway') {
     prms['family_id'] = 1;
@@ -157,7 +157,6 @@ function SaveGlifetri(prms={}) {
   prms['stopped_nturn'] = nturn;
   prms['records'] = JSON.stringify(rec[S1]);
   prms['context'] = window.location.search;
-  if(cfg.rerun) prms['rerun'] = 1;
   
   // put maximum among layers>0 to glifetrirun.orgasum
   // exclude z=0, because it represents "ground" non-living layer and is often too much structured, making max(orgasum) undeservingly too large
@@ -607,7 +606,7 @@ function Stats(force=false) {
   
   rec[S1].zero();
   
-  if(cfg.orga) {
+  if(cfg.calcorga) {
     StatORGA();
   }
   
@@ -739,15 +738,11 @@ function Stats(force=false) {
     </table>
   `;
   
-  if(cfg.autore || cfg.rerun) {
+  if(cfg.autore) {
     if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
       SaveGlifetri({'stopped_at':failed_at});
       nGen ++;
-      if(cfg.rerun) {
-        cfg.paused = 1;
-        window.location.reload();
-      }
-      else if(nGen>300) {
+      if(nGen>300) {
         cfg.paused = 1;
         window.location.reload();  // reloading page sometimes to refresh seed for rand32 to avoid cycles
       }

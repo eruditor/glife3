@@ -1,8 +1,9 @@
-<? define("_root","../../");
+<? 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 include_once("../../lib/db.php");  // connects to MySQL database, this file is located outside of repository
 
+define("_root", "");
 include_once("lib/var.php");
 include_once("lib/lib.php");
 include_once("lib/tpl.php");
@@ -65,13 +66,12 @@ else {
 function GLifeJS($notaset='', $prms=[]) {
   $send2js = '';
   
-  global $gl_bgc4records;
-  $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode($gl_bgc4records) . "`);";
+  $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);";
   
   $families = GetFamilies();
   
   if($notaset=='random') {
-    $prms['notaset'] = 'random';
+    $prms['randrules'] = 1;
   }
   else {
     $gl = GetGL4Notaset($notaset);
