@@ -53,7 +53,7 @@ if($_GET['upd_orgasum']) {  // recalc glifetriruns.orgasum, see comments with "u
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_GET['calc_ratings']) {
   $stitle = "calc_ratings";
-  $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE rating IS NULL AND records<>'' ORDER BY id LIMIT $AQ->LP,$AQ->PP");
+  $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE rating=0 ORDER BY id LIMIT $AQ->LP,$AQ->PP");
   $AQ->shwn = mysql_num_rows($res);
   $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
   while($r = mysql_fetch_object($res)) {

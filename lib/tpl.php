@@ -14,6 +14,7 @@ function MakePage() {
   $tm = [
     "gallery"     => "Gallery",
     "library"     => "Library",
+    "stadium"     => "Stadium",
     "manufacture" => "Manufacture",
   ];
   $s = '';

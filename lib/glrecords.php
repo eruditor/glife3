@@ -68,14 +68,14 @@ class glRecords {
       9 => "ccc",
     ],
     'rating' => [
-      -60 => "999",
-      -40 => "ccc",
-      -20 => "faa",
-      -10 => "fda",
-        0 => "ccc",
-       20 => "eee",
-       40 => "afa",
-      999 => "8ff",
+       60 => "8ff",
+       80 => "afa",
+      100 => "eee",
+      110 => "ccc",
+      120 => "fda",
+      140 => "faa",
+      160 => "ccc",
+      999 => "999",
     ],
   ];
   
@@ -123,11 +123,12 @@ class glRecords {
       $gl->orga_num = $gl->orga_z!==false ? $json->orga_num[$gl->orga_z] : -1;
       $gl->orga_avg = $gl->orga_num>0 ? round($gl->orgasum / $gl->orga_num) : -1;
       
-      $gl->rating = 0;
+      $gl->rating = 100;
       foreach(['stopped_nturn', 'orga_z', 'orga_sum', 'orga_avg'] as $k) {
         $bgc = self::Bgc4Records($k, $gl->$k);
-        $gl->rating += self::$rank4bgc[$bgc];
+        $gl->rating -= self::$rank4bgc[$bgc];
       }
+      if($gl->rating<=0) $gl->rating = 1;  // decreasing rating is to optimize MySQL ASC/DESC INDEX usage
     }
     else {
       $gl->rating = -999;

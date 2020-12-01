@@ -116,7 +116,7 @@ function GlifeBigInfo($gls, $q4runs='') {
           $stb .= "<tr><td>$z</td>$t</tr>";
         }
         $srun .= "
-          <table cellspacing=0 id='glifeStatTB'>
+          <table cellspacing=0 id='glifeStatTB' class='nrrw'>
             <tr><th>z</th><th>fillin</th><th>spread</th><th>variat</th><th>stopped</th><th>orgaN</th><th>orga&Sigma;</th></tr>
             $stb
           </table>
@@ -135,11 +135,18 @@ function GlifeBigInfo($gls, $q4runs='') {
         <small class='nrrw gr'>".RN($gl->mutaset)."</small>
       </td>
       <td><table><tr>$srun</tr></table><br></td>
+      <td>".GlifeEditInput($gl)."</td>
       </tr>
     ";
   }
   
   return "<table id='SavedListTB'>$s</table>";
+}
+
+function GlifeEditInput($r) {
+  return _local==="1"
+    ? "<span style='position:absolute;'><input type=text id='glrule$r->id' value='".SPCQA($r->named . ($r->typed?":$r->typed":""))."' size=16><input type=button value=' Save ' onclick='XHRsave3(`id=$r->id&named=`+encodeURIComponent(document.getElementById(`glrule$r->id`).value));'></span>"
+    : "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

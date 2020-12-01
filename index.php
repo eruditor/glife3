@@ -14,11 +14,15 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 308;
+$_ENV->ver = 309;
 
 $Title = "GLife3";
 $H1 = "";
-$zabst = "
+$zabst = $_GET
+  ?
+  "<span style='font-style:normal;'>&#9432; <a href='$_self'>What is Glife?</a></span>"
+  :
+  "
   <b>GLife is a cellular automata platform based on WebGL2.</b><br>
   Universal logic: represents both Conway's Game of Life and Langton's Ant as particular examples.<br>
   2D/3D: multi-layer grids.<br>
@@ -34,29 +38,18 @@ $zzt = "";
 $zpubd = "2020-10-01";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-if($_GET['view']=='manufacture') {
-  include("parts/manufacture.php");
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-elseif($_GET['view']=='library') {
-  include("parts/library.php");
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-elseif($_GET['view']=='gallery') {
-  include("parts/gallery.php");
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-elseif($_GET['glife']) {
-  include("parts/show.php");
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ROUTING
+    if($_GET['glife'])               { include("parts/show.php");        }
+elseif($_GET['view']=='gallery')     { include("parts/gallery.php");     }
+elseif($_GET['view']=='library')     { include("parts/library.php");     }
+elseif($_GET['view']=='stadium')     { include("parts/stadium.php");     }
+elseif($_GET['view']=='manufacture') { include("parts/manufacture.php"); }
 elseif($_GET['gl_run']) {
   $gr_id = intval($_GET['gl_run']);  if(!$gr_id) die("#r84238237432");
   $gr = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$gr_id'");
   $zzt .= GlifeBigInfo("gl.id='$gr->gl_id'", " AND gr.id='$gr_id'");
   $zzt .= GLifeJS($gr->gl_id, ['fseed'=>$gr->fseed]);
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {
   $zzt .= GLifeJS();
 }
@@ -164,6 +157,7 @@ $page->z = "
     #glifeStatTB TD, #glifeStatTB TH {padding:2px 4px; text-align:right; vertical-align:top;}
     #glifeStatTB TH {background:#f4f4f4; border-bottom:solid 1px #ddd;}
     #glifeStatTB .tal {text-align:left;}
+    TABLE.nrrw TD, TABLE.nrrw TH {font-family:arial narrow, arial!important; font-stretch:condensed!important;}
     
     #SavedListTB TD, #SavedListTB TH {font:normal 11px/13px arial; padding:1px 3px; vertical-align:top;}
     #SavedListTB TH {background:#f4f4f4; border-bottom:solid 1px #ddd; text-align:left; font-weight:bold;}
