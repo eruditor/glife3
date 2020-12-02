@@ -2,6 +2,11 @@
 
 $H1 = "Stadium";
 
+$zabst .= "
+  “Stadium” is where glifes are sorted by orga-rating.<br>
+  And orga-rating is an automatically produced number that (we hope) shows how likely this glife contains any signs of artificial life.<br>
+";
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $families = GetFamilies();

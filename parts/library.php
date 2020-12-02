@@ -2,6 +2,13 @@
 
 $H1 = "Library";
 
+$zabst .= "
+  “Library” is a categorized list of glifes.<br>
+  The most interesting glifes are “named” and presented in the “<a href='$_self?view=gallery'>Gallery</a>”.<br>
+  Those that are manually processed and categorized are “typed”, they are here on the left.<br>
+  All others are devided into 3 categories (good, so-so and bad) by machine.<br>
+";
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $families = GetFamilies();

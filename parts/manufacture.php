@@ -2,12 +2,23 @@
 
 $H1 = "Manufacture";
 
+$zabst .= "
+  “Manufacture” is where glifes are automatically produced.<br>
+  Setting random physics rules for a newborn universe, running it's dynamics calculations and then analyzing if the result is somehow interesting.<br>
+  (At ~1000 fps it takes about 1 second to process one set of rules.)<br>
+";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 $families = GetFamilies();
 $famnames = GetFamilies(true);
 $named = GetNamed();
 
 $aRgeoms = [18=>"Moore", 182=>"3D Moore", 142=>"3D von Neumann"];
 $aRsymms = [85=>"8-rotation+parity", 47=>"4-rotation-vector"];
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(isset($_GET['autore'])) {

@@ -14,13 +14,13 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 309;
+$_ENV->ver = 310;
 
 $Title = "GLife3";
 $H1 = "";
 $zabst = $_GET
   ?
-  "<span style='font-style:normal;'>&#9432; <a href='$_self'>What is Glife?</a></span>"
+  "<div style='font-style:normal;'>&#9432; <a href='$_self'>What is Glife?</a></div>"
   :
   "
   <b>GLife is a cellular automata platform based on WebGL2.</b><br>
