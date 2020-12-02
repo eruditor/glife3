@@ -6,7 +6,7 @@ var canvas = document.createElement('canvas');
 glcont.prepend(canvas);
 
 var gl = canvas.getContext('webgl2');
-if(!gl) alert('Enable WebGL2 in your browser');
+if(!gl) alert('Enable WebGL2 in your browser. Look under Settings -> Experimental Features.');
 
 var gl_ext = gl.getExtension('EXT_color_buffer_float');  // for floating-point math
 

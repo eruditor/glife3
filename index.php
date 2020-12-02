@@ -14,7 +14,7 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 310;
+$_ENV->ver = 311;
 
 $Title = "GLife3";
 $H1 = "";
@@ -131,6 +131,7 @@ $page->z .= "
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// to be refactored...
 $page->z = "
   <script>
     function XHRsave3(q) {
@@ -142,6 +143,11 @@ $page->z = "
       };
       xhr.send(q);
     }
+    function DynamicScriptLoad(url) {
+      var script = document.createElement('script');
+      script.src = url;
+      document.body.appendChild(script);
+    }
   </script>
   <style>
     HTML, BODY {min-width:1200px;}
@@ -152,6 +158,8 @@ $page->z = "
     .valtop, .valtop TD {vertical-align:top;}
     .hlp {cursor:help;}
     .nrrw {font-family:arial narrow, arial; font-stretch:condensed;}
+    
+    #GLifeCont INPUT[type=text] {padding:0px 1px;  margin:1px 1px;}
     
     #glifeStatTB {border:solid 2px #ddd; margin:0 0 10px 0;}
     #glifeStatTB TD, #glifeStatTB TH {padding:2px 4px; text-align:right; vertical-align:top;}
