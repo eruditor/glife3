@@ -1,9 +1,9 @@
 <?
 
-$H1 = "Library";
+$H1 = "Catalog";
 
 $zabst .= "
-  “Library” is a categorized list of glifes.<br>
+  “Catalog” is a categorized list of glifes.<br>
   The most interesting glifes are “named” and presented in the “<a href='$_self?view=gallery'>Gallery</a>”.<br>
   Those that are manually processed and categorized are “typed”, they are here on the left.<br>
   All others are devided into 3 categories (good, so-so and bad) by machine.<br>
@@ -21,7 +21,7 @@ $famUplus = $family ? "&family=$family->name" : "";
 
 $s = "| ";
 foreach($famnames as $fam) {
-  $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='$_self?view=library&family=$fam->name'>$fam->name</a>";
+  $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='$_self?view=catalog&family=$fam->name'>$fam->name</a>";
   $s .= "$t | ";
 }
 $zzt .= "<h3>Family filter: $s</h3><hr>";
@@ -34,7 +34,7 @@ if($_GET['typed']) {
   $typed = $_GET['typed'];
   
   $title = "«".SPCQA($typed)."»";
-  $H1 = "<a href='$_self?view=library'>Library</a> &rarr; $title";
+  $H1 = "<a href='$_self?view=catalog'>Catalog</a> &rarr; $title";
   
   $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
   
@@ -77,7 +77,7 @@ elseif(isset($_GET['stopped'])) {
   $goodness = intval($_GET['goodness']);
   
   $title = "«".SPCQA($stopped?:"---")."»";
-  $H1 = "<a href='$_self?view=library'>Library</a> &rarr; $title";
+  $H1 = "<a href='$_self?view=catalog'>Catalog</a> &rarr; $title";
   
   $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
   
@@ -198,7 +198,7 @@ else {
   while($r = mysql_fetch_object($res)) {
     $ss[0] .= "
       <tr style='background:#".$clr4nmd[$r->typed]."'>
-      <td><a href='$_self?view=library$famUplus&typed=$r->typed'>".($r->typed?:"-?-")."</a></td>
+      <td><a href='$_self?view=catalog$famUplus&typed=$r->typed'>".($r->typed?:"-?-")."</a></td>
       <td align=right>$r->nn</td>
       </tr>
     ";
@@ -215,7 +215,7 @@ else {
   while($r = mysql_fetch_object($res)) {
     $ss[$r->goodness] .= "
       <tr>
-        <td><a href='$_self?view=library$famUplus&stopped=$r->stopped_at&goodness=$r->goodness'>".($r->stopped_at?:"---")."</a></td>
+        <td><a href='$_self?view=catalog$famUplus&stopped=$r->stopped_at&goodness=$r->goodness'>".($r->stopped_at?:"---")."</a></td>
         <td align=right>$r->nn</td>
       </tr>
     ";

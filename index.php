@@ -14,7 +14,7 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 311;
+$_ENV->ver = 312;
 
 $Title = "GLife3";
 $H1 = "";
@@ -41,7 +41,7 @@ $zpubd = "2020-10-01";
 // ROUTING
     if($_GET['glife'])               { include("parts/show.php");        }
 elseif($_GET['view']=='gallery')     { include("parts/gallery.php");     }
-elseif($_GET['view']=='library')     { include("parts/library.php");     }
+elseif($_GET['view']=='catalog')     { include("parts/catalog.php");     }
 elseif($_GET['view']=='stadium')     { include("parts/stadium.php");     }
 elseif($_GET['view']=='manufacture') { include("parts/manufacture.php"); }
 elseif($_GET['gl_run']) {
