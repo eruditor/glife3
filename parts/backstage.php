@@ -89,7 +89,7 @@ function GlifeBigInfo($gls, $q4runs='') {
     while($r = mysql_fetch_object($res2)) {
       $srun .= "<td>";
       $srun .= "
-        <b>Run #$r->id</b>:
+        <b><a href='$_self?gl_run=$r->id'>Run #$r->id</a></b>:
         ".glRecords::RecordsSpan($r, 'stopped_nturn')." / 
         ".glRecords::RecordsSpan($r, 'orga_sum')."
         <br>
@@ -147,6 +147,61 @@ function GlifeEditInput($r) {
   return _local==="1"
     ? "<span style='position:absolute;'><input type=text id='glrule$r->id' value='".SPCQA($r->named . ($r->typed?":$r->typed":""))."' size=16><input type=button value=' Save ' onclick='XHRsave3(`id=$r->id&named=`+encodeURIComponent(document.getElementById(`glrule$r->id`).value));'></span>"
     : "";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function GLifeJS($notaset='', $prms=[], $send2js = '') {
+  $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);";
+  
+  $families = GetFamilies();
+  
+  if($notaset=='random') {
+    $prms['randrules'] = 1;
+  }
+  elseif($notaset=='rerun') {
+    $prms['rerun'] = 1;
+  }
+  else {
+    $gl = GetGL4Notaset($notaset);
+    $prms['notaset'] = $gl->notaset;
+    $prms['mutaset'] = $gl->mutaset;
+    
+    $FD = GetFD4GL($gl);
+    $prms['FD'] = $FD;
+    
+    $fm = $families[$gl->family_id];
+    $prms['family'] = $fm->name;
+  }
+  
+  $rseed = $prms['rseed'] ?: intval($_GET['rseed']) ?: rand(1,getrandmax());
+  $fseed = $prms['fseed'] ?: intval($_GET['fseed']) ?: rand(1,getrandmax());
+  
+  $jsget = "?v=$_ENV->ver";
+  if(_local==="1") $jsget .= "&rnd=".rand(1,getrandmax());  // to refresh cached scripts every run
+  
+  $plus = '';  foreach($prms as $k=>$v) if($v) $plus .= "&".urlencode($k)."=".urlencode($v);
+  
+  return "
+    <div id=GLifeCont></div>
+    
+    <script>$send2js</script>
+    
+    <script src='js/0.params.js$jsget&rseed=$rseed&fseed=$fseed$plus'></script>
+    <script src='js/1.math.js$jsget'></script>
+    <script src='js/2.hardware.js$jsget'></script>
+    <script src='js/3.spacetime.js$jsget'></script>
+    <script src='js/4.physics_laws.js$jsget'></script>
+    <script src='js/5.dynamics.js$jsget'></script>
+    <script src='js/6.visualisation.js$jsget'></script>
+    <script src='js/7.analysis.js$jsget'></script>
+    <script src='js/8.interface.js$jsget'></script>
+    <script src='js/9.divine_forces.js$jsget'></script>
+    <script src='main.js$jsget'></script>
+  ";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

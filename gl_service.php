@@ -63,6 +63,27 @@ elseif($_GET['calc_ratings']) {
   $AQ->RunAQs();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+elseif($_GET['rerun_new_orga']) {
+  $stitle = "rerun_new_orga";
+  $send2js = '';
+  $res = mysql_query(
+   "SELECT gr.*, gl.family_id, gl.notaset, gl.mutaset
+    FROM rr_glifetriruns gr
+    JOIN rr_glifetris gl ON gl.id=gr.gl_id
+    WHERE gr.orgasum>0 AND family_id=3 AND mode=0
+    LIMIT 100
+  ");
+  while($r = mysql_fetch_object($res)) {
+    $send2js .= "[$r->id, '$r->notaset', '".str_replace("\n", "\\n", $r->mutaset)."', $r->fseed],\n";
+  }
+  $send2js = "
+      gl_reruns = [
+        $send2js
+      ];
+  ";
+  $zzt .= GLifeJS('rerun', [], $send2js);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

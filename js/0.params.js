@@ -17,6 +17,7 @@ class Cfg {
   constructor() {
     this.debug     = GetBoolParam('debug');
     this.autore    = GetBoolParam('autore');
+    this.rerun     = GetBoolParam('rerun');
     
     this.paused    = GetBoolParam('paused');
     this.pausestat = GetBoolParam('pausestat');
@@ -54,6 +55,22 @@ var LF    = GetIntParam('LF', 90) / 100;  // initially filled piece (percent)
 
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
+
+// RERUN ////////////////////////////////////////////////////////////////
+
+rerun_n = 0;  rerun_gr_id = 0;
+if(cfg.rerun) {
+  Family = 'Conway3D';
+  function GetRerun() {
+    if(!gl_reruns[rerun_n]) return false;
+    [rerun_gr_id, Notaset, Mutaset, Fseed] = gl_reruns[rerun_n];
+    if(!rerun_gr_id) return false;
+    console.log(rerun_n, rerun_gr_id, Notaset, Mutaset, Fseed);
+    rerun_n ++;
+    return true;
+  }
+  GetRerun();
+}
 
 // FAMILY-SPECIFIC ////////////////////////////////////////////////////////////////
 

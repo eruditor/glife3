@@ -119,6 +119,22 @@ function MakePage() {
   <script src='//ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js'></script>":"").($page->scripts?"
   $page->scripts":"")."
   ".trim($yam)."
+  <script>
+    function XHRsave3(q) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', 'gl_save.php');
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onload = function() {
+        if(xhr.status==200) { if(xhr.responseText) alert(xhr.responseText); }
+      };
+      xhr.send(q);
+    }
+    function DynamicScriptLoad(url) {
+      var script = document.createElement('script');
+      script.src = url;
+      document.body.appendChild(script);
+    }
+  </script>
 </head>
 <BODY align=center>
 <DIV id=Wrap align=left>
@@ -132,7 +148,7 @@ function MakePage() {
 <DIV id=Bottom>
   <table id=BottomLine><tr>
   <td width=100% align=left>
-    eruditor.ru <span title='$page->mt'>&copy;</span> 2006-".date("Y")."
+    eruditor.ru <span title='$page->mt'>&copy;</span> 2019-".date("Y")."
   </td>
   <td style='padding-right:1px;'>$rax</td>
   </tr></table>

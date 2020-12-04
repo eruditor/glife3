@@ -14,7 +14,7 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 312;
+$_ENV->ver = 313;
 
 $Title = "GLife3";
 $H1 = "";
@@ -56,57 +56,6 @@ else {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function GLifeJS($notaset='', $prms=[]) {
-  $send2js = '';
-  
-  $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);";
-  
-  $families = GetFamilies();
-  
-  if($notaset=='random') {
-    $prms['randrules'] = 1;
-  }
-  else {
-    $gl = GetGL4Notaset($notaset);
-    $prms['notaset'] = $gl->notaset;
-    $prms['mutaset'] = $gl->mutaset;
-    
-    $FD = GetFD4GL($gl);
-    $prms['FD'] = $FD;
-    
-    $fm = $families[$gl->family_id];
-    $prms['family'] = $fm->name;
-  }
-  
-  $rseed = $prms['rseed'] ?: intval($_GET['rseed']) ?: rand(1,getrandmax());
-  $fseed = $prms['fseed'] ?: intval($_GET['fseed']) ?: rand(1,getrandmax());
-  
-  $jsget = "?v=$_ENV->ver";
-  if(_local==="1") $jsget .= "&rnd=".rand(1,getrandmax());  // to refresh cached scripts every run
-  
-  $plus = '';  foreach($prms as $k=>$v) if($v) $plus .= "&".urlencode($k)."=".urlencode($v);
-  
-  return "
-    <div id=GLifeCont></div>
-    
-    <script>$send2js</script>
-    
-    <script src='js/0.params.js$jsget&rseed=$rseed&fseed=$fseed$plus'></script>
-    <script src='js/1.math.js$jsget'></script>
-    <script src='js/2.hardware.js$jsget'></script>
-    <script src='js/3.spacetime.js$jsget'></script>
-    <script src='js/4.physics_laws.js$jsget'></script>
-    <script src='js/5.dynamics.js$jsget'></script>
-    <script src='js/6.visualisation.js$jsget'></script>
-    <script src='js/7.analysis.js$jsget'></script>
-    <script src='js/8.interface.js$jsget'></script>
-    <script src='js/9.divine_forces.js$jsget'></script>
-    <script src='main.js$jsget'></script>
-  ";
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 $gltitle = "GLife";
 
 $page->title = "Alife: $gltitle".($Title?": ".strip_tags($Title):"")." – ERUDITOR.RU";
@@ -133,22 +82,6 @@ $page->z .= "
 
 // to be refactored...
 $page->z = "
-  <script>
-    function XHRsave3(q) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', 'gl_save.php');
-      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-      xhr.onload = function() {
-        if(xhr.status==200) { if(xhr.responseText) alert(xhr.responseText); }
-      };
-      xhr.send(q);
-    }
-    function DynamicScriptLoad(url) {
-      var script = document.createElement('script');
-      script.src = url;
-      document.body.appendChild(script);
-    }
-  </script>
   <style>
     HTML, BODY {min-width:1200px;}
     CANVAS {vertical-align:top; background:#ccc; cursor:crosshair;}

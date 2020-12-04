@@ -135,7 +135,9 @@ class Records {  // tracking and writing to DB population characteristics
 // SAVE RULES ////////////////////////////////////////////////////////////////
 
 function SaveGlifetri(prms={}) {
-  if(!cfg.calcorga) StatORGA();  // calc orga stats before saving
+  saved = true;  // in the beginning to prevent multi-saves if case of lags
+  
+  StatORGA();  // calc orga stats before saving
   
   if(Family=='Conway') {
     prms['family_id'] = 1;
@@ -162,9 +164,10 @@ function SaveGlifetri(prms={}) {
   prms['stopped_nturn'] = nturn;
   prms['records'] = JSON.stringify(rec[S1]);
   prms['context'] = window.location.search;
+  if(cfg.rerun) prms['rerun'] = rerun_gr_id;
   
   // put maximum among layers>0 to glifetrirun.orgasum
-  // exclude z=0, because it represents "ground" non-living layer and is often too much structured, making max(orgasum) undeservingly too large
+  // exclude z=0, because it represents "ground" non-living layer and is often too much structured or oscillating, making max(orgasum) undeservingly too large
   prms['orgasum'] = -1;
   for(z in rec[S1].orga_sum) if(z>0 && prms['orgasum']<rec[S1].orga_sum[z]) prms['orgasum'] = rec[S1].orga_sum[z];
   
@@ -172,10 +175,8 @@ function SaveGlifetri(prms={}) {
   for(var k in prms) {
     q += (q?'&':'') + k + '=' + encodeURIComponent(prms[k]);
   }
-    
-  XHRsave3(q);
   
-  saved = true;
+  XHRsave3(q);
 }
 
 // DRAW RULES ////////////////////////////////////////////////////////////////
@@ -310,7 +311,7 @@ function Stats(force=false) {
   
   rec[S1].zero();
   
-  if(cfg.calcorga) {
+  if(cfg.calcorga && !force) {
     StatORGA();
   }
   
@@ -442,13 +443,18 @@ function Stats(force=false) {
     </table>
   `;
   
-  if(cfg.autore) {
+  if(cfg.autore || cfg.rerun) {
     if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
       SaveGlifetri({'stopped_at':failed_at});
       nGen ++;
       if(nGen>300) {
         cfg.paused = 1;
-        window.location.reload();  // reloading page sometimes to refresh seed for rand32 to avoid cycles
+        window.location.reload();  // reloading page sometimes to refresh seeds and avoid potential locks
+      }
+      else if(cfg.rerun) {
+        rerun_continue = GetRerun();
+        if(!rerun_continue) { cfg.paused = 1;  window.location.reload(); }
+        Init();
       }
       else {
         ReInitSeeds();

@@ -58,7 +58,6 @@ function CreateNavButtons() {
   <td><input type=button class='mediabtn' value='&#x1F504;'    onclick='if(confirm("Restart?")) { ReInitSeeds();     Init(); Pause(-1); }' title='ReStart'>
   <td><input type=button class='mediabtn' value='\u2139\uFE0F' onclick='alert("Enable WebGL2 in your browser settings (usually it is in Experimental Features).\\nTo speed up GPU calculations google for --disable-frame-rate-limit (Chrome setting).");' title='Info'>
   <td><input type=button class='mediabtn' value='\u2623\uFE0F' onclick='Pause(1); console.log(StatORGA(1));' title='Show ORGA calculus'>
-  <td><input type=button class='mediabtn' value='\u2623\uFE0F' onclick='Pause(1); console.log(StatORGA(1, 1));' title='Show ORGA calculus T1'>
   </tr></table>
   
   <table cellspacing=0 class='navTB'><tr>

@@ -13,13 +13,15 @@ var fs_ModuloTorus = `
   }
 `;
 
-var fs_GetCell = `
-  uvec4 GetCell(int dx, int dy, int dz) {
+function fs_GetCell(func='GetCell', tex='u_fieldtexture') {
+  return `
+  uvec4 `+func+`(int dx, int dy, int dz) {
          if(dz>0 && tex3coord.z==`+(FD-1)+`) return uvec4(0);  // no upper for top layer
     else if(dz<0 && tex3coord.z==0)          return uvec4(0);  // no lower for bottom layer
-    return texelFetch(u_fieldtexture, ModuloTorus(tex3coord + ivec3(dx, dy, dz), fieldSize), 0);
+    return texelFetch(`+tex+`, ModuloTorus(tex3coord + ivec3(dx, dy, dz), fieldSize), 0);
   }
-`;
+  `;
+}
 
 // array index for samplers must be constant integral expressions, so we need this crap to address texture by layer
 // we can use more convenient texture3D, but it's size (dimensions) is more limited than for 2D textures (rules texture for RB>4 exceeds the limit)
@@ -58,7 +60,7 @@ var CalcFragmentShaderSource = `
   
   ` + fs_ModuloTorus + `
   
-  ` + fs_GetCell + `
+  ` + fs_GetCell() + `
   
   ` + fs_GetTexel2D + `
   

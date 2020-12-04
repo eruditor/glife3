@@ -28,7 +28,7 @@ ORGA.FillFragmentShaderSource = `
   
   ` + fs_ModuloTorus + `
   
-  ` + fs_GetCell + `
+  ` + fs_GetCell() + `
   
   #define rad `+ORGA.rad+`
   
@@ -84,12 +84,15 @@ ORGA.FillFragmentShaderSource = `
   }
 `;
 
-function FillORGA(t) {
+function FillORGA(plane=0) {
+  if(plane==0) { tex = T0;  buf = ORGA.FBF0; }
+  else         { tex = T1;  buf = ORGA.FBF1; }
+  
   gl.useProgram(ORGA.FillProgram);
   gl.viewport(0, 0, FW, FH);
   
-  BindBuffersAttachments(ORGA.FB0);
-  ActivateTexture(t, ORGA.FillProgram.location.u_fieldtexture);
+  BindBuffersAttachments(buf);
+  ActivateTexture(tex, ORGA.FillProgram.location.u_fieldtexture);
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
@@ -100,7 +103,8 @@ ORGA.CalcFragmentShaderSource = `
   precision mediump float;
   precision highp int;
   
-  uniform highp usampler3D u_orgatex0;
+  uniform highp usampler3D u_orgatexF0;
+  uniform highp usampler3D u_orgatexF1;
   
   in vec2 v_texcoord;  // [0..FW, 0..FH]
   
@@ -111,12 +115,13 @@ ORGA.CalcFragmentShaderSource = `
   
   ` + fs_ModuloTorus + `
   
-  ` + fs_GetCell.replace('u_fieldtexture', 'u_orgatex0') + `
+  ` + fs_GetCell('GetCell0', 'u_orgatexF0') + `
+  ` + fs_GetCell('GetCell1', 'u_orgatexF1') + `
   
   #define wh `+ORGA.wh+`
   
   void main() {
-    fieldSize = textureSize(u_orgatex0, 0);
+    fieldSize = textureSize(u_orgatexF0, 0);
     
     uvec4 color = uvec4(0);
     
@@ -125,7 +130,7 @@ ORGA.CalcFragmentShaderSource = `
       
       uint n_all = 0u, n_same = 0u;
       
-      uvec4 curr = texelFetch(u_orgatex0, tex3coord, 0);
+      uvec4 curr = texelFetch(u_orgatexF0, tex3coord, 0);
       
       if(curr==uvec4(0)) {  // dead cell
         color = uvec4(0);
@@ -133,13 +138,16 @@ ORGA.CalcFragmentShaderSource = `
       else if(curr==uvec4(0, 0, 0, 255)) {  // alive cell but too small orga
         color = uvec4(0, 0, 0, 255);
       }
+      else if(curr==texelFetch(u_orgatexF1, tex3coord, 0)) {  // this orga is the same as in previous turn = it's static
+        color = uvec4(0, 0, 0, 244);
+      }
       else {
         // taking only left part of surrounding square, to avoid double-counting same pair matches
         for(int dx=-wh; dx<=0; dx++) {
           for(int dy=-wh; dy<=wh; dy++) {
             if(dx==0 && dy<=0) continue;
             
-            uvec4 cell = GetCell(dx, dy, 0);
+            uvec4 cell = GetCell0(dx, dy, 0);
             
             if(cell==uvec4(0)) continue;
             
@@ -163,8 +171,9 @@ function CalcORGA() {
   gl.useProgram(ORGA.CalcProgram);
   gl.viewport(0, 0, FW, FH);
   
-  BindBuffersAttachments(ORGA.FB1);
-  ActivateTexture(ORGA.TX0, ORGA.CalcProgram.location.u_orgatex0);
+  BindBuffersAttachments(ORGA.FBC);
+  ActivateTexture(ORGA.TXF0, ORGA.CalcProgram.location.u_orgatexF0);
+  ActivateTexture(ORGA.TXF1, ORGA.CalcProgram.location.u_orgatexF1);
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
@@ -174,7 +183,7 @@ function CalcORGA() {
 ORGA.ShowFragmentShaderSource = `
   precision mediump float;
   
-  uniform highp usampler3D u_orgatex1;
+  uniform highp usampler3D u_orgatexC;
   
   in vec2 v_texcoord;  // [0..FW, 0..FH]
   
@@ -190,7 +199,7 @@ ORGA.ShowFragmentShaderSource = `
       if(xy.y>=`+FH+`) { texcoord.z += 2;  texcoord.y = xy.y % `+FH+`; }
     ` : ``) + `
     
-    uvec4 texel = texelFetch(u_orgatex1, texcoord, 0);
+    uvec4 texel = texelFetch(u_orgatexC, texcoord, 0);
     uint n_all  = texel.r;
     uint n_same = texel.g;
     
@@ -201,6 +210,9 @@ ORGA.ShowFragmentShaderSource = `
     }
     else if(texel==uvec4(0, 0, 0, 255)) {  // alive but small
       color = vec4(0.3, 0.3, 0.3, 1);
+    }
+    else if(texel==uvec4(0, 0, 0, 244)) {  // static orga
+      color = vec4(0.3, 0, 0, 1);
     }
     else if(n_same<nmin) {  // normal orga but too few of them around
       color = vec4(0, 0, 0.5, 1);
@@ -227,35 +239,15 @@ function ShowORGA() {
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  ActivateTexture(ORGA.TX1, ORGA.ShowProgram.location.u_orgatex1);
+  ActivateTexture(ORGA.TXC, ORGA.ShowProgram.location.u_orgatexC);
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-}
-
-// ORGA.INIT ////////////////////////////////////////////////////////////////
-
-function InitORGA() {
-  if(ORGA.inited) return false;
-  
-  ORGA.F = new jsUI32_Array(4 * FW * FH * FD);
-  
-  ORGA.TX0 = FD+2;  Textures[ORGA.TX0] = CreateTexture(FW, FH, FD, 'UI32');  // using UInt32 textures here for big radius or big RB
-  ORGA.TX1 = FD+3;  Textures[ORGA.TX1] = CreateTexture(FW, FH, FD, 'UI32');
-  
-  ORGA.FB0 = CreateFramebuffer(Textures[ORGA.TX0], FD);
-  ORGA.FB1 = CreateFramebuffer(Textures[ORGA.TX1], FD);
-  
-  ORGA.FillProgram = createProgram4Frag(gl, ORGA.FillFragmentShaderSource, ["a_position", "u_fieldtexture"]);
-  ORGA.CalcProgram = createProgram4Frag(gl, ORGA.CalcFragmentShaderSource, ["a_position", "u_orgatex0"]);
-  ORGA.ShowProgram = createProgram4Frag(gl, ORGA.ShowFragmentShaderSource, ["a_position", "u_orgatex1"]);
-  
-  ORGA.inited = true;
 }
 
 // ORGA.GET ////////////////////////////////////////////////////////////////
 
 function GetORGA() {
-  gl.bindFramebuffer(gl.FRAMEBUFFER, ORGA.FB1);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, ORGA.FBC);
   for(var z=0; z<FD; z++) {
     gl.readBuffer(gl.COLOR_ATTACHMENT0 + z);
     gl.readPixels(0, 0, FW, FH, glUI32_Format, glUI32_Type, ORGA.F, 4 * FW * FH * z);
@@ -286,12 +278,37 @@ function GetORGA() {
   return orga;
 }
 
+// ORGA.INIT ////////////////////////////////////////////////////////////////
+
+function InitORGA() {
+  if(ORGA.inited) return false;
+  
+  // using UInt32 textures here for big radius or big RB
+  
+  ORGA.F = new jsUI32_Array(4 * FW * FH * FD);
+  
+  ORGA.TXF0 = FD+2;  Textures[ORGA.TXF0] = CreateTexture(FW, FH, FD, 'UI32');  // fill-texture for F[T0]
+  ORGA.TXF1 = FD+3;  Textures[ORGA.TXF1] = CreateTexture(FW, FH, FD, 'UI32');  // fill-texture for F[T1]
+  ORGA.TXC  = FD+4;  Textures[ORGA.TXC ] = CreateTexture(FW, FH, FD, 'UI32');  // calc-texture
+  
+  ORGA.FBF0 = CreateFramebuffer(Textures[ORGA.TXF0], FD);
+  ORGA.FBF1 = CreateFramebuffer(Textures[ORGA.TXF1], FD);
+  ORGA.FBC  = CreateFramebuffer(Textures[ORGA.TXC ], FD);
+  
+  ORGA.FillProgram = createProgram4Frag(gl, ORGA.FillFragmentShaderSource, ["a_position", "u_fieldtexture"]);
+  ORGA.CalcProgram = createProgram4Frag(gl, ORGA.CalcFragmentShaderSource, ["a_position", "u_orgatexF0", "u_orgatexF1"]);
+  ORGA.ShowProgram = createProgram4Frag(gl, ORGA.ShowFragmentShaderSource, ["a_position", "u_orgatexC"]);
+  
+  ORGA.inited = true;
+}
+
 // ORGA.MAIN ////////////////////////////////////////////////////////////////
 
-function StatORGA(show=false, t1=false) {
+function StatORGA(show=false, i=0) {
   InitORGA();
   
-  FillORGA(t1 ? T1 : T0);
+  FillORGA(0);
+  FillORGA(1);
   
   CalcORGA();
   
