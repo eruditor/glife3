@@ -53,7 +53,7 @@ class glRecords {
       9999999 => "ccc",
     ],
     'orga_avg' => [
-        1 => "eee",
+        1 => "999",
        20 => "faa",
        40 => "fda",
        60 => "afa",

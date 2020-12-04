@@ -209,7 +209,7 @@ ORGA.ShowFragmentShaderSource = `
       color = vec4(0, 0, 0, 1);
     }
     else if(texel==uvec4(0, 0, 0, 255)) {  // alive but small
-      color = vec4(0.3, 0.3, 0.3, 1);
+      color = vec4(0.2, 0.2, 0.2, 1);
     }
     else if(texel==uvec4(0, 0, 0, 244)) {  // static orga
       color = vec4(0.3, 0, 0, 1);
@@ -226,7 +226,7 @@ ORGA.ShowFragmentShaderSource = `
         color = vec4((20.-proc)/10., 1, 0, 1);
       }
       else {
-        color = vec4(1, 1, 1, 1);
+        color = vec4(0, 1, 1, 1);
       }
     }
     

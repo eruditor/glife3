@@ -445,15 +445,15 @@ function Stats(force=false) {
   
   if(cfg.autore || cfg.rerun) {
     if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
+      Pause(1);
       SaveGlifetri({'stopped_at':failed_at});
       nGen ++;
       if(nGen>300) {
-        cfg.paused = 1;
         window.location.reload();  // reloading page sometimes to refresh seeds and avoid potential locks
       }
       else if(cfg.rerun) {
         rerun_continue = GetRerun();
-        if(!rerun_continue) { cfg.paused = 1;  window.location.reload(); }
+        if(!rerun_continue) window.location.reload();
         Frand32(Fseed);  document.getElementById('fseedinp').value = Fseed;
         Init();
       }
@@ -461,6 +461,7 @@ function Stats(force=false) {
         ReInitSeeds();
         Init();
       }
+      Pause(-1);
     }
   }
   else if(nturn>=10000 && !saved) {  // saving all long-runned cases

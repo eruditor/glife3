@@ -53,7 +53,7 @@ if($_GET['upd_orgasum']) {  // recalc glifetriruns.orgasum, see comments with "u
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_GET['recalc_ratings']) {
   $stitle = "recalc_ratings";
-  $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE ver=4 ORDER BY id LIMIT $AQ->LP,$AQ->PP");
+  $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE ver='$_ENV->anver' ORDER BY id LIMIT $AQ->LP,$AQ->PP");
   $AQ->shwn = mysql_num_rows($res);
   $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
   while($r = mysql_fetch_object($res)) {
@@ -78,7 +78,7 @@ elseif($_GET['rerun_new_orga']) {
    "SELECT gr.*, gl.family_id, gl.notaset, gl.mutaset
     FROM rr_glifetriruns gr
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
-    WHERE gr.orgasum>0 AND family_id=3 AND ver<4 AND stopped_at!='x'
+    WHERE gr.orgasum>0 AND family_id=3 AND ver<$_ENV->anver AND stopped_at!='x'
     $order
     LIMIT 100
   ");

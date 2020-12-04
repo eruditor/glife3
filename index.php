@@ -14,8 +14,6 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 315;
-
 $Title = "GLife3";
 $H1 = "";
 $zabst = $_GET
@@ -31,7 +29,10 @@ $zabst = $_GET
   Open-source: <a href='https://github.com/eruditor/glife3' class=ext>github</a>.<br>
   It's primary target is the search of artificial life — evolving self-repairing self-replicating structures.<br>
   &rarr; <a href='$_self?glife=Harbinger&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
-  &rarr; <a href='$_self?glife=Plexus&fseed=2779294873&maxfps=300'>Second one</a><br>
+  &rarr; <a href='$_self?glife=Plexus&fseed=2779294873&maxfps=300'>Second one</a>.
+         <a href='$_self?gl_run=727595&maxfps=300'>Third one</a>.<br>
+  
+ 
 ";
 // ?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300
 $zzt = "";

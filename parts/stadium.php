@@ -33,7 +33,7 @@ $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
   
 $clean = [];  // non-mutated glife list
 $s = '';
-$where = "ver=4 AND rating>0 $famQplus";
+$where = "ver='$_ENV->anver' AND rating>0 $famQplus";
 $res = mysql_query(
  "SELECT gr.*, family_id, named, typed, notaset
  FROM rr_glifetriruns gr
@@ -53,7 +53,7 @@ while($r = mysql_fetch_object($res)) {
   
   $s .= "
     <tr>
-      <td><a href='$_self?gl_run=$r->id&maxfps=300&pauseat=5000'>$r->id</a></td>
+      <td><a href='$_self?gl_run=$r->id&maxfps=1001&pauseat=$r->stopped_nturn'>$r->id</a></td>
       <td><a href='$_self?glife=$gllink'>$gllink</a></td>
       <td>".($clean[$r->notaset]->named ?: $clean[$r->notaset]->notaset)."</td>
       <td>".$families[$r->family_id]->name."</td>

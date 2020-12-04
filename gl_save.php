@@ -30,11 +30,11 @@ if(isset($_POST['rerun'])) {
     $val1 .= "$k:|".MRES($new->$k)."|";
   }
   if($q) {
-    mysql_query("UPDATE rr_glifetriruns SET ver=4, $q WHERE id='$old->id' LIMIT 1");
+    mysql_query("UPDATE rr_glifetriruns SET ver='$_ENV->anver', $q WHERE id='$old->id' LIMIT 1");
     mysql_query("INSERT INTO rr_glogs SET glife_id='$old->id', usr_id=0, dt=NOW(), val0='$val0', val1='$val1'");
   }
   else {
-    mysql_query("UPDATE rr_glifetriruns SET ver=4 WHERE id='$old->id' LIMIT 1");
+    mysql_query("UPDATE rr_glifetriruns SET ver='$_ENV->anver' WHERE id='$old->id' LIMIT 1");
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
