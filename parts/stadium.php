@@ -33,7 +33,7 @@ $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
   
 $clean = [];  // non-mutated glife list
 $s = '';
-$where = "mode=3 AND rating>0 $famQplus";
+$where = "ver=4 AND rating>0 $famQplus";
 $res = mysql_query(
  "SELECT gr.*, family_id, named, typed, notaset
  FROM rr_glifetriruns gr
