@@ -53,7 +53,7 @@ while($r = mysql_fetch_object($res)) {
   
   $s .= "
     <tr>
-      <td><a href='$_self?gl_run=$r->id'>$r->id</a></td>
+      <td><a href='$_self?gl_run=$r->id&maxfps=300&pauseat=5000'>$r->id</a></td>
       <td><a href='$_self?glife=$gllink'>$gllink</a></td>
       <td>".($clean[$r->notaset]->named ?: $clean[$r->notaset]->notaset)."</td>
       <td>".$families[$r->family_id]->name."</td>

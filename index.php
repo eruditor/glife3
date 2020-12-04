@@ -14,7 +14,7 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 314;
+$_ENV->ver = 315;
 
 $Title = "GLife3";
 $H1 = "";
@@ -81,34 +81,6 @@ $page->z .= "
 ";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// to be refactored...
-$page->z = "
-  <style>
-    HTML, BODY {min-width:1200px;}
-    CANVAS {vertical-align:top; background:#ccc; cursor:crosshair;}
-    DIV.stxt {font:normal 11px/11px Lucida Console, Monaco, Monospace; margin-top:5px; white-space:nowrap;}
-    SUP {color:#aaa; font-weight:normal; vertical-align:middle; position:relative; font-size:50%; bottom:0.6em;}
-    
-    .valtop, .valtop TD {vertical-align:top;}
-    .hlp {cursor:help;}
-    .nrrw {font-family:arial narrow, arial; font-stretch:condensed;}
-    
-    #GLifeCont INPUT[type=text] {padding:0px 1px;  margin:1px 1px;}
-    
-    #glifeStatTB {border:solid 2px #ddd; margin:0 0 10px 0;}
-    #glifeStatTB TD, #glifeStatTB TH {padding:2px 4px; text-align:right; vertical-align:top;}
-    #glifeStatTB TH {background:#f4f4f4; border-bottom:solid 1px #ddd;}
-    #glifeStatTB .tal {text-align:left;}
-    TABLE.nrrw TD, TABLE.nrrw TH {font-family:arial narrow, arial!important; font-stretch:condensed!important;}
-    
-    #SavedListTB TD, #SavedListTB TH {font:normal 11px/13px arial; padding:1px 3px; vertical-align:top;}
-    #SavedListTB TH {background:#f4f4f4; border-bottom:solid 1px #ddd; text-align:left; font-weight:bold;}
-    #SavedListTB TD INPUT {font:normal 11px/11px arial; padding:0;}
-    #SavedListTB TD.tar {text-align:right;}
-    #SavedListTB TD.nrrw {font-family:arial narrow, arial; font-stretch:condensed;}
-  </style>
-" . $page->z;
 
 $_ENV->isMobile = false;
 
