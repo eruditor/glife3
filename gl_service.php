@@ -73,8 +73,8 @@ elseif($_GET['rerun_new_orga']) {
    "SELECT gr.*, gl.family_id, gl.notaset, gl.mutaset
     FROM rr_glifetriruns gr
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
-    WHERE gr.orgasum>0 AND family_id=3 AND ver<4
-    ".(_local==="1" ? "ORDER BY gr.id DESC" : "")."
+    WHERE gr.orgasum>0 AND family_id=3 AND ver<4 AND stopped_at!='x'
+    ".(_local==="1" ? "ORDER BY gr.id" : "")."
     LIMIT 100
   ");
   while($r = mysql_fetch_object($res)) {
