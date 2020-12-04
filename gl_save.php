@@ -20,7 +20,7 @@ if(isset($_POST['rerun'])) {
   foreach(['stopped_at', 'stopped_nturn', 'orgasum', 'records'] as $k) {
     $new->$k = $_POST[$k];
   }
-  glRecords::EnrichOrgaRatings($r);
+  glRecords::EnrichOrgaRatings($new);
   
   $q = $val0 = $val1 = '';
   foreach(['stopped_at', 'stopped_nturn', 'orgasum', 'records', 'rating'] as $k) {
