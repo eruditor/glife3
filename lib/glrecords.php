@@ -64,7 +64,7 @@ class glRecords {
     'orga_z' => [
       1 => "faa",
       2 => "8ff",
-      3 => "fda",
+      3 => "afa",
       9 => "ccc",
     ],
     'rating' => [

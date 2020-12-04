@@ -33,16 +33,17 @@ $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
   
 $clean = [];  // non-mutated glife list
 $s = '';
+$where = "mode=3 AND rating>0 $famQplus";
 $res = mysql_query(
  "SELECT gr.*, family_id, named, typed, notaset
  FROM rr_glifetriruns gr
  JOIN rr_glifetris gl ON gl.id=gr.gl_id
- WHERE rating>0 $famQplus
+ WHERE $where
  ORDER BY rating, orgasum DESC
  LIMIT $LP,$PP
 ");
 $shwn = mysql_num_rows($res);
-$nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns WHERE rating>0");
+$nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns WHERE $where");
 while($r = mysql_fetch_object($res)) {
   if(!isset($clean[$r->notaset])) $clean[$r->notaset] = mysql_o("SELECT * FROM rr_glifetris WHERE family_id='".MRES($r->family_id)."' AND notaset='".MRES($r->notaset)."' AND mutaset=''");
   

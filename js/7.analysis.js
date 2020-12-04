@@ -454,6 +454,7 @@ function Stats(force=false) {
       else if(cfg.rerun) {
         rerun_continue = GetRerun();
         if(!rerun_continue) { cfg.paused = 1;  window.location.reload(); }
+        Frand32(Fseed);  document.getElementById('fseedinp').value = Fseed;
         Init();
       }
       else {

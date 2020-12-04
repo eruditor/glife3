@@ -14,7 +14,7 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->ver = 313;
+$_ENV->ver = 314;
 
 $Title = "GLife3";
 $H1 = "";
@@ -46,7 +46,9 @@ elseif($_GET['view']=='stadium')     { include("parts/stadium.php");     }
 elseif($_GET['view']=='manufacture') { include("parts/manufacture.php"); }
 elseif($_GET['gl_run']) {
   $gr_id = intval($_GET['gl_run']);  if(!$gr_id) die("#r84238237432");
-  $gr = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$gr_id'");
+  $gr = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$gr_id'");  if(!$gr) die("#r84238237433");
+  $Title = "Run #$gr->id";
+  $H1 = "Run #$gr->id";
   $zzt .= GlifeBigInfo("gl.id='$gr->gl_id'", " AND gr.id='$gr_id'");
   $zzt .= GLifeJS($gr->gl_id, ['fseed'=>$gr->fseed]);
 }

@@ -17,7 +17,7 @@ include_once("parts/backstage.php");
 
 $otitle = "GLife Service";
 $h1 = "";
-$zabst = "Service scripts. Mostly single-time usage.";
+$zabst = "Service scripts for database operations.";
 $zzt = "";
 $zpubd = "2020-06-08";
 
@@ -51,14 +51,17 @@ if($_GET['upd_orgasum']) {  // recalc glifetriruns.orgasum, see comments with "u
   $AQ->RunAQs();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-elseif($_GET['calc_ratings']) {
-  $stitle = "calc_ratings";
-  $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE rating=0 ORDER BY id LIMIT $AQ->LP,$AQ->PP");
+elseif($_GET['recalc_ratings']) {
+  $stitle = "recalc_ratings";
+  $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE mode=3 ORDER BY id LIMIT $AQ->LP,$AQ->PP");
   $AQ->shwn = mysql_num_rows($res);
   $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
   while($r = mysql_fetch_object($res)) {
+    $rating0 = $r->rating;
     glRecords::EnrichOrgaRatings($r);
-    if(property_exists($r, 'rating')) $AQ->AQs[] = "UPDATE rr_glifetriruns SET rating='$r->rating' WHERE id='$r->id'";
+    if(property_exists($r, 'rating') && $r->rating<>$rating0) {
+      $AQ->AQs[] = "UPDATE rr_glifetriruns SET rating='$r->rating' WHERE id='$r->id'";
+    }
   }
   $AQ->RunAQs();
 }
@@ -71,6 +74,7 @@ elseif($_GET['rerun_new_orga']) {
     FROM rr_glifetriruns gr
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
     WHERE gr.orgasum>0 AND family_id=3 AND mode=0
+    ".(_local==="1" ? "ORDER BY gr.id DESC" : "")."
     LIMIT 100
   ");
   while($r = mysql_fetch_object($res)) {
