@@ -66,7 +66,7 @@ elseif($_POST['family_id']) {
     $post[$k] = MRES($_POST[$k]);
     $q .= ($q?", ":"") . "$k='".$post[$k]."'";
   }
-  mysql_query("INSERT INTO rr_glifetriruns SET gl_id='$glid', dt=NOW(), $q");
+  mysql_query("INSERT INTO rr_glifetriruns SET gl_id='$glid', dt=NOW(), ver='$_ENV->anver', $q");
   $id = mysql_insert_id();
   
   // calc rating
