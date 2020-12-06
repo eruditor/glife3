@@ -8,7 +8,7 @@ function MakePage() {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   $page->topline="
-    <a href='$_self' class=ttl>ALIFE.ERUDITOR.RU</a>
+    <a href='.' class=ttl>ALIFE.ERUDITOR.RU</a>
   ";
   
   $tm = [
@@ -19,7 +19,7 @@ function MakePage() {
   ];
   $s = '';
   foreach($tm as $k=>$v) {
-    $s .= "<td><a href='$_self?view=$k'".($_GET['view']==$k?" class=chsn":"").">$v</a></td>";
+    $s .= "<td><a href='./?view=$k'".($_GET['view']==$k?" class=chsn":"").">$v</a></td>";
   }
   $page->TopMenu .= "
     <table cellspacing=0><tr>$s</tr></table>

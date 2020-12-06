@@ -30,6 +30,7 @@ class glRecords {
           5 => self::Orange,
          10 => self::Yellow,
          30 => self::Green,
+         50 => self::Pink,
         999 => self::Grey,
     ],
     'spread'   => [
@@ -38,7 +39,7 @@ class glRecords {
          30 => self::Yellow,
          60 => self::Green,
          80 => self::Cyan,
-        100 => self::Light,
+        100 => self::Pink,
         999 => self::Grey,
     ],
     'variat'   => [
@@ -63,6 +64,7 @@ class glRecords {
         200 => self::Green,
         400 => self::Cyan,
         800 => self::Green,
+       1000 => self::Pink,
     9999999 => self::Grey,
     ],
     'orga_sum' => [
@@ -72,6 +74,7 @@ class glRecords {
       20000 => self::Green,
       40000 => self::Cyan,
       60000 => self::Green,
+      80000 => self::Pink,
     9999999 => self::Grey,
     ],
     'orga_avg' => [
@@ -80,10 +83,10 @@ class glRecords {
          40 => self::Orange,
          60 => self::Green,
         100 => self::Cyan,
-        140 => self::Green,
+        140 => self::Pink,
     9999999 => self::Grey,
     ],
-    'orga_z  ' => [
+    'orga_z'   => [
           1 => self::Red,
           2 => self::Cyan,
           3 => self::Green,
@@ -92,16 +95,14 @@ class glRecords {
     'rating'   => [
          60 => self::Cyan,
          80 => self::Green,
-        100 => self::Light,
-        110 => self::Grey,
+        100 => self::Yellow,
+        110 => self::Light,
         120 => self::Orange,
         140 => self::Red,
         160 => self::Grey,
         999 => self::Dark,
     ],
   ];
-  
-
   
   static function Bgc4Records($k, $v) {
     $bgc = '';
