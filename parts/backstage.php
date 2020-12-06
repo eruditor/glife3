@@ -15,10 +15,10 @@ function GetFamilies($byname=false) {
 }
 
 
-function GetNamed() {
+function GetCleanNamed() {
   static $named = [];
   if(!$named) {
-    $res = mysql_query("SELECT * FROM rr_glifetris WHERE named<>''");
+    $res = mysql_query("SELECT * FROM rr_glifetris WHERE mutaset='' AND named<>'' ORDER BY family_id, named");
     while($r = mysql_fetch_object($res)) $named[$r->id] = $r;
   }
   return $named;

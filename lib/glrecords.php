@@ -2,93 +2,106 @@
 
 class glRecords {
   
+  const Dark   = "999";  // zero-bad value
+  const Red    = "faa";  // very low
+  const Orange = "fda";  // low
+  const Yellow = "ff8";  // so-so
+  const Light  = "eee";  // unknown
+  const Green  = "afa";  // good
+  const Cyan   = "8ff";  // excellent
+  const Pink   = "8f8";  // too much
+  const Grey   = "ccc";  // overmuch
+  
+  static $rank4bgc = [
+    self::Dark   => -40,
+    self::Red    => -20,
+    self::Orange => -10,
+    self::Yellow =>  -1,
+    self::Light  =>   0,
+    self::Green  =>  10,
+    self::Cyan   =>  20,
+    self::Pink   =>  -5,
+    self::Grey   => -30,
+  ];
+  
   static $bgc4records = [
-    'fillin' => [
-        2 => "faa",
-        5 => "fda",
-       10 => "ff8",
-       30 => "afa",
-      999 => "ccc",
+    'fillin'   => [
+          2 => self::Red,
+          5 => self::Orange,
+         10 => self::Yellow,
+         30 => self::Green,
+        999 => self::Grey,
     ],
-    'spread' => [
-        5 => "faa",
-       10 => "fda",
-       30 => "ff8",
-       60 => "afa",
-       80 => "8ff",
-      100 => "eee",
-      999 => "ccc",
+    'spread'   => [
+          5 => self::Red,
+         10 => self::Orange,
+         30 => self::Yellow,
+         60 => self::Green,
+         80 => self::Cyan,
+        100 => self::Light,
+        999 => self::Grey,
     ],
-    'variat' => [
-        1 => "999",
-        5 => "faa",
-       10 => "fda",
-       50 => "ff8",
-      100 => "afa",
-      999 => "8ff",
+    'variat'   => [
+          1 => self::Dark,
+          5 => self::Red,
+         10 => self::Orange,
+         50 => self::Yellow,
+        100 => self::Green,
+        999 => self::Cyan,
     ],
     'stopped_nturn' => [
-       1000 => "faa",
-       4000 => "fda",
-       5000 => "afa",
-      10000 => "8ff",
-      99999 => "eee",
+       1000 => self::Red,
+       4000 => self::Orange,
+       5000 => self::Green,
+      10000 => self::Cyan,
+      99999 => self::Light,
     ],
     'orga_num' => [
-        0 => "999",
-       50 => "faa",
-      100 => "fda",
-      200 => "afa",
-      400 => "8ff",
-      800 => "afa",
-      9999999 => "ccc",
+          0 => self::Dark,
+         50 => self::Red,
+        100 => self::Orange,
+        200 => self::Green,
+        400 => self::Cyan,
+        800 => self::Green,
+    9999999 => self::Grey,
     ],
     'orga_sum' => [
-          0 => "999",
-       5000 => "faa",
-      10000 => "fda",
-      20000 => "afa",
-      40000 => "8ff",
-      60000 => "afa",
-      9999999 => "ccc",
+          0 => self::Dark,
+       5000 => self::Red,
+      10000 => self::Orange,
+      20000 => self::Green,
+      40000 => self::Cyan,
+      60000 => self::Green,
+    9999999 => self::Grey,
     ],
     'orga_avg' => [
-        1 => "999",
-       20 => "faa",
-       40 => "fda",
-       60 => "afa",
-      100 => "8ff",
-      140 => "afa",
-      9999999 => "ccc",
+          1 => self::Dark,
+         20 => self::Red,
+         40 => self::Orange,
+         60 => self::Green,
+        100 => self::Cyan,
+        140 => self::Green,
+    9999999 => self::Grey,
     ],
-    'orga_z' => [
-      1 => "faa",
-      2 => "8ff",
-      3 => "afa",
-      9 => "ccc",
+    'orga_z  ' => [
+          1 => self::Red,
+          2 => self::Cyan,
+          3 => self::Green,
+          9 => self::Grey,
     ],
-    'rating' => [
-       60 => "8ff",
-       80 => "afa",
-      100 => "eee",
-      110 => "ccc",
-      120 => "fda",
-      140 => "faa",
-      160 => "ccc",
-      999 => "999",
+    'rating'   => [
+         60 => self::Cyan,
+         80 => self::Green,
+        100 => self::Light,
+        110 => self::Grey,
+        120 => self::Orange,
+        140 => self::Red,
+        160 => self::Grey,
+        999 => self::Dark,
     ],
   ];
   
-  static $rank4bgc = [
-    "999" => -50,
-    "ccc" => -30,
-    "faa" => -20,
-    "fda" => -10,
-    "ccc" =>  -5,
-    "eee" =>   0,
-    "afa" =>  10,
-    "8ff" =>  20,
-  ];
+
   
   static function Bgc4Records($k, $v) {
     $bgc = '';
