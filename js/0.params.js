@@ -18,6 +18,7 @@ class Cfg {
     this.debug     = GetBoolParam('debug');
     this.autore    = GetBoolParam('autore');
     this.rerun     = GetBoolParam('rerun');
+    this.anyrand   = GetBoolParam('anyrand');
     
     this.paused    = GetBoolParam('paused');
     this.pausestat = GetBoolParam('pausestat');
@@ -60,7 +61,6 @@ var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 
 rerun_n = 0;  rerun_gr_id = 0;
 if(cfg.rerun) {
-  Family = 'Conway3D';
   function GetRerun() {
     if(!gl_reruns[rerun_n]) return false;
     [rerun_gr_id, Notaset, Mutaset, Fseed] = gl_reruns[rerun_n];
@@ -69,7 +69,24 @@ if(cfg.rerun) {
     rerun_n ++;
     return true;
   }
-  GetRerun();
+  var rerun_go = GetRerun();
+  if(!rerun_go) alert('Rerun finished');
+}
+
+// ANYRAND ////////////////////////////////////////////////////////////////
+
+anyrand_n = 0; anyrand_named = '';
+if(cfg.anyrand) {
+  function GetAnyrand() {
+    if(!gl_cleannamed[anyrand_n]) return false;
+    [anyrand_named, Notaset] = gl_cleannamed[anyrand_n];
+    if(!Notaset) return false;
+    console.log(anyrand_n, anyrand_named, Notaset);
+    anyrand_n ++;
+    return true;
+  }
+  var anyrand_go = GetAnyrand();
+  if(!anyrand_go) alert('Anyrand error!');
 }
 
 // FAMILY-SPECIFIC ////////////////////////////////////////////////////////////////

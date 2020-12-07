@@ -81,7 +81,7 @@ elseif($_POST['family_id']) {
 else if(_local==="1" && $_POST['named']) {
   $id = intval($_POST['id']);
   $old = mysql_o("SELECT * FROM rr_glifetris WHERE id='$id'");  if(!$old) die("glife3 $id not found");
-  $named = $_POST['named'];
+  $named = SPCQA($_POST['named']);
   if(strpos($named, ":")!==false) {
     list($named, $typed) = explode(":", $named);
   }

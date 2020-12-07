@@ -457,6 +457,12 @@ function Stats(force=false) {
         Frand32(Fseed);  document.getElementById('fseedinp').value = Fseed;
         Init();
       }
+      else if(cfg.anyrand) {
+        anyrand_continue = GetAnyrand();
+        if(!anyrand_continue) window.location.reload();
+        ReInitSeeds();
+        Init();
+      }
       else {
         ReInitSeeds();
         Init();

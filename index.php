@@ -31,8 +31,6 @@ $zabst = $_GET
   &rarr; <a href='$_self?glife=Harbinger&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
   &rarr; <a href='$_self?glife=Plexus&fseed=2779294873&maxfps=300'>Second one</a>.
          <a href='$_self?gl_run=727595&maxfps=300'>Third one</a>.<br>
-  
- 
 ";
 // ?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300
 $zzt = "";

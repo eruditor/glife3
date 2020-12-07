@@ -45,8 +45,13 @@ if(isset($_GET['autore'])) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {
-  $famopts = "<option value=''>";  foreach($families as $r) $famopts .= "<option value='$r->name' data-fd='$r->FD'>$r->name";
-  $namopts = "<option value=''>";  foreach($named    as $r) $namopts .= "<option value='".SPCQA($r->named)."'>".$families[$r->family_id]->name.": ".SPCQA($r->named);
+  $famopts = "<option value=''>";
+  foreach($families as $r) $famopts .= "<option value='$r->name' data-fd='$r->FD'>$r->name";
+  
+  $namopts = "<option value=''>";
+  foreach($families as $r) $namopts .= "<option value='anyrand_$r->name'>Any random from $r->name";
+  foreach($named as $r) $namopts .= "<option value='".SPCQA($r->named)."'>".$families[$r->family_id]->name.": ".SPCQA($r->named);
+  
   $famsel = "onchange='var fd=this.options[this.selectedIndex].getAttribute(`data-fd`); var fdinp=document.getElementById(`glfdinp`); fdinp.value=fd>0?fd:3; fdinp.disabled=fd>0?true:false;'";
   
   $speeds = [1001, 300, 60];

@@ -51,6 +51,15 @@ function GetFD4GL($gl) {
   return $FD;
 }
 
+
+function GetClean($gl) {  // non-mutated glife list
+  static $clean = [];
+  if(!isset($clean[$gl->family_id][$gl->notaset])) {
+    $clean[$gl->family_id][$gl->notaset] = mysql_o("SELECT * FROM rr_glifetris WHERE family_id='".MRES($gl->family_id)."' AND notaset='".MRES($gl->notaset)."' AND mutaset=''");
+  }
+  return $clean[$gl->family_id][$gl->notaset];
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function GlifeBigInfo($gls, $q4runs='') {
@@ -128,10 +137,12 @@ function GlifeBigInfo($gls, $q4runs='') {
     $nm = $gl->named ?: $gl->notaset;
     $nm = $single ? "<u>$nm</u>" : "<a href='$_self?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
     
+    $clean = GetClean($gl);
+    
     $s .= "
       <tr><td>
         <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm ".($gl->typed?"<span class=gr>($gl->typed)</span>":"")."</h3>
-        ".$families[$gl->family_id]->name.": $gl->notaset<br>
+        ".$families[$gl->family_id]->name.": ".($clean->named ?: $clean->notaset)."<br>
         <small class='nrrw gr'>".RN($gl->mutaset)."</small>
       </td>
       <td><table><tr>$srun</tr></table><br></td>
@@ -158,12 +169,33 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);";
   
   $families = GetFamilies();
+  $famnames = GetFamilies(true);
   
   if($notaset=='random') {
     $prms['randrules'] = 1;
   }
   elseif($notaset=='rerun') {
     $prms['rerun'] = 1;
+    $prms['family'] = "Conway3D";
+  }
+  elseif(substr($notaset,0,8)=="anyrand_") {
+    $prms['anyrand'] = 1;
+    
+    $fm = $famnames[substr($notaset, 8)];  if(!$fm) die("#874289734");
+    $prms['family'] = $fm->name;
+    
+    $send = '';  $FD = 0;
+    $res = mysql_query("SELECT * FROM rr_glifetris WHERE family_id='$fm->id' AND named<>'' AND mutaset=''");
+    while($r = mysql_fetch_object($res)) {
+      if(!$FD) $FD = GetFD4GL($r);
+      $send .= "['".SPCQA($r->named)."', '$r->notaset'],\n";
+    }
+    $send2js .= "
+      gl_cleannamed = [
+        $send
+      ];
+    ";
+    $prms['FD'] = $FD;
   }
   else {
     $gl = GetGL4Notaset($notaset);

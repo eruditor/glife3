@@ -30,8 +30,7 @@ $zzt .= "<h3>Family filter: $s</h3><hr>";
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
-  
-$clean = [];  // non-mutated glife list
+
 $s = '';
 $where = "ver='$_ENV->anver' AND rating>0 $famQplus";
 $res = mysql_query(
@@ -45,7 +44,7 @@ $res = mysql_query(
 $shwn = mysql_num_rows($res);
 $nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns WHERE $where");
 while($r = mysql_fetch_object($res)) {
-  if(!isset($clean[$r->notaset])) $clean[$r->notaset] = mysql_o("SELECT * FROM rr_glifetris WHERE family_id='".MRES($r->family_id)."' AND notaset='".MRES($r->notaset)."' AND mutaset=''");
+  $clean = GetClean($r);
   
   glRecords::EnrichOrgaRatings($r);
   
@@ -55,7 +54,7 @@ while($r = mysql_fetch_object($res)) {
     <tr>
       <td><a href='$_self?gl_run=$r->id&maxfps=1001&pauseat=$r->stopped_nturn'>$r->id</a></td>
       <td><a href='$_self?glife=$gllink'>$gllink</a></td>
-      <td>".($clean[$r->notaset]->named ?: $clean[$r->notaset]->notaset)."</td>
+      <td>".($clean->named ?: $clean->notaset)."</td>
       <td>".$families[$r->family_id]->name."</td>
       <td class=tar>".glRecords::RecordsSpan($r, 'stopped_nturn')."</td>
       <td class=tar>".glRecords::RecordsSpan($r, 'orga_sum'     )."</td>
