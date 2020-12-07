@@ -10,7 +10,7 @@ canvas.width  = zoom * FW;  canvas.style.width  = canvas.width  + 'px';
 canvas.height = zoom * FH;  canvas.style.height = canvas.height + 'px';
 
 if(canvas.width>IW) {  // let canvas spread all its width without limits in case it is bigger than allocated area
-  canvas.style.position = 'absolute';  canvas.style.left = '0';  canvas.style.marginTop = '17px';
+  canvas.style.position = 'absolute';  canvas.style.left = '0';
   var tdiv = document.createElement('div');  tdiv.style.height = canvas.style.height;
   canvas.parentNode.insertBefore(tdiv, canvas.nextSibling);
 }
