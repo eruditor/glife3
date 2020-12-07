@@ -120,7 +120,7 @@ function GlifeBigInfo($gls, $q4runs='') {
             $v = round($vv[$z]);
             $st = '';
             if($r->orgasum<0) { $v = -1;  $st = "color:#aaa;"; }
-            $t .= "<td><span style='background:#".glRecords::Bgc4Records($k, $v).";$st'>$v</span></td>";
+            $t .= "<td><span style='background:#".glRecords::Bgc4Records($k, $v).";$st'>".ShortenNumber($v)."</span></td>";
           }
           $stb .= "<tr><td>$z</td>$t</tr>";
         }
@@ -137,12 +137,19 @@ function GlifeBigInfo($gls, $q4runs='') {
     $nm = $gl->named ?: $gl->notaset;
     $nm = $single ? "<u>$nm</u>" : "<a href='$_self?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
     
-    $clean = GetClean($gl);
+    if($gl->mutaset) {
+      $clean = GetClean($gl);
+      $cleanstr = $clean->named ?: $clean->notaset;
+      $cleanstr = "mutated <a href='$_self?glife=".($clean->named ?: $clean->id)."'>$cleanstr</a>";
+    }
+    else {
+      $cleanstr = $gl->notaset;
+    }
     
     $s .= "
       <tr><td>
         <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm ".($gl->typed?"<span class=gr>($gl->typed)</span>":"")."</h3>
-        ".$families[$gl->family_id]->name.": ".($clean->named ?: $clean->notaset)."<br>
+        ".$families[$gl->family_id]->name.": $cleanstr<br>
         <small class='nrrw gr'>".RN($gl->mutaset)."</small>
       </td>
       <td><table><tr>$srun</tr></table><br></td>

@@ -73,12 +73,15 @@ elseif($_GET['rerun_new_orga']) {
   elseif($_GET['order']=='desc') $order = "ORDER BY gr.id DESC";
   else                           $order = "";
   
+  if($_GET['minusone']) $wh = "gr.orgasum<0 AND stopped_nturn>=2000";
+  else                  $wh = "gr.orgasum>0";
+  
   $send2js = '';
   $res = mysql_query(
    "SELECT gr.*, gl.family_id, gl.notaset, gl.mutaset
     FROM rr_glifetriruns gr
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
-    WHERE gr.orgasum>0 AND family_id=3 AND ver<$_ENV->anver AND stopped_at!='x'
+    WHERE $wh AND family_id=3 AND ver<$_ENV->anver AND stopped_at!='x'
     $order
     LIMIT 100
   ");
