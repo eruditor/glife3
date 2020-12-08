@@ -11,17 +11,13 @@ $page->zabst .= "
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$families = GetFamilies();
-$famnames = GetFamilies(true);
-
-$famname = $_GET['family'];
-$family = $famnames[$famname];
+$family = glDicts::GetFamily($_GET['family']);
 $famQplus = $family ? "AND family_id='$family->id'" : "";
 $famUplus = $family ? "&family=$family->name" : "";
 if($family) $page->bread[] = [$family->name, "&family=$family->name"];
 
 $s = "| ";
-foreach($famnames as $fam) {
+foreach(glDicts::GetFamilies() as $fam) {
   $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='$_self?view=catalog&family=$fam->name'>$fam->name</a>";
   $s .= "$t | ";
 }
@@ -68,7 +64,7 @@ if($_GET['typed']) {
     $s .= "
       <tr>
         <td align=right><a href='$_self?glife=$r->id'>$r->id</a></td>
-        <td>".$families[$r->family_id]->name."</td>
+        <td>".glDicts::GetFamily($r->family_id)->name."</td>
         <td><a href='$_self?notaset=$r->notaset&maxfps=300'>$r->notaset</a></td>
         <td class=nrrw>".($r->mutaset?"<a href='$_self?notaset=$r->notaset&mutaset=$r->mutaset&maxfps=300'>".RN($r->mutaset)."</a>":"")."</td>
         <td><a href='$_self?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a></td>
@@ -126,8 +122,8 @@ elseif(isset($_GET['stopped'])) {
         }
       }
     }
-    $FD = count($a_notaset);
     
+    $FD = glDicts::GetFD($r);
     $tr = '';
     for($z=0; $z<$FD; $z++) {
       $tr .= "<tr>";
@@ -138,7 +134,7 @@ elseif(isset($_GET['stopped'])) {
             $r->gr_id
           </td>
           <td rowspan=$FD class=nrrw>$r->dt</td>
-          <td rowspan=$FD>".$families[$r->family_id]->name."</td>
+          <td rowspan=$FD>".glDicts::GetFamily($r->family_id)->name."</td>
           <td rowspan=$FD>".($r->named ? "<a href='$_self?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a>" : "")."</td>
           <td rowspan=$FD>$r->typed</td>
         ";

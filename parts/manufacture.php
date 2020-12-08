@@ -10,10 +10,6 @@ $page->zabst .= "
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$families = GetFamilies();
-$famnames = GetFamilies(true);
-$named    = GetCleanNamed();
-
 $aRgeoms = [18=>"Moore", 182=>"3D Moore", 142=>"3D von Neumann"];
 $aRsymms = [85=>"8-rotation+parity", 47=>"4-rotation-vector"];
 
@@ -23,7 +19,7 @@ $aRsymms = [85=>"8-rotation+parity", 47=>"4-rotation-vector"];
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(isset($_GET['autore'])) {
   if($_GET['family']) {
-    $fm = $famnames[$_GET['family']];  if(!$fm) die("incorrect family");
+    $fm = glDicts::GetFamily($_GET['family']);  if(!$fm) die("incorrect family");
     $FD = intval($fm->FD ?: $_GET['FD']);
     $page->bread[] = ["$fm->name (FD=$FD)", "&family=$fm->name&FD=$FD"];
     $page->z .= GLifeJS('random', ['FD'=>$FD]);
@@ -46,11 +42,12 @@ if(isset($_GET['autore'])) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {
   $famopts = "<option value=''>";
-  foreach($families as $r) $famopts .= "<option value='$r->name' data-fd='$r->FD'>$r->name";
+  foreach(glDicts::GetFamilies() as $r) $famopts .= "<option value='$r->name' data-fd='$r->FD'>$r->name";
   
   $namopts = "<option value=''>";
-  foreach($families as $r) $namopts .= "<option value='anyrand_$r->name'>Any random from $r->name";
-  foreach($named as $r) $namopts .= "<option value='".SPCQA($r->named)."'>".$families[$r->family_id]->name.": ".SPCQA($r->named);
+  foreach(glDicts::GetFamilies() as $r) $namopts .= "<option value='anyrand_$r->name'>Any random from $r->name";
+  $res = mysql_query("SELECT * FROM rr_glifetris WHERE mutaset='' AND named<>'' ORDER BY family_id, named");
+  while($r = mysql_fetch_object($res)) $namopts .= "<option value='".SPCQA($r->named)."'>".glDicts::GetFamily($r->family_id)->name.": ".SPCQA($r->named);
   
   $famsel = "onchange='var fd=this.options[this.selectedIndex].getAttribute(`data-fd`); var fdinp=document.getElementById(`glfdinp`); fdinp.value=fd>0?fd:3; fdinp.disabled=fd>0?true:false;'";
   

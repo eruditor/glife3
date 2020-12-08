@@ -2,69 +2,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function GetFamilies($byname=false) {
-  static $families = [], $famnames = [];
-  if(!$families) {
-    $res = mysql_query("SELECT * FROM rr_glfamilies");
-    while($r = mysql_fetch_object($res)) {
-      $families[$r->id] = $r;
-      $famnames[$r->name] = $r;
-    }
-  }
-  return $byname ? $famnames : $families;
-}
-
-
-function GetCleanNamed() {
-  static $named = [];
-  if(!$named) {
-    $res = mysql_query("SELECT * FROM rr_glifetris WHERE mutaset='' AND named<>'' ORDER BY family_id, named");
-    while($r = mysql_fetch_object($res)) $named[$r->id] = $r;
-  }
-  return $named;
-}
-
-
-function GetGL4Notaset($notaset) {
-  if(!$notaset) $notaset = "Aphrodite";
-  
-  if(is_numeric($notaset))             $fld = "id";
-  elseif(strpos($notaset,":")===false) $fld = "named";
-  else                                 $fld = "notaset";
-  
-  $gl = mysql_o("SELECT * FROM rr_glifetris WHERE $fld='".MRES($notaset)."'");  if(!$gl) die("incorrect notaset");
-  
-  return $gl;
-}
-
-
-function GetFD4GL($gl) {
-  $FD = 0;
-  if($gl->notaset) {
-    $FD = count(explode(",", $gl->notaset));
-  }
-  else {
-    $families = GetFamilies();
-    $fm = $families[$gl->family_id];
-    if($fm->FD) $FD = $fm->FD;
-  }
-  return $FD;
-}
-
-
-function GetClean($gl) {  // non-mutated glife list
-  static $clean = [];
-  if(!isset($clean[$gl->family_id][$gl->notaset])) {
-    $clean[$gl->family_id][$gl->notaset] = mysql_o("SELECT * FROM rr_glifetris WHERE family_id='".MRES($gl->family_id)."' AND notaset='".MRES($gl->notaset)."' AND mutaset=''");
-  }
-  return $clean[$gl->family_id][$gl->notaset];
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function GlifeBigInfo($gls, $q4runs='') {
-  $families = GetFamilies();
-  
   $single = false;
   
   if(!$gls) {
@@ -91,7 +32,7 @@ function GlifeBigInfo($gls, $q4runs='') {
   
   $s = '';
   foreach($gls as $gl) {
-    $FD = count(explode(",", $gl->notaset));
+    $FD = glDicts::GetFD($gl);
     
     $srun = '';
     $res2 = mysql_query("SELECT *, IF(orgasum>=0,1,0) has_orgasum FROM rr_glifetriruns gr WHERE gl_id='$gl->id' $q4runs ORDER BY has_orgasum DESC, id DESC LIMIT 3");
@@ -138,7 +79,7 @@ function GlifeBigInfo($gls, $q4runs='') {
     $nm = $single ? "<u>$nm</u>" : "<a href='$_self?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
     
     if($gl->mutaset) {
-      $clean = GetClean($gl);
+      $clean = glDicts::GetNonmutated($gl);
       $cleanstr = $clean->named ?: $clean->notaset;
       $cleanstr = "mutated <a href='$_self?glife=".($clean->named ?: $clean->id)."'>$cleanstr</a>";
     }
@@ -149,7 +90,7 @@ function GlifeBigInfo($gls, $q4runs='') {
     $s .= "
       <tr><td>
         <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm ".($gl->typed?"<span class=gr>($gl->typed)</span>":"")."</h3>
-        ".$families[$gl->family_id]->name.": $cleanstr<br>
+        ".glDicts::GetFamily($gl->family_id)->name.": $cleanstr<br>
         <small class='nrrw gr'>".RN($gl->mutaset)."</small>
       </td>
       <td><table><tr>$srun</tr></table><br></td>
@@ -173,10 +114,7 @@ function GlifeEditInput($r) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function GLifeJS($notaset='', $prms=[], $send2js = '') {
-  $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);";
-  
-  $families = GetFamilies();
-  $famnames = GetFamilies(true);
+  if(!$notaset) $notaset = "Aphrodite";
   
   if($notaset=='random') {
     $prms['randrules'] = 1;
@@ -188,13 +126,13 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   elseif(substr($notaset,0,8)=="anyrand_") {
     $prms['anyrand'] = 1;
     
-    $fm = $famnames[substr($notaset, 8)];  if(!$fm) die("#874289734");
+    $fm = glDicts::GetFamily(substr($notaset, 8));  if(!$fm) die("#874289734");
     $prms['family'] = $fm->name;
     
     $send = '';  $FD = 0;
     $res = mysql_query("SELECT * FROM rr_glifetris WHERE family_id='$fm->id' AND named<>'' AND mutaset=''");
     while($r = mysql_fetch_object($res)) {
-      if(!$FD) $FD = GetFD4GL($r);
+      if(!$FD) $FD = glDicts::GetFD($r);
       $send .= "['".SPCQA($r->named)."', '$r->notaset'],\n";
     }
     $send2js .= "
@@ -205,15 +143,11 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
     $prms['FD'] = $FD;
   }
   else {
-    $gl = GetGL4Notaset($notaset);
+    $gl = glDicts::GetGL4Notaset($notaset);  if(!$gl) die("incorrect notaset");
     $prms['notaset'] = $gl->notaset;
     $prms['mutaset'] = $gl->mutaset;
-    
-    $FD = GetFD4GL($gl);
-    $prms['FD'] = $FD;
-    
-    $fm = $families[$gl->family_id];
-    $prms['family'] = $fm->name;
+    $prms['FD'] = glDicts::GetFD($gl);
+    $prms['family'] = glDicts::GetFamily($gl->family_id)->name;
   }
   
   $rseed = $prms['rseed'] ?: intval($_GET['rseed']) ?: rand(1,getrandmax());
@@ -223,6 +157,8 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   if(_local==="1") $jsget .= "&rnd=".rand(1,getrandmax());  // to refresh cached scripts every run
   
   $plus = '';  foreach($prms as $k=>$v) if($v) $plus .= "&".urlencode($k)."=".urlencode($v);
+  
+  $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);";
   
   return "
     <div id=GLifeCont></div>

@@ -1,7 +1,5 @@
 <?
 
-$families = GetFamilies();
-
 $glife = $_GET['glife'];
 
     if(is_numeric($glife)) { $q = "id='".intval($glife)."'";   $isnamed = false; }

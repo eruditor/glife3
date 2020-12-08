@@ -6,6 +6,7 @@ spl_autoload_register(
   function ($class) {
     static $incs = [
       'glRecords' => 'lib/glrecords.php',
+      'glDicts'   => 'lib/gldicts.php',
       'AQs'       => 'lib/aqs.php',
     ];
     

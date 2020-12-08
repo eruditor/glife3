@@ -5,21 +5,19 @@ $page->bread[] = ["Stadium", "?view=stadium"];
 $page->zabst .= "
   “Stadium” is where glifes are sorted by orga-rating.<br>
   And orga-rating is an automatically produced number that (we hope) shows how likely this glife contains any signs of artificial life.<br>
+  
+  
 ";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$families = GetFamilies();
-$famnames = GetFamilies(true);
-
-$famname = $_GET['family'];
-$family = $famnames[$famname];
+$family = glDicts::GetFamily($_GET['family']);
 $famQplus = $family ? "AND family_id='$family->id'" : "";
 $famUplus = $family ? "&family=$family->name" : "";
 if($family) $page->bread[] = [$family->name, "&family=$family->name"];
 
 $s = "| ";
-foreach($famnames as $fam) {
+foreach(glDicts::GetFamilies() as $fam) {
   $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='$_self?view=stadium&family=$fam->name'>$fam->name</a>";
   $s .= "$t | ";
 }
@@ -46,7 +44,7 @@ $res = mysql_query(
 $shwn = mysql_num_rows($res);
 $nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns gr JOIN rr_glifetris gl ON gl.id=gr.gl_id WHERE $where");
 while($r = mysql_fetch_object($res)) {
-  $clean = GetClean($r);
+  $nonmutated = glDicts::GetNonmutated($r);
   
   glRecords::EnrichOrgaRatings($r);
   
@@ -56,8 +54,8 @@ while($r = mysql_fetch_object($res)) {
     <tr>
       <td><a href='$_self?gl_run=$r->id&maxfps=1001&pauseat=$r->stopped_nturn'>$r->id</a></td>
       <td><a href='$_self?glife=$gllink'>$gllink</a></td>
-      <td>".($clean->named ?: $clean->notaset)."</td>
-      <td>".$families[$r->family_id]->name."</td>
+      <td>".($nonmutated->named ?: $nonmutated->notaset)."</td>
+      <td>".glDicts::GetFamily($r->family_id)->name."</td>
       <td class=tar>".glRecords::RecordsSpan($r, 'stopped_nturn')."</td>
       <td class=tar>".glRecords::RecordsSpan($r, 'orga_sum'     )."</td>
       <td class=tar>".glRecords::RecordsSpan($r, 'orga_avg'     )."</td>
@@ -69,7 +67,7 @@ while($r = mysql_fetch_object($res)) {
 }
 $page->z .= "
   <table cellspacing=0 id='SavedListTB' style='border:solid 2px #ddd'>
-  <tr><th>run_id</th><th>glife</th><th>clean</th><th>family</th><th>nturn</th><th>orga&Sigma;</th><th>orgaAVG</th><th>z</th><th>stopped</th><th>rating</th></tr>
+  <tr><th>run_id</th><th>glife</th><th>nonmutated</th><th>family</th><th>nturn</th><th>orga&Sigma;</th><th>orgaAVG</th><th>z</th><th>stopped</th><th>rating</th></tr>
   $s
   </table>
 ";

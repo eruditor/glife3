@@ -30,16 +30,16 @@ $page->zabst = $_GET
   <li> Open-source: <a href='https://github.com/eruditor/glife3' class=ext>github</a>.
   </ul>
   It's primary target is the search of artificial life (alife) — evolving self-repairing self-replicating structures.<br>
-  &rarr; <a href='$_self?glife=Harbinger&fseed=186356772&LF=100&maxfps=300'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
-  &rarr; <a href='$_self?glife=Plexus&fseed=2779294873&maxfps=300'>Second one</a>.
-         <a href='$_self?gl_run=727595&maxfps=300'>Third one</a>.<br>
+  &rarr; <a href='$_self?glife=Harbinger&fseed=186356772&LF=100'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
+  &rarr; <a href='$_self?glife=Plexus&fseed=2779294873'>Second one</a>.
+         <a href='$_self?gl_run=727595'>Third one</a>.<br>
   "
 ;
-// ?family=Conway3D&gl_named=Aphrodite&nmuta=100&rseed=1936799038&fseed=186356772&LF=100&maxfps=300
+
 $page->zpubd = "2020-10-01";
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ROUTING
+// ROUTING /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     if($_GET['glife'])               { include("parts/show.php");        }
 elseif($_GET['view']=='gallery')     { include("parts/gallery.php");     }
 elseif($_GET['view']=='catalog')     { include("parts/catalog.php");     }
@@ -58,7 +58,7 @@ else {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_ENV->isMobile = false;
+$_ENV->isMobile = false;  // canvas is anyway bigger than mobile screen
 
 MakePage();
 
