@@ -5,7 +5,10 @@ setlocale(LC_CTYPE,"ru_RU.CP1251");
 set_error_handler(function($errno, $errstr) { return $errstr == 'Creating default object from empty value'; }, E_WARNING);
 
 $_ENV = new stdClass();
+
 $page = new stdClass();
+$page->z = '';  // main content block
+$page->bread = [];  // breadcrumbs for <H1> and <title>
 
 $_ENV->startT = microtime(true);
 
@@ -50,10 +53,6 @@ function isIE($ua = null) {
   return false;
 }
 $_ENV->isMobile = isMobile();
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-function isCorrectID($t_id) { if(!$t_id) return false;  return preg_match("`[^a-zA-Z0-9_\.\-]`", $t_id) ? false : true; }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -15,11 +15,9 @@ include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$otitle = "GLife Service";
-$h1 = "";
-$zabst = "Service scripts for database operations.";
-$zzt = "";
-$zpubd = "2020-06-08";
+$page->bread = ["GL_SERVICE", "gl_service.php"];
+$page->zabst = "Service scripts for database operations.";
+$page->zpubd = "2020-06-08";
 
 $page->meta .= "<meta name=\"robots\" content=\"noindex\">";
 
@@ -34,7 +32,7 @@ $AQ = new AQs(_local==="1" ? true : false);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if($_GET['upd_orgasum']) {  // recalc glifetriruns.orgasum, see comments with "undeservingly too large" in Analysis
-  $stitle = "upd_orgasum";
+  $page->bread[] = ["upd_orgasum", "?upd_orgasum=1"];
   $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE orgasum>0 ORDER BY id LIMIT $AQ->LP,$AQ->PP");
   $AQ->shwn = mysql_num_rows($res);
   $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
@@ -52,7 +50,7 @@ if($_GET['upd_orgasum']) {  // recalc glifetriruns.orgasum, see comments with "u
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_GET['recalc_ratings']) {
-  $stitle = "recalc_ratings";
+  $page->bread[] = ["recalc_ratings", "?recalc_ratings=1"];
   $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE ver='$_ENV->anver' ORDER BY id LIMIT $AQ->LP,$AQ->PP");
   $AQ->shwn = mysql_num_rows($res);
   $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
@@ -67,7 +65,7 @@ elseif($_GET['recalc_ratings']) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_GET['rerun_new_orga']) {
-  $stitle = "rerun_new_orga";
+  $page->bread[] = ["rerun_new_orga", "?rerun_new_orga=1"];
   
       if($_GET['order']=='asc')  $order = "ORDER BY gr.id";
   elseif($_GET['order']=='desc') $order = "ORDER BY gr.id DESC";
@@ -93,17 +91,14 @@ elseif($_GET['rerun_new_orga']) {
       $send2js
     ];
   ";
-  $zzt .= GLifeJS('rerun', [], $send2js);
+  $page->z .= GLifeJS('rerun', [], $send2js);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$page->title = "GL_SERVICE: $stitle – ERUDITOR.RU";
-$h1 = "GL_SERVICE &rarr; " . strtoupper($stitle);
-
-$zzt .= "<div>time: " . round(microtime(true) - $_tm0, 3) . "s</div>";
+$page->z .= "<div>time: " . round(microtime(true) - $_tm0, 3) . "s</div>";
 
 $page->z .= "
   <style>
@@ -114,28 +109,20 @@ $page->z .= "
   </style>
 ";
 
-$page->z .= "
-  <h1>$h1</h1>
-  
-  <div class=zabst>
-    $zabst
-  </div>
-  
-  <div class=zzt style='font:normal 11px/11px Lucida Console, Monaco, Monospace;'>
+$page->z = "
+  <div style='font:normal 11px/11px Lucida Console, Monaco, Monospace;'>
     <div id=aux1></div>
     
     $AQ->paginat
     
     $AQ->SQ
     
-    $zzt
+    $page->z
     
     $AQ->nav
     
     $AQ->paginat
   </div>
-  
-  <div class=zpubd>$zpubd</div>
 ";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

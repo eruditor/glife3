@@ -1,8 +1,8 @@
 <?
 
-$H1 = "Manufacture";
+$page->bread[] = ["Manufacture", "?view=manufacture"];
 
-$zabst .= "
+$page->zabst .= "
   “Manufacture” is where glifes are automatically produced.<br>
   Setting random physics rules for a newborn universe, running it's dynamics calculations and then analyzing if the result is somehow interesting.<br>
   (At ~1000 fps it takes about 1 second to process one set of rules.)<br>
@@ -24,20 +24,20 @@ $aRsymms = [85=>"8-rotation+parity", 47=>"4-rotation-vector"];
 if(isset($_GET['autore'])) {
   if($_GET['family']) {
     $fm = $famnames[$_GET['family']];  if(!$fm) die("incorrect family");
-    $FD = intval($fm->FD || $_GET['FD']);
-    $H1 .= " &rarr; Family=" . $fm->name . " (FD=$FD)";
-    $zzt .= GLifeJS('random', ['FD'=>$FD]);
+    $FD = intval($fm->FD ?: $_GET['FD']);
+    $page->bread[] = ["$fm->name (FD=$FD)", "&family=$fm->name&FD=$FD"];
+    $page->z .= GLifeJS('random', ['FD'=>$FD]);
   }
   elseif($_GET['nota']) {
-    // nmuta already passed through GET
-    $nota = SPCQA($_GET['nota']);
-    $H1 .= " &rarr; $nota";
-    $zzt .= GLifeJS($nota);
+    $nota = $_GET['nota'];  if(!isCorrectVar($nota)) dierr("#598720384");
+    $nmuta = intval($_GET['nmuta']);  if(!$nmuta) dierr("zero nmuta");
+    $page->bread[] = ["$nota ($nmuta mutations)", "&nota=$nota&nmuta=$nmuta"];
+    $page->z .= GLifeJS($nota);
   }
   elseif($_GET['glid']) {
-    $glid = SPCQA($_GET['glid']);  if(!$glid) die("#78234655");
-    $H1 .= " &rarr; gl_id=$glid";
-    $zzt .= GLifeJS($glid);
+    $glid = $_GET['glid'];  if(!isCorrectID($glid)) die("#780234615");
+    $page->bread[] = ["$glid (refielding)", "&glid=$glid"];
+    $page->z .= GLifeJS($glid);
   }
   else {
     die("incorrect parameters");
@@ -58,7 +58,7 @@ else {
   $speedsel = '';  foreach($speeds as $speed) $speedsel .= "<option value='$speed'>$speed";
   $speedsel = "<select name='maxfps'>$speedsel</select>";
   
-  $zzt .= "
+  $page->z .= "
     <h2>Random search for extra-universial life</h2>
     <table><tr>
     <td valign=top>

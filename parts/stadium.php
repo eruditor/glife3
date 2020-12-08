@@ -1,8 +1,8 @@
 <?
 
-$H1 = "Stadium";
+$page->bread[] = ["Stadium", "?view=stadium"];
 
-$zabst .= "
+$page->zabst .= "
   “Stadium” is where glifes are sorted by orga-rating.<br>
   And orga-rating is an automatically produced number that (we hope) shows how likely this glife contains any signs of artificial life.<br>
 ";
@@ -16,13 +16,14 @@ $famname = $_GET['family'];
 $family = $famnames[$famname];
 $famQplus = $family ? "AND family_id='$family->id'" : "";
 $famUplus = $family ? "&family=$family->name" : "";
+if($family) $page->bread[] = [$family->name, "&family=$family->name"];
 
 $s = "| ";
 foreach($famnames as $fam) {
   $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='$_self?view=stadium&family=$fam->name'>$fam->name</a>";
   $s .= "$t | ";
 }
-$zzt .= "<h3>Family filter: $s</h3><hr>";
+$page->z .= "<h3>Family filter: $s</h3><hr>";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -30,6 +31,7 @@ $zzt .= "<h3>Family filter: $s</h3><hr>";
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
+if($LL) $page->bread[] = ["page #$LL", "&ll=$LL"];
 
 $s = '';
 $where = "ver='$_ENV->anver' AND rating>0 $famQplus";
@@ -42,7 +44,7 @@ $res = mysql_query(
  LIMIT $LP,$PP
 ");
 $shwn = mysql_num_rows($res);
-$nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns WHERE $where");
+$nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns gr JOIN rr_glifetris gl ON gl.id=gr.gl_id WHERE $where");
 while($r = mysql_fetch_object($res)) {
   $clean = GetClean($r);
   
@@ -65,7 +67,7 @@ while($r = mysql_fetch_object($res)) {
     </tr>
   ";
 }
-$zzt .= "
+$page->z .= "
   <table cellspacing=0 id='SavedListTB' style='border:solid 2px #ddd'>
   <tr><th>run_id</th><th>glife</th><th>clean</th><th>family</th><th>nturn</th><th>orga&Sigma;</th><th>orgaAVG</th><th>z</th><th>stopped</th><th>rating</th></tr>
   $s
@@ -79,7 +81,7 @@ if($nttl>$PP) {  // pagination
     <td width=240>shown $shwn / $nttl</td>
     <td width=160>" . ($LP+$shwn<$nttl ? "<a href='$_self?$q&ll=".($LL+1)."'>next $PP &rarr;</a>" : "") . "</td>
   ";
-  $zzt .= "<br><div align=center><table><tr>$s</tr></table></div>";
+  $page->z .= "<br><div align=center><table><tr>$s</tr></table></div>";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

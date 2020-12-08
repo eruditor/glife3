@@ -26,6 +26,21 @@ function MakePage() {
   ";
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  $H1 = $title = $url = '';
+  foreach($page->bread as $k=>$v) {
+    $nm = $v[0];  $ah = $v[1];  $plus = $v[2] ?: '';
+    if($ah) $url .= $ah;
+    $crumb = $nm;
+    if($ah && $k<count($page->bread)-1) $crumb = "<a href='$url'>$crumb</a>";
+    if($plus) $crumb .= $plus;
+    $H1 .= ($H1?" &rarr; ":"") . $crumb;
+    $title = strip_tags($nm) . ($title?" &larr; ":"") . $title;
+  }
+  $title .= " &larr; Alife";
+  $page->title = $title;
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
   if(!$page->viewport) $page->viewport = 450;
   if(!$_ENV->isMobile) $page->viewport = 0;
@@ -167,7 +182,10 @@ function MakePage() {
   <DIV id=TopLine>$page->topline</DIV>
   <DIV id=MenuLine>$page->TopMenu</DIV>
   <DIV id=Main align=left>
-    $page->z
+    " . ($H1 ? "<h1>$H1</h1>" : "") . "
+    " . ($page->zabst ? "<div class=zabst>$page->zabst</div>" : "") . "
+    <div class=zzt>$page->z</div>
+    " . ($page->zpubd ? "<div class=zpubd>$page->zpubd</div>" : "") . "
   </DIV>
   <DIV id=BottomBuffer></DIV>
 </DIV>
@@ -183,7 +201,5 @@ function MakePage() {
 </HTML>";
   
 }
-
-// header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 
 ?>

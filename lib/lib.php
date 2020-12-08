@@ -16,6 +16,11 @@ spl_autoload_register(
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function dierr($s) {
+  header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+  die("error: $s");
+}
+
 function print_pre($var, $return=false, $release=0) {
   if(_local==="1" || $release<0) $s="<pre style='white-space:pre-wrap;'>".print_r($var,1)."</pre>";
   if($return) return $s;  else echo $s;
@@ -23,15 +28,9 @@ function print_pre($var, $return=false, $release=0) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function RN($s) { return str_replace(array("\r","\n"),array("","<br>"),trim($s)); }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function MRES($s) { return mysql_real_escape_string($s); }
 function mysql_r($s) { $t=mysql_fetch_row(mysql_query($s));  return $t[0]; }
 function mysql_o($s) { return mysql_fetch_object(mysql_query($s)); }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function htmlSPC($string, $flags=null) {
   static $php53 = null;
@@ -52,6 +51,9 @@ function SPCQ($s) { return htmlSPC($s, ENT_QUOTES); }
 
 function SPCQA($s) { return str_replace(array("&amp;", "&quot;"), array("&", "\""), SPCQ($s)); }
 
+function isCorrectID($t_id)  { if(!$t_id) return false;  return preg_match("`[^a-zA-Z0-9_\.\-]`",       $t_id) ? false : true; }
+function isCorrectVar($t_id) { if(!$t_id) return false;  return preg_match("`[^a-zA-Z0-9_\.\-;,@$\n]`", $t_id) ? false : true; }
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function iconver($c1,$c2,$x) {
@@ -65,6 +67,8 @@ function W2U($x) { return iconver("Windows-1251", "UTF-8//TRANSLIT", $x); }
 function U2W($x) { return iconver("UTF-8", "Windows-1251//TRANSLIT", $x); }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function RN($s) { return str_replace(array("\r","\n"),array("","<br>"),trim($s)); }
 
 function ShortenNumber($num) {
   static $letters = [1000000000=>"G", 1000000=>"M", 1000=>"k"];

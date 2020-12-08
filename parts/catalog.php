@@ -1,8 +1,8 @@
 <?
 
-$H1 = "Catalog";
+$page->bread[] = ["Catalog", "?view=catalog"];
 
-$zabst .= "
+$page->zabst .= "
   “Catalog” is a categorized list of glifes.<br>
   The most interesting glifes are “named” and presented in the “<a href='$_self?view=gallery'>Gallery</a>”.<br>
   Those that are manually processed and categorized are “typed”, they are here on the left.<br>
@@ -18,23 +18,39 @@ $famname = $_GET['family'];
 $family = $famnames[$famname];
 $famQplus = $family ? "AND family_id='$family->id'" : "";
 $famUplus = $family ? "&family=$family->name" : "";
+if($family) $page->bread[] = [$family->name, "&family=$family->name"];
 
 $s = "| ";
 foreach($famnames as $fam) {
   $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='$_self?view=catalog&family=$fam->name'>$fam->name</a>";
   $s .= "$t | ";
 }
-$zzt .= "<h3>Family filter: $s</h3><hr>";
+$page->z .= "<h3>Family filter: $s</h3><hr>";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+$goodnesses = [
+  0 => ['id'=>0, 'clr'=>"4ff", 'nam'=>"manually processed", 'wh'=>""],
+  1 => ['id'=>1, 'clr'=>"8f8", 'nam'=>"good",  'wh'=>"stopped_nturn>=5000"],
+  2 => ['id'=>2, 'clr'=>"ff8", 'nam'=>"so-so", 'wh'=>"stopped_nturn>=1000 AND stopped_nturn<5000"],
+  3 => ['id'=>3, 'clr'=>"f88", 'nam'=>"bad",   'wh'=>"stopped_nturn<1000"],
+];
+
+$typeds = [
+  "foam"=>"efe", "brain"=>"efe", "vores"=>"efe", "cyclic"=>"efe", "train"=>"efe", ""=>"efe",
+  "amoeba"=>"ffd", "holey"=>"ffd", "shoal"=>"ffd", "vapor"=>"ffd", "exglider"=>"ffd", "?"=>"ffd",
+  "boil"=>"fee", "extin"=>"fee", "conway"=>"fee", "blink"=>"fee", "gas"=>"fee", "kia"=>"fee",
+];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if($_GET['typed']) {
-  $typed = $_GET['typed'];
+  $typed = $_GET['typed'];  if(!isCorrectID($typed)) dierr("#179236742");
+  $otyped = $typeds[$typed];  if(!$otyped) dierr("#9187543243");
   
-  $title = "«".SPCQA($typed)."»";
-  $H1 = "<a href='$_self?view=catalog'>Catalog</a> &rarr; $title";
+  $page->bread[] = ["<i style='background:#".$otyped."'>$typed</i>", "&typed=$typed"];
   
   $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
   
@@ -42,7 +58,7 @@ if($_GET['typed']) {
   $res = mysql_query(
    "SELECT SQL_CALC_FOUND_ROWS *
     FROM rr_glifetris
-    WHERE typed='".MRES($typed)."' $famQplus
+    WHERE typed='$typed' $famQplus
     ORDER BY id DESC
     LIMIT $LP,$PP
   ");
@@ -62,7 +78,7 @@ if($_GET['typed']) {
       </tr>
     ";
   }
-  $zzt .= "
+  $page->z .= "
     <table cellspacing=0 id='SavedListTB'>
       <tr>
         <th>id</th><th>family</th><th>notaset</th><th>mutaset</th><th>named</th><th>typed</th><th>datetime</th><th></th>
@@ -73,25 +89,21 @@ if($_GET['typed']) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif(isset($_GET['stopped'])) {
-  $stopped  = $_GET['stopped'];
-  $goodness = intval($_GET['goodness']);
+  $stopped  = $_GET['stopped'];  if(!isCorrectVar($stopped)) dierr("#47592374");
+  $goodness = intval($_GET['goodness']);  if(!$goodness) dierr("#74428766");
+  $ogoodness = $goodnesses[$goodness];  if(!$ogoodness) dierr("#109743282");
   
-  $title = "«".SPCQA($stopped?:"---")."»";
-  $H1 = "<a href='$_self?view=catalog'>Catalog</a> &rarr; $title";
+  $page->bread[] = [($stopped?:"---") . " (".$ogoodness['nam'].")", "&stopped=$stopped&goodness=".$ogoodness['id']];
   
   $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
-  
-      if($goodness==1) $Q = "stopped_nturn>=5000";
-  elseif($goodness==2) $Q = "stopped_nturn>=1000 AND stopped_nturn<5000";
-  elseif($goodness==3) $Q = "stopped_nturn<1000";
-  else $Q = "1";
+  if($LL) $page->bread[] = ["page #$LL", "&ll=$LL"];
   
   $s = '';
   $res = mysql_query(
    "SELECT SQL_CALC_FOUND_ROWS gr.*, gl.*, gr.id gr_id
     FROM rr_glifetriruns gr
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
-    WHERE stopped_at='".MRES($stopped)."' AND stopped_nturn<10000 AND $Q $famQplus
+    WHERE stopped_at='".MRES($stopped)."' AND stopped_nturn<10000 AND ".$ogoodness['wh']." $famQplus
     ORDER BY gr.id DESC
     LIMIT $LP,$PP
   ");
@@ -153,7 +165,7 @@ elseif(isset($_GET['stopped'])) {
     $s .= $tr . "<tr><td><br></td></tr>";;
   }
   
-  $zzt .= "
+  $page->z .= "
     <table cellspacing=0 id='SavedListTB'>
       <tr>
         <th>gl_id<br>run_id</th><th>datetime</th><th>family</th><th>named</th><th>typed</th>
@@ -176,17 +188,12 @@ elseif(isset($_GET['stopped'])) {
     $s .= "<td width=160>" . ($LL>0 ? "<a href='$_self?$q&ll=".($LL-1)."'>&larr; prev $PP</a>" : "") . "</td>";
     $s .= "<td width=240>shown $shwn / $nttl</td>";
     $s .= "<td width=160>" . ($LP+$shwn<$nttl ? "<a href='$_self?$q&ll=".($LL+1)."'>next $PP &rarr;</a>" : "") . "</td>";
-    $zzt .= "<br><div align=center><table><tr>$s</tr></table></div>";
+    $page->z .= "<br><div align=center><table><tr>$s</tr></table></div>";
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {
   $s = '';  $ss = [];
-  $clr4nmd = [
-    "foam"=>"efe", "brain"=>"efe", "vores"=>"efe", "cyclic"=>"efe", "train"=>"efe", ""=>"efe",
-    "amoeba"=>"ffd", "holey"=>"ffd", "shoal"=>"ffd", "vapor"=>"ffd", "exglider"=>"ffd", "?"=>"ffd",
-    "boil"=>"fee", "extin"=>"fee", "conway"=>"fee", "blink"=>"fee", "gas"=>"fee", "kia"=>"fee",
-  ];
   
   $res = mysql_query(
   "SELECT typed, COUNT(*) nn
@@ -197,7 +204,7 @@ else {
   ");
   while($r = mysql_fetch_object($res)) {
     $ss[0] .= "
-      <tr style='background:#".$clr4nmd[$r->typed]."'>
+      <tr style='background:#".$typeds[$r->typed]."'>
       <td><a href='$_self?view=catalog$famUplus&typed=$r->typed'>".($r->typed?:"-?-")."</a></td>
       <td align=right>$r->nn</td>
       </tr>
@@ -221,24 +228,22 @@ else {
     ";
   }
   
-  $clr4cat = [0=>"4ff", 1=>"8f8", 2=>"ff8", 3=>"f88"];
-  $nam4cat = [0=>"manually processed", 1=>"good", 2=>"so-so", 3=>"bad"];
-  for($goodness=0; $goodness<=3; $goodness++) {
-    $th1 = strtoupper($nam4cat[$goodness]);
-    if($goodness==0) { $th2 = "type";      $th3 = "genoms"; }
-    else             { $th2 = "category";  $th3 = "runs";   }
+  foreach($goodnesses as $ogoodness) {
+    $th1 = strtoupper($ogoodness['nam']);
+    if($ogoodness['id']==0) { $th2 = "type";      $th3 = "genoms"; }
+    else                    { $th2 = "category";  $th3 = "runs";   }
     $s .= "
       <td width=20%>
         <table cellspacing=0 width=100%>
-          <tr><th colspan=2 style='background:#".$clr4cat[$goodness]."'>$th1</th></tr>
-          <tr><th>$th2</th><th style='text-align:right;'>$th3</th></tr>
-          ".$ss[$goodness]."
+          <tr><th colspan=2 style='background:#".$ogoodness['clr']."'>$th1</th></tr>
+          <tr><th>$th2</th><th style='text-align:right'>$th3</th></tr>
+          ".$ss[$ogoodness['id']]."
         </table>
       </td>
       <td width=5%>&nbsp;</td>
     ";
   }
-  $zzt .= "
+  $page->z .= "
     <table cellspacing=0 id='SavedListTB'><tr>
       $s
     </tr></table>

@@ -10,14 +10,10 @@ else die("nothing to show");
 
 $gl = mysql_o("SELECT * FROM rr_glifetris WHERE $q");  if(!$gl) die("no gl found");
 
-$fm = $families[$gl->family_id];
-$FD = intval($fm->FD ?: $_GET['FD']);
+$page->bread[] = [SPCQA($gl->named ?: $gl->notaset)];
 
-$Title = SPCQA($gl->named ?: $gl->notaset);
-$H1 = $Title;
+$page->z .= GlifeBigInfo($gl);
 
-$zzt .= GlifeBigInfo($gl);
-
-$zzt .= GLifeJS($glife);
+$page->z .= GLifeJS($glife);
 
 ?>
