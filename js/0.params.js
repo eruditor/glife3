@@ -89,6 +89,14 @@ if(cfg.anyrand) {
   if(!anyrand_go) alert('Anyrand error!');
 }
 
+// RELOAD PAGE ////////////////////////////////////////////////////////////////
+
+reloading = false;
+function ReloadPage() {
+  reloading = true;
+  setTimeout(function() { window.location.reload(); }, 100);
+}
+
 // FAMILY-SPECIFIC ////////////////////////////////////////////////////////////////
 
 if(Family=='Conway') {

@@ -449,17 +449,17 @@ function Stats(force=false) {
       SaveGlifetri({'stopped_at':failed_at});
       nGen ++;
       if(nGen>300) {
-        window.location.reload();  // reloading page sometimes to refresh seeds and avoid potential locks
+        ReloadPage();  // reloading page sometimes to refresh seeds and avoid potential locks
       }
       else if(cfg.rerun) {
         rerun_continue = GetRerun();
-        if(!rerun_continue) window.location.reload();
+        if(!rerun_continue) ReloadPage();
         Frand32(Fseed);  document.getElementById('fseedinp').value = Fseed;
         Init();
       }
       else if(cfg.anyrand) {
         anyrand_continue = GetAnyrand();
-        if(!anyrand_continue) window.location.reload();
+        if(!anyrand_continue) ReloadPage();
         ReInitSeeds();
         Init();
       }
@@ -467,7 +467,7 @@ function Stats(force=false) {
         ReInitSeeds();
         Init();
       }
-      Pause(-1);
+      if(!reloading) Pause(-1);
     }
   }
   else if(nturn>=10000 && !saved) {  // saving all long-runned cases
