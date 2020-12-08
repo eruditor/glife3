@@ -79,10 +79,16 @@ function MakePage() {
   <noscript><div><img src="https://mc.yandex.ru/watch/11332753" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
   ';
   
-  if(_local==="1") {
+  if(_local==="1" || $page->noindex) {
     $rax = "<img src='/i/rax31.gif' width=88 height=31>";
     $yam = "<!--".htmlSPC($yam)."-->";
   }
+  
+  if($page->noindex) {
+    $page->meta .= "<meta name=\"robots\" content=\"noindex\">";
+  }
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   if($page->mathjax) {
     $page->scripts .= '

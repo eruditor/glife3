@@ -18,8 +18,7 @@ include_once("parts/backstage.php");
 $page->bread = ["GL_SERVICE", "gl_service.php"];
 $page->zabst = "Service scripts for database operations.";
 $page->zpubd = "2020-06-08";
-
-$page->meta .= "<meta name=\"robots\" content=\"noindex\">";
+$page->noindex = true;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
