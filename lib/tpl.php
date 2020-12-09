@@ -41,7 +41,7 @@ function MakePage() {
   $page->title = $title;
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+  
   if(!$page->viewport) $page->viewport = 450;
   if(!$_ENV->isMobile) $page->viewport = 0;
   if($_GET['hsh'] && substr($_GET['hsh'],0,8)=="viewport") $page->viewport = intval(substr($_GET['hsh'],8)) ?: $page->viewport;

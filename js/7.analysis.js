@@ -166,11 +166,6 @@ function SaveGlifetri(prms={}) {
   prms['context'] = window.location.search;
   if(cfg.rerun) prms['rerun'] = rerun_gr_id;
   
-  // put maximum among layers>0 to glifetrirun.orgasum
-  // exclude z=0, because it represents "ground" non-living layer and is often too much structured or oscillating, making max(orgasum) undeservingly too large
-  prms['orgasum'] = -1;
-  for(z in rec[S1].orga_sum) if(z>0 && prms['orgasum']<rec[S1].orga_sum[z]) prms['orgasum'] = rec[S1].orga_sum[z];
-  
   var q = '';
   for(var k in prms) {
     q += (q?'&':'') + k + '=' + encodeURIComponent(prms[k]);

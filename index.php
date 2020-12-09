@@ -18,7 +18,7 @@ $page->bread[] = ["GLife", "./", "<sup>".sprintf("%.2lf", $_ENV->ver/100)."</sup
 
 $page->zabst = $_GET
   ?
-  "<div style='font-style:normal;'>&#9432; <a href='$_self'>What is Glife?</a></div>"
+  "<div style='font-style:normal;'>&#9432; <a href='./'>What is Glife?</a></div>"
   :
   "
   <b>GLife is a cellular automata platform based on WebGL2.</b>
@@ -30,9 +30,9 @@ $page->zabst = $_GET
   <li> Open-source: <a href='https://github.com/eruditor/glife3' class=ext>github</a>.
   </ul>
   It's primary target is the search of artificial life (alife) — evolving self-repairing self-replicating structures.<br>
-  &rarr; <a href='$_self?glife=Harbinger&fseed=186356772&LF=100'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
-  &rarr; <a href='$_self?glife=Plexus&fseed=2779294873'>Second one</a>.
-         <a href='$_self?gl_run=727595'>Third one</a>.<br>
+  &rarr; <a href='?glife=Harbinger&fseed=186356772&LF=100'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
+  &rarr; <a href='?glife=Plexus&fseed=2779294873'>Second one</a>.
+         <a href='?gl_run=727595'>Third one</a>.<br>
   "
 ;
 
@@ -57,8 +57,6 @@ else {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-$_ENV->isMobile = false;  // canvas is anyway bigger than mobile screen
 
 MakePage();
 

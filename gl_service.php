@@ -30,34 +30,19 @@ $AQ = new AQs(_local==="1" ? true : false);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-if($_GET['upd_orgasum']) {  // recalc glifetriruns.orgasum, see comments with "undeservingly too large" in Analysis
-  $page->bread[] = ["upd_orgasum", "?upd_orgasum=1"];
-  $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE orgasum>0 ORDER BY id LIMIT $AQ->LP,$AQ->PP");
-  $AQ->shwn = mysql_num_rows($res);
-  $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
-  while($r = mysql_fetch_object($res)) {
-    $json = json_decode($r->records);  if(!$json) continue;
-    $orgasums = $json->orga_sum ?: [];
-    $max = 0;
-    foreach($orgasums as $z=>$orgasum) {
-      if($z==0) continue;
-      if($max<$orgasum) $max = $orgasum;
-    }
-    if($max<>$r->orgasum) $AQ->AQs[] = "UPDATE rr_glifetriruns SET orgasum='$max' WHERE id='$r->id'";
-  }
-  $AQ->RunAQs();
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-elseif($_GET['recalc_ratings']) {
+if($_GET['recalc_ratings']) {
   $page->bread[] = ["recalc_ratings", "?recalc_ratings=1"];
   $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE ver='$_ENV->anver' ORDER BY id LIMIT $AQ->LP,$AQ->PP");
   $AQ->shwn = mysql_num_rows($res);
   $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
   while($r = mysql_fetch_object($res)) {
-    $rating0 = $r->rating;
+    $rating0 = $r->rating;  $orgasum0 = $r->orgasum;
     glRecords::EnrichOrgaRatings($r);
-    if(property_exists($r, 'rating') && $r->rating<>$rating0) {
-      $AQ->AQs[] = "UPDATE rr_glifetriruns SET rating='$r->rating' WHERE id='$r->id'";
+    $q = '';
+    if(property_exists($r, 'rating')  && $r->rating <>$rating0 ) $q .= ($q?",":"") . "rating ='".intval($r->rating )."'";
+    if(property_exists($r, 'orgasum') && $r->orgasum<>$orgasum0) $q .= ($q?",":"") . "orgasum='".intval($r->orgasum)."'";
+    if($q) {
+      $AQ->AQs[] = "UPDATE rr_glifetriruns SET $q WHERE id='$r->id'";
     }
   }
   $AQ->RunAQs();

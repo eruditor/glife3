@@ -124,12 +124,11 @@ class glRecords {
     
     $json = json_decode($gl->records) ?: [];
     
-    if(!property_exists($gl, 'orgasum')) {  // if glife not select'ed (only gliferun), rebuild it's value
-      $json_orgasum = $json->orga_sum;
-      $json_orgasum[0] = -1;  // not counting z=0 in orgasum (see js for this logic)
-      $gl->orgasum = max($json_orgasum);
-    }
+    $FD = glDicts::GetFD($gl);
     
+    $json_orgasum = $json->orga_sum;
+    if($FD>=3) $json_orgasum[0] = -1;  // not counting z=0 in orgasum for many-layer case
+    $gl->orgasum = max($json_orgasum);
     $gl->orga_sum = $gl->orgasum;
     
     if($json->orga_sum) {

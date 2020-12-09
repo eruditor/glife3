@@ -59,7 +59,7 @@ else {
     <h2>Random search for extra-universial life</h2>
     <table><tr>
     <td valign=top>
-      <form method=GET action='$_self'>
+      <form method=GET action=''>
         <input type=hidden name='view' value='manufacture'>
         <input type=hidden name='autore' value='1'>
         <table cellspacing=0 cellpadding=5 style='border:solid 2px #ddd;' id=glifeStatTB>
@@ -71,7 +71,7 @@ else {
       </form>
     </td><td width=30>&nbsp;</td>
     <td valign=top>
-      <form method=GET action='$_self'>
+      <form method=GET action=''>
         <input type=hidden name='view' value='manufacture'>
         <input type=hidden name='autore' value='1'>
         <table cellspacing=0 cellpadding=5 style='border:solid 2px #ddd;' id=glifeStatTB>
@@ -83,7 +83,7 @@ else {
       </form>
     </td><td width=30>&nbsp;</td>
     <td valign=top>
-      <form method=GET action='$_self'>
+      <form method=GET action=''>
         <input type=hidden name='view' value='manufacture'>
         <input type=hidden name='autore' value='1'>
         <table cellspacing=0 cellpadding=5 style='border:solid 2px #ddd;' id=glifeStatTB>
@@ -98,7 +98,7 @@ else {
     
     <table><tr>
     <td valign=top>
-      <form method=GET action='$_self'>
+      <form method=GET action=''>
         <input type=hidden name='view' value='manufacture'>
         <input type=hidden name='autore' value='1'>
         <table cellspacing=0 cellpadding=5 style='border:solid 2px #ddd;' id=glifeStatTB>

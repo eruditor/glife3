@@ -2,6 +2,23 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function AddFamilyFilter() {
+  global $page;
+  
+  $family = glDicts::GetFamily($_GET['family']);
+  $famQplus = $family ? "AND family_id='$family->id'" : "";
+  $famUplus = $family ? "&family=$family->name" : "";
+  if($family) $page->bread[] = [$family->name, "&family=$family->name"];
+  
+  $s = "| ";
+  foreach(glDicts::GetFamilies() as $fam) {
+    $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='?view=stadium&family=$fam->name'>$fam->name</a>";
+    $s .= "$t | ";
+  }
+  $page->z .= "<h3>Family filter: $s</h3><hr>";
+  
+  return [$famQplus, $famUplus];
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,14 +56,14 @@ function GlifeBigInfo($gls, $q4runs='') {
     while($r = mysql_fetch_object($res2)) {
       $srun .= "<td>";
       $srun .= "
-        <b><a href='$_self?gl_run=$r->id'>Run #$r->id</a></b>:
+        <b><a href='?gl_run=$r->id'>Run #$r->id</a></b>:
         ".glRecords::RecordsSpan($r, 'stopped_nturn')." / 
         ".glRecords::RecordsSpan($r, 'orga_sum')."
         <br>
       ";
       $ar_stopped = $r->stopped_at=='x' ? array_fill(0, $FD, 'x') : explode(";", $r->stopped_at);
       if($r->records) {
-        $json = json_decode($r->records) ?: [];
+        $json = json_decode($r->records) ?: (object)[];
         $stb = '';
         for($z=0; $z<$FD; $z++) {
           $t = '';
@@ -76,12 +93,12 @@ function GlifeBigInfo($gls, $q4runs='') {
     }
     
     $nm = $gl->named ?: $gl->notaset;
-    $nm = $single ? "<u>$nm</u>" : "<a href='$_self?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
+    $nm = $single ? "<u>$nm</u>" : "<a href='?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
     
     if($gl->mutaset) {
       $clean = glDicts::GetNonmutated($gl);
       $cleanstr = $clean->named ?: $clean->notaset;
-      $cleanstr = "mutated <a href='$_self?glife=".($clean->named ?: $clean->id)."'>$cleanstr</a>";
+      $cleanstr = "mutated <a href='?glife=".($clean->named ?: $clean->id)."'>$cleanstr</a>";
     }
     else {
       $cleanstr = $gl->notaset;

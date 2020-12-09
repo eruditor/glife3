@@ -4,7 +4,9 @@ setlocale(LC_CTYPE,"ru_RU.CP1251");
 
 set_error_handler(function($errno, $errstr) { return $errstr == 'Creating default object from empty value'; }, E_WARNING);
 
-$_ENV = new stdClass();
+if(!defined("_local")) define("_local", 0);
+
+$_ENV = (object)[];
 
 $page = new stdClass();
 $page->z = '';  // main content block
@@ -14,48 +16,11 @@ $_ENV->startT = microtime(true);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getMobDetect($ua = null) {
-  require_once("/var/www/libs/vendor/autoload.php");
-
-  $ua = isset($ua) ? $ua : $_SERVER['HTTP_USER_AGENT'];
-  $id = md5($ua);
-
-  static $cache;
-  if(isset($cache[$id])) return $cache[$id];
-
-  $detect = new Mobile_Detect(null, $ua);
-  $b = new StdClass();
-  $b->isMobileDevice = $detect->isMobile();
-  $b->isTablet = $detect->isTablet();
-
-  $cache[$id] = $b;
-
-  return $b;
-}
-
-function ua_contains_mobile() {
-  return stripos($_SERVER['HTTP_USER_AGENT'], "mobile") !== false;
-}
-
-function isMobile($ua = null) {
-  $b = getMobDetect($ua);
-  return (($b->isMobileDevice || ua_contains_mobile()) && !$b->isTablet);
-}
-function isTablet($ua = null) {
-  $b = getMobDetect($ua);
-  return (boolean)$b->isTablet;
-}
-function isIE($ua = null) {
-  $ua = isset($ua) ? $ua : $_SERVER['HTTP_USER_AGENT'];
-  if(preg_match('/MSIE (\w+\.\w+);/', $ua, $ms)) {
-    return $ms[1];
-  }
-  return false;
-}
-$_ENV->isMobile = isMobile();
+$_ENV->isMobile = false;  // canvas is anyway bigger than mobile screen
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+global $_self;
 $_self = str_replace("index.php", "", $_SERVER['PHP_SELF']);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -13,22 +13,24 @@ include_once("lib/lib.php");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(isset($_POST['rerun'])) {
   $rerun_gr_id = intval($_POST['rerun']);  if(!$rerun_gr_id) die("no rerun_gr_id");
+  
   $old = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$rerun_gr_id'");  if(!$old) die("rerun_gr not found");
   if($old->fseed<>$_POST['fseed']) die("#4y1788372");
   
   $new = clone $old;
-  foreach(['stopped_at', 'stopped_nturn', 'orgasum', 'records'] as $k) {
+  foreach(['stopped_at', 'stopped_nturn', 'records'] as $k) {
     $new->$k = $_POST[$k];
   }
   glRecords::EnrichOrgaRatings($new);
   
   $q = $val0 = $val1 = '';
-  foreach(['stopped_at', 'stopped_nturn', 'orgasum', 'records', 'rating'] as $k) {
+  foreach(['stopped_at', 'stopped_nturn', 'records', 'rating'] as $k) {
     if($old->$k==$new->$k) continue;
     $q .= ($q?",":"") . "$k='".MRES($new->$k)."'";
     $val0 .= "$k:|".MRES($old->$k)."|";
     $val1 .= "$k:|".MRES($new->$k)."|";
   }
+  
   if($q) {
     mysql_query("UPDATE rr_glifetriruns SET ver='$_ENV->anver', $q WHERE id='$old->id' LIMIT 1");
     mysql_query("INSERT INTO rr_glogs SET glife_id='$old->id', usr_id=0, dt=NOW(), val0='$val0', val1='$val1'");
@@ -61,7 +63,7 @@ elseif($_POST['family_id']) {
   
   // insert glifetrirun
   $q = '';
-  $post = ['rseed'=>'', 'fseed'=>'', 'stopped_at'=>0, 'stopped_nturn'=>0, 'orgasum'=>0, 'records'=>'', 'context'=>''];
+  $post = ['rseed'=>'', 'fseed'=>'', 'stopped_at'=>0, 'stopped_nturn'=>0, 'records'=>'', 'context'=>''];
   foreach($post as $k=>$v) {
     $post[$k] = MRES($_POST[$k]);
     $q .= ($q?", ":"") . "$k='".$post[$k]."'";
@@ -69,10 +71,10 @@ elseif($_POST['family_id']) {
   mysql_query("INSERT INTO rr_glifetriruns SET gl_id='$glid', dt=NOW(), ver='$_ENV->anver', $q");
   $id = mysql_insert_id();
   
-  // calc rating
+  // calc rating and orgasum
   $r = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$id'");
   glRecords::EnrichOrgaRatings($r);
-  if(property_exists($r, 'rating')) mysql_query("UPDATE rr_glifetriruns SET rating='$r->rating' WHERE id='$r->id'");
+  mysql_query("UPDATE rr_glifetriruns SET rating='".intval($r->rating)."', orgasum='".intval($r->orgasum)."' WHERE id='$r->id'");
   
   // insert qlog
   mysql_query("INSERT INTO rr_glogs SET glife_id='$glid', usr_id=0, dt=NOW(), val0='', val1='tri:".MRES($q)."'");

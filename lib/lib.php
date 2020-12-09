@@ -28,10 +28,20 @@ function print_pre($var, $return=false, $release=0) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// mysql dummies
+if(!function_exists("mysql_query"))         { function mysql_query($q) { return $q; } }
+if(!function_exists("mysql_fetch_object"))  { function mysql_fetch_object($res) { return (object)[]; } }
+if(!function_exists("mysql_fetch_row"))     { function mysql_fetch_row($res) { return false; } }
+if(!function_exists("mysql_num_rows"))      { function mysql_num_rows($res) { return false; } }
+if(!function_exists("mysql_insert_id"))     { function mysql_insert_id() { return 0; } }
+if(!function_exists("mysql_affected_rows")) { function mysql_affected_rows($res) { return 0; } }
+if(!function_exists("mysql_real_escape_string")) { function mysql_real_escape_string($s) { return $s; } }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function MRES($s) { return mysql_real_escape_string($s); }
-function mysql_r($s) { $t=mysql_fetch_row(mysql_query($s));  return $t[0]; }
-function mysql_o($s) { return mysql_fetch_object(mysql_query($s)); }
+function mysql_r($q) { $t = mysql_fetch_row(mysql_query($q));  return $t[0]; }
+function mysql_o($q) { return mysql_fetch_object(mysql_query($q)); }
 
 function htmlSPC($string, $flags=null) {
   static $php53 = null;

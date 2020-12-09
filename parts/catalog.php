@@ -4,24 +4,12 @@ $page->bread[] = ["Catalog", "?view=catalog"];
 
 $page->zabst .= "
   “Catalog” is a categorized list of glifes.<br>
-  The most interesting glifes are “named” and presented in the “<a href='$_self?view=gallery'>Gallery</a>”.<br>
+  The most interesting glifes are “named” and presented in the “<a href='?view=gallery'>Gallery</a>”.<br>
   Those that are manually processed and categorized are “typed”, they are here on the left.<br>
   All others are devided into 3 categories (good, so-so and bad) by machine.<br>
 ";
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-$family = glDicts::GetFamily($_GET['family']);
-$famQplus = $family ? "AND family_id='$family->id'" : "";
-$famUplus = $family ? "&family=$family->name" : "";
-if($family) $page->bread[] = [$family->name, "&family=$family->name"];
-
-$s = "| ";
-foreach(glDicts::GetFamilies() as $fam) {
-  $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='$_self?view=catalog&family=$fam->name'>$fam->name</a>";
-  $s .= "$t | ";
-}
-$page->z .= "<h3>Family filter: $s</h3><hr>";
+list($famQplus, $famUplus) = AddFamilyFilter();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,11 +51,11 @@ if($_GET['typed']) {
   while($r = mysql_fetch_object($res)) {
     $s .= "
       <tr>
-        <td align=right><a href='$_self?glife=$r->id'>$r->id</a></td>
+        <td align=right><a href='?glife=$r->id'>$r->id</a></td>
         <td>".glDicts::GetFamily($r->family_id)->name."</td>
-        <td><a href='$_self?notaset=$r->notaset&maxfps=300'>$r->notaset</a></td>
-        <td class=nrrw>".($r->mutaset?"<a href='$_self?notaset=$r->notaset&mutaset=$r->mutaset&maxfps=300'>".RN($r->mutaset)."</a>":"")."</td>
-        <td><a href='$_self?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a></td>
+        <td><a href='?notaset=$r->notaset&maxfps=300'>$r->notaset</a></td>
+        <td class=nrrw>".($r->mutaset?"<a href='?notaset=$r->notaset&mutaset=$r->mutaset&maxfps=300'>".RN($r->mutaset)."</a>":"")."</td>
+        <td><a href='?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a></td>
         <td>$r->typed</td>
         <td>$r->found_dt</td>
         <td>".GlifeEditInput($r)."</td>
@@ -130,12 +118,12 @@ elseif(isset($_GET['stopped'])) {
       if($z==0) {
         $tr .= "
           <td rowspan=$FD>
-            <a href='$_self?glife=$r->gl_id'>$r->gl_id</a><br>
+            <a href='?glife=$r->gl_id'>$r->gl_id</a><br>
             $r->gr_id
           </td>
           <td rowspan=$FD class=nrrw>$r->dt</td>
           <td rowspan=$FD>".glDicts::GetFamily($r->family_id)->name."</td>
-          <td rowspan=$FD>".($r->named ? "<a href='$_self?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a>" : "")."</td>
+          <td rowspan=$FD>".($r->named ? "<a href='?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a>" : "")."</td>
           <td rowspan=$FD>$r->typed</td>
         ";
       }
@@ -181,9 +169,9 @@ elseif(isset($_GET['stopped'])) {
     $q = '';
     foreach($_GET as $k=>$v) if($k<>'ll') $q .= ($q?"&":"") . "$k=$v";
     $s = '';
-    $s .= "<td width=160>" . ($LL>0 ? "<a href='$_self?$q&ll=".($LL-1)."'>&larr; prev $PP</a>" : "") . "</td>";
+    $s .= "<td width=160>" . ($LL>0 ? "<a href='?$q&ll=".($LL-1)."'>&larr; prev $PP</a>" : "") . "</td>";
     $s .= "<td width=240>shown $shwn / $nttl</td>";
-    $s .= "<td width=160>" . ($LP+$shwn<$nttl ? "<a href='$_self?$q&ll=".($LL+1)."'>next $PP &rarr;</a>" : "") . "</td>";
+    $s .= "<td width=160>" . ($LP+$shwn<$nttl ? "<a href='?$q&ll=".($LL+1)."'>next $PP &rarr;</a>" : "") . "</td>";
     $page->z .= "<br><div align=center><table><tr>$s</tr></table></div>";
   }
 }
@@ -201,7 +189,7 @@ else {
   while($r = mysql_fetch_object($res)) {
     $ss[0] .= "
       <tr style='background:#".$typeds[$r->typed]."'>
-      <td><a href='$_self?view=catalog$famUplus&typed=$r->typed'>".($r->typed?:"-?-")."</a></td>
+      <td><a href='?view=catalog$famUplus&typed=$r->typed'>".($r->typed?:"-?-")."</a></td>
       <td align=right>$r->nn</td>
       </tr>
     ";
@@ -218,7 +206,7 @@ else {
   while($r = mysql_fetch_object($res)) {
     $ss[$r->goodness] .= "
       <tr>
-        <td><a href='$_self?view=catalog$famUplus&stopped=$r->stopped_at&goodness=$r->goodness'>".($r->stopped_at?:"---")."</a></td>
+        <td><a href='?view=catalog$famUplus&stopped=$r->stopped_at&goodness=$r->goodness'>".($r->stopped_at?:"---")."</a></td>
         <td align=right>$r->nn</td>
       </tr>
     ";
