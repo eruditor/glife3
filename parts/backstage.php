@@ -104,7 +104,7 @@ function GlifeBigInfo($gl, $q4runs='', $single=true) {
   }
   
   $nm = $gl->named ?: $gl->notaset;
-  $nm = $single ? "<u>$nm</u>" : "<a href='?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
+  $nm = $single && !$q4runs ? "<u>$nm</u>" : "<a href='?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
   
   if($gl->mutaset) {
     $clean = glDicts::GetNonmutated($gl);
