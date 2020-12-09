@@ -72,7 +72,7 @@ if($_GET['typed']) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif(isset($_GET['stopped'])) {
-  $stopped  = $_GET['stopped'];  if(!isCorrectVar($stopped)) dierr("#47592374");
+  $stopped  = $_GET['stopped'];  if($stopped && !isCorrectVar($stopped)) dierr("#47592374");
   $goodness = intval($_GET['goodness']);  if(!$goodness) dierr("#74428766");
   $ogoodness = $goodnesses[$goodness];  if(!$ogoodness) dierr("#109743282");
   
