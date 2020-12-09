@@ -7,7 +7,7 @@ $page->zabst .= "
   And orga-rating is an automatically produced number that (we hope) shows how likely this glife contains any signs of artificial life.<br>
 ";
 
-list($famQplus, $famUplus) = AddFamilyFilter();
+list($famQplus, $famUplus) = AddFamilyFilter('stadium');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

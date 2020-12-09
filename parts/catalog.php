@@ -9,7 +9,7 @@ $page->zabst .= "
   All others are devided into 3 categories (good, so-so and bad) by machine.<br>
 ";
 
-list($famQplus, $famUplus) = AddFamilyFilter();
+list($famQplus, $famUplus) = AddFamilyFilter('catalog');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

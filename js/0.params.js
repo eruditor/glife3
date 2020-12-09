@@ -1,5 +1,7 @@
 // GET PARAMS ////////////////////////////////////////////////////////////////
 
+if(!glFamily) throw new Error('Family info required!');
+
 // get GET params
 const URL = new URLSearchParams(window.location.search);
 // get script self address
@@ -40,20 +42,18 @@ var cfg = new Cfg();
 
 // global vars for constant things, good for shorter names in formulas
 
-var Family = GetStrParam('family', 'Conway3D');  // name of rule's family
-var RB     = GetIntParam('RB',    2);  // number of states for cell
-var Rgeom  = GetIntParam('Rgeom', 182);  // neighborhood geometry (see RG)
-var Rsymm  = GetIntParam('Rsymm', 85);  // symmetry of rules (rotational, parity, etc)
+const Family = GetStrParam('family', glFamily.name);   // name of rule's family
+const RB     = GetIntParam('RB',     glFamily.RB);     // number of states for cell
+const Rgeom  = GetIntParam('Rgeom',  glFamily.Rgeom);  // neighborhood geometry (see RG)
+const Rsymm  = GetIntParam('Rsymm',  glFamily.Rsymm);  // symmetry of rules (rotational, parity, etc)
+const FD     = GetIntParam('FD', glFamily.FD || 3);  // field depth (number of layers)
+const FW     = GetIntParam('FW', 600);  // field width
+const FH     = GetIntParam('FH', 350);  // field height
 
 var Notaset = GetStrParam('notaset');  // encoded or named rules
 var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)
 
-var FW    = GetIntParam('FW', 600);  // field width
-var FH    = GetIntParam('FH', 350);  // field height
-var FD    = GetIntParam('FD',   3);  // field depth (number of layers)
-
 var LF    = GetIntParam('LF', 90) / 100;  // initially filled piece (percent)
-
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 
@@ -89,6 +89,17 @@ if(cfg.anyrand) {
   if(!anyrand_go) alert('Anyrand error!');
 }
 
+// DEBUG ////////////////////////////////////////////////////////////////
+
+if(cfg.debug) {
+  cfg.paused = 1;
+  cfg.maxfps = 1;
+  cfg.turn4stats = 1;
+  FW = 10;  FH = 5;
+}
+
+if(RB<=3) cfg.drawrules = 1;
+
 // RELOAD PAGE ////////////////////////////////////////////////////////////////
 
 reloading = false;
@@ -96,34 +107,5 @@ function ReloadPage() {
   reloading = true;
   setTimeout(function() { window.location.reload(); }, 100);
 }
-
-// FAMILY-SPECIFIC ////////////////////////////////////////////////////////////////
-
-if(Family=='Conway') {
-  RB = 2;
-  Rgeom = 18;
-  Rsymm = 85;
-}
-else if(Family=='Conway3D') {
-  RB = 2;
-  Rgeom = 182;
-  Rsymm = 85;
-}
-else if(Family=='Langton') {
-  FD = 2;
-  RB = 5;
-  Rgeom = 142;
-  Rsymm = 47;
-}
-
-if(cfg.debug) {
-  cfg.paused = 1;
-  cfg.maxfps = 1;
-  cfg.turn4stats = 1;
-  FW = 10;  FH = 5;
-  //Notaset = 'Debug';
-}
-
-if(RB<=3) cfg.drawrules = 1;
 
 //  ////////////////////////////////////////////////////////////////

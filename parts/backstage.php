@@ -2,7 +2,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function AddFamilyFilter() {
+function AddFamilyFilter($view) {
   global $page;
   
   $family = glDicts::GetFamily($_GET['family']);
@@ -12,7 +12,7 @@ function AddFamilyFilter() {
   
   $s = "| ";
   foreach(glDicts::GetFamilies() as $fam) {
-    $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='?view=stadium&family=$fam->name'>$fam->name</a>";
+    $t = $fam->id==$family->id ? "<u>$fam->name</u>" : "<a href='?view=$view&family=$fam->name'>$fam->name</a>";
     $s .= "$t | ";
   }
   $page->z .= "<h3>Family filter: $s</h3><hr>";
@@ -145,19 +145,19 @@ function GlifeEditInput($r) {
 function GLifeJS($notaset='', $prms=[], $send2js = '') {
   if(!$notaset) $notaset = "Aphrodite";
   
+  $fm = null;  // family is required to run
+  
   if($notaset=='random') {
     $prms['randrules'] = 1;
+    $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);
   }
   elseif($notaset=='rerun') {
     $prms['rerun'] = 1;
-    $prms['family'] = "Conway3D";
+    $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);
   }
   elseif(substr($notaset,0,8)=="anyrand_") {
     $prms['anyrand'] = 1;
-    
-    $fm = glDicts::GetFamily(substr($notaset, 8));  if(!$fm) die("#874289734");
-    $prms['family'] = $fm->name;
-    
+    $fm = glDicts::GetFamily(substr($notaset,8));
     $send = '';  $FD = 0;
     $res = mysql_query("SELECT * FROM rr_glifetris WHERE family_id='$fm->id' AND named<>'' AND mutaset=''");
     while($r = mysql_fetch_object($res)) {
@@ -172,12 +172,16 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
     $prms['FD'] = $FD;
   }
   else {
-    $gl = glDicts::GetGL4Notaset($notaset);  if(!$gl) die("incorrect notaset");
+    $gl = glDicts::GetGL4Notaset($notaset);  if(!$gl) dierr("incorrect notaset");
+    $fm = glDicts::GetFamily($gl->family_id);
     $prms['notaset'] = $gl->notaset;
     $prms['mutaset'] = $gl->mutaset;
     $prms['FD'] = glDicts::GetFD($gl);
-    $prms['family'] = glDicts::GetFamily($gl->family_id)->name;
   }
+  
+  if(!$fm) dierr("#48379230");
+  $prms['family'] = $fm->name;
+  $send2js .= "glFamily = JSON.parse(`" . json_encode($fm) . "`);\n";
   
   $rseed = $prms['rseed'] ?: intval($_GET['rseed']) ?: rand(1,getrandmax());
   $fseed = $prms['fseed'] ?: intval($_GET['fseed']) ?: rand(1,getrandmax());
@@ -187,7 +191,7 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   
   $plus = '';  foreach($prms as $k=>$v) if($v) $plus .= "&".urlencode($k)."=".urlencode($v);
   
-  $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);";
+  $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);\n";
   
   return "
     <div id=GLifeCont></div>

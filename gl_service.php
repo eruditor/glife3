@@ -55,6 +55,8 @@ if($_GET['recalc_ratings']) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_GET['rerun_new_orga']) {
+  $fm_id = 3;
+  
   $page->bread[] = ["rerun_new_orga", "?rerun_new_orga=1"];
   
       if($_GET['order']=='asc')  $order = "ORDER BY gr.id";
@@ -69,7 +71,7 @@ elseif($_GET['rerun_new_orga']) {
    "SELECT gr.*, gl.family_id, gl.notaset, gl.mutaset
     FROM rr_glifetriruns gr
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
-    WHERE $wh AND family_id=3 AND ver<$_ENV->anver AND stopped_at!='x'
+    WHERE $wh AND family_id=$fm_id AND ver<$_ENV->anver AND stopped_at!='x'
     $order
     LIMIT 100
   ");
@@ -81,7 +83,7 @@ elseif($_GET['rerun_new_orga']) {
       $send2js
     ];
   ";
-  $page->z .= GLifeJS('rerun', [], $send2js);
+  $page->z .= GLifeJS('rerun', ['family'=>$fm_id], $send2js);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

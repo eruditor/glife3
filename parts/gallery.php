@@ -7,7 +7,7 @@ $page->zabst .= "
   They are chosen by human and have a personal name.<br>
 ";
 
-list($famQplus, $famUplus) = AddFamilyFilter();
+list($famQplus, $famUplus) = AddFamilyFilter('gallery');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
