@@ -5,7 +5,6 @@
 class AQs {
   
   public $AQs = [];        // array of queries
-  public $APs = [];        // array of preps for pparsing
   public $nttl = 0;        // SQL_CALC_FOUND_ROWS -> SELECT FOUND_ROWS()
   public $shwn = 0;        // mysql_num_rows
   public $PP = 0;          // pagination: items per page
@@ -56,7 +55,7 @@ class AQs {
           mysql_query("$v");  $nv = mysql_affected_rows();
           $inxlog .= "$v :: $nv<br>";  $nnv += $nv;
           $ii++;
-          if($ii%100==99 || microtime(true)-$tt>10) { // разбиваем транзакцию на куски, чтобы избежать долгих блокировок
+          if($ii%100==99 || microtime(true)-$tt>10) { // split to avoid locks
             mysql_query("COMMIT");
             if($ii%1000==999) sleep(1);
             mysql_query("START TRANSACTION");  $tt = microtime(true);
@@ -127,9 +126,9 @@ class AQs {
     if($this->nttl) {
       $this->paginat = "
         <table cellspacing=0 id=CommonTB2><tr>
-        <td width=120 align=left  >".($this->LP>0?"<a href='$_self?$qq".($qq?"&":"")."ll=".($this->LL-1)."'>ЂЂ предыдущие $this->PP</a>":"")."</td>
+        <td width=120 align=left  >".($this->LP>0?"<a href='$_self?$qq".($qq?"&":"")."ll=".($this->LL-1)."'>ЂЂ prev $this->PP</a>":"")."</td>
         <td width=160 align=center><b>".($this->shwn>0?($this->LP+1):$this->LP)."</b>Ц<b>".($this->LP+$this->shwn)."</b> из <b>$this->nttl</b> ".($aqs_counters?"(aqs)":"")."</td>
-        <td width=120 align=right >".($this->LP+$this->shwn<$this->nttl?"<a href='$_self?$qq".($qq?"&":"")."ll=".($this->LL+1)."'>следующие ".($this->LP+$this->PP+$this->shwn>=$this->nttl?($this->nttl-$this->LP-$this->shwn):$this->PP)." її</a>":"")."</td>
+        <td width=120 align=right >".($this->LP+$this->shwn<$this->nttl?"<a href='$_self?$qq".($qq?"&":"")."ll=".($this->LL+1)."'>next ".($this->LP+$this->PP+$this->shwn>=$this->nttl?($this->nttl-$this->LP-$this->shwn):$this->PP)." її</a>":"")."</td>
         </tr></table>
       ";
     }

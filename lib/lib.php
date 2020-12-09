@@ -34,7 +34,7 @@ if(!function_exists("mysql_fetch_object"))  { function mysql_fetch_object($res) 
 if(!function_exists("mysql_fetch_row"))     { function mysql_fetch_row($res) { return false; } }
 if(!function_exists("mysql_num_rows"))      { function mysql_num_rows($res) { return false; } }
 if(!function_exists("mysql_insert_id"))     { function mysql_insert_id() { return 0; } }
-if(!function_exists("mysql_affected_rows")) { function mysql_affected_rows($res) { return 0; } }
+if(!function_exists("mysql_affected_rows")) { function mysql_affected_rows() { return 0; } }
 if(!function_exists("mysql_real_escape_string")) { function mysql_real_escape_string($s) { return $s; } }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -46,7 +46,11 @@ class glDicts {
     if($gl->notaset) {
       $FD = count(explode(",", $gl->notaset));
     }
-    else {
+    elseif($gl->records) {
+      $json = json_decode($gl->records);
+      if(is_array($json->livecells)) $FD = count($json->livecells);
+    }
+    elseif($gl->family_id) {
       $fm = glDicts::GetFamily($gl->family_id);
       if($fm->FD) $FD = $fm->FD;
     }

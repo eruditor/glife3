@@ -47,10 +47,11 @@ elseif($_GET['view']=='stadium')     { include("parts/stadium.php");     }
 elseif($_GET['view']=='manufacture') { include("parts/manufacture.php"); }
 elseif($_GET['gl_run']) {
   $gr_id = intval($_GET['gl_run']);  if(!$gr_id) die("#r84238237432");
-  $gr = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$gr_id'");  if(!$gr) die("#r84238237433");
+  $gr = mysql_o("SELECT * FROM rr_glifetriruns WHERE id='$gr_id'");   if(!$gr) die("#r84238237433");
+  $gl = mysql_o("SELECT * FROM rr_glifetris WHERE id='$gr->gl_id'");  if(!$gl) die("#r84238237434");
   $page->bread[] = ["Run #$gr->id", "?gl_run=$gr->id"];
-  $page->z .= GlifeBigInfo("gl.id='$gr->gl_id'", " AND gr.id='$gr_id'");
-  $page->z .= GLifeJS($gr->gl_id, ['fseed'=>$gr->fseed]);
+  $page->z .= GlifeBigInfo($gl, " AND gr.id='$gr_id'");
+  $page->z .= GLifeJS($gl->id, ['fseed'=>$gr->fseed]);
 }
 else {
   $page->z .= GLifeJS();

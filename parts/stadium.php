@@ -11,9 +11,7 @@ list($famQplus, $famUplus) = AddFamilyFilter();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
-if($LL) $page->bread[] = ["page #$LL", "&ll=$LL"];
-
+$PG = new Pagination(100);
 $s = '';
 $where = "ver='$_ENV->anver' AND rating>0 $famQplus";
 $res = mysql_query(
@@ -22,10 +20,10 @@ $res = mysql_query(
  JOIN rr_glifetris gl ON gl.id=gr.gl_id
  WHERE $where
  ORDER BY rating, orgasum DESC
- LIMIT $LP,$PP
+ LIMIT $PG->LP,$PG->PP
 ");
-$shwn = mysql_num_rows($res);
-$nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns gr JOIN rr_glifetris gl ON gl.id=gr.gl_id WHERE $where");
+$PG->shwn = mysql_num_rows($res);
+$PG->nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns gr JOIN rr_glifetris gl ON gl.id=gr.gl_id WHERE $where");
 while($r = mysql_fetch_object($res)) {
   $nonmutated = glDicts::GetNonmutated($r);
   
@@ -54,16 +52,7 @@ $page->z .= "
   $s
   </table>
 ";
-
-if($nttl>$PP) {  // pagination
-  $q = '';  foreach($_GET as $k=>$v) if($k<>'ll') $q .= ($q?"&":"") . "$k=$v";
-  $s = "
-    <td width=160>" . ($LL>0 ? "<a href='?$q".($LL>1?"&ll=".($LL-1):"")."'>&larr; prev $PP</a>" : "") . "</td>
-    <td width=240>shown $shwn / $nttl</td>
-    <td width=160>" . ($LP+$shwn<$nttl ? "<a href='?$q&ll=".($LL+1)."'>next $PP &rarr;</a>" : "") . "</td>
-  ";
-  $page->z .= "<br><div align=center><table><tr>$s</tr></table></div>";
-}
+$PG->AddPagination();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

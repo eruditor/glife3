@@ -36,18 +36,16 @@ if($_GET['typed']) {
   
   $page->bread[] = ["<i style='background:#".$otyped."'>$typed</i>", "&typed=$typed"];
   
-  $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
-  
+  $PG = new Pagination(100);
   $s = '';
   $res = mysql_query(
    "SELECT SQL_CALC_FOUND_ROWS *
     FROM rr_glifetris
     WHERE typed='$typed' $famQplus
     ORDER BY id DESC
-    LIMIT $LP,$PP
+    LIMIT $PG->LP,$PG->PP
   ");
-  $shwn = mysql_num_rows($res);
-  $nttl = mysql_r("SELECT FOUND_ROWS()");
+  $PG->Count($res);
   while($r = mysql_fetch_object($res)) {
     $s .= "
       <tr>
@@ -70,6 +68,7 @@ if($_GET['typed']) {
       $s
     </table>
   ";
+  $PG->AddPagination();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif(isset($_GET['stopped'])) {
@@ -79,9 +78,7 @@ elseif(isset($_GET['stopped'])) {
   
   $page->bread[] = [($stopped?:"---") . " (".$ogoodness['nam'].")", "&stopped=$stopped&goodness=".$ogoodness['id']];
   
-  $PP = 100;  $LL = intval($_GET['ll']);  $LP = $LL * $PP;
-  if($LL) $page->bread[] = ["page #$LL", "&ll=$LL"];
-  
+  $PG = new Pagination(100);
   $s = '';
   $res = mysql_query(
    "SELECT SQL_CALC_FOUND_ROWS gr.*, gl.*, gr.id gr_id
@@ -89,10 +86,9 @@ elseif(isset($_GET['stopped'])) {
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
     WHERE stopped_at='".MRES($stopped)."' AND stopped_nturn<10000 AND ".$ogoodness['wh']." $famQplus
     ORDER BY gr.id DESC
-    LIMIT $LP,$PP
+    LIMIT $PG->LP,$PG->PP
   ");
-  $shwn = mysql_num_rows($res);
-  $nttl = mysql_r("SELECT FOUND_ROWS()");
+  $PG->Count($res);
   while($r = mysql_fetch_object($res)) {
     $a_notaset = explode(",",  $r->notaset);
     $a_mutaset = explode("\n", $r->mutaset);
@@ -165,15 +161,7 @@ elseif(isset($_GET['stopped'])) {
     </table>
   ";
   
-  if($nttl>$PP) {  // pagination
-    $q = '';
-    foreach($_GET as $k=>$v) if($k<>'ll') $q .= ($q?"&":"") . "$k=$v";
-    $s = '';
-    $s .= "<td width=160>" . ($LL>0 ? "<a href='?$q&ll=".($LL-1)."'>&larr; prev $PP</a>" : "") . "</td>";
-    $s .= "<td width=240>shown $shwn / $nttl</td>";
-    $s .= "<td width=160>" . ($LP+$shwn<$nttl ? "<a href='?$q&ll=".($LL+1)."'>next $PP &rarr;</a>" : "") . "</td>";
-    $page->z .= "<br><div align=center><table><tr>$s</tr></table></div>";
-  }
+  $PG->AddPagination();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {

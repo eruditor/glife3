@@ -122,16 +122,16 @@ class glRecords {
   static function EnrichOrgaRatings(&$gl) {
     if(!$gl->records) return false;
     
-    $json = json_decode($gl->records) ?: [];
+    $json = json_decode($gl->records);  if(!$json) return false;
     
     $FD = glDicts::GetFD($gl);
     
-    $json_orgasum = $json->orga_sum;
-    if($FD>=3) $json_orgasum[0] = -1;  // not counting z=0 in orgasum for many-layer case
-    $gl->orgasum = max($json_orgasum);
-    $gl->orga_sum = $gl->orgasum;
-    
     if($json->orga_sum) {
+      $json_orgasum = $json->orga_sum;
+      if($FD>=3) $json_orgasum[0] = -1;  // not counting z=0 in orgasum for many-layer case
+      $gl->orgasum = max($json_orgasum);
+      $gl->orga_sum = $gl->orgasum;
+      
       $gl->orga_z = array_search($gl->orgasum, $json->orga_sum);
       $gl->orga_num = $gl->orga_z!==false ? $json->orga_num[$gl->orga_z] : -1;
       $gl->orga_avg = $gl->orga_num>0 ? round($gl->orgasum / $gl->orga_num) : -1;
@@ -144,6 +144,7 @@ class glRecords {
       if($gl->rating<=0) $gl->rating = 1;  // decreasing rating is to optimize MySQL ASC/DESC INDEX usage
     }
     else {
+      $gl->orga_sum = $gl->orgasum = -1;
       $gl->rating = -999;
     }
   }

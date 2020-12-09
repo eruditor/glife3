@@ -32,14 +32,20 @@ $AQ = new AQs(_local==="1" ? true : false);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if($_GET['recalc_ratings']) {
   $page->bread[] = ["recalc_ratings", "?recalc_ratings=1"];
-  $res = mysql_query("SELECT SQL_CALC_FOUND_ROWS * FROM rr_glifetriruns WHERE ver='$_ENV->anver' ORDER BY id LIMIT $AQ->LP,$AQ->PP");
+  $res = mysql_query(
+   "SELECT SQL_CALC_FOUND_ROWS *
+    FROM rr_glifetriruns
+    WHERE orgasum<=0 AND records!=''  # ver='$_ENV->anver'
+    ORDER BY id
+    LIMIT $AQ->LP,$AQ->PP
+  ");
   $AQ->shwn = mysql_num_rows($res);
   $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
   while($r = mysql_fetch_object($res)) {
     $rating0 = $r->rating;  $orgasum0 = $r->orgasum;
     glRecords::EnrichOrgaRatings($r);
     $q = '';
-    if(property_exists($r, 'rating')  && $r->rating <>$rating0 ) $q .= ($q?",":"") . "rating ='".intval($r->rating )."'";
+    if($r->ver==$_ENV->anver && property_exists($r, 'rating') && $r->rating<>$rating0) $q .= ($q?",":"") . "rating ='".intval($r->rating)."'";
     if(property_exists($r, 'orgasum') && $r->orgasum<>$orgasum0) $q .= ($q?",":"") . "orgasum='".intval($r->orgasum)."'";
     if($q) {
       $AQ->AQs[] = "UPDATE rr_glifetriruns SET $q WHERE id='$r->id'";
