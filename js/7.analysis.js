@@ -137,7 +137,7 @@ class Records {  // tracking and writing to DB population characteristics
 function SaveGlifetri(prms={}) {
   saved = true;  // in the beginning to prevent multi-saves if case of lags
   
-  StatORGA();  // calc orga stats before saving
+  if(!prms['noorga']) StatORGA();  // calc orga stats before saving
   
   if(Family=='Conway') {
     prms['family_id'] = 1;
@@ -157,6 +157,10 @@ function SaveGlifetri(prms={}) {
     prms['family_id'] = 10;
     prms['notaset'] = '';
   }
+  else if(Family=='Tricolor') {
+    prms['family_id'] = 6;
+    prms['notaset'] = '';
+  }
   
   prms['mutaset'] = EncodeMutaStr(Mutas);
   prms['rseed'] = Rseed;
@@ -164,7 +168,8 @@ function SaveGlifetri(prms={}) {
   prms['stopped_nturn'] = nturn;
   prms['records'] = JSON.stringify(rec[S1]);
   prms['context'] = window.location.search;
-  if(cfg.rerun) prms['rerun'] = rerun_gr_id;
+  if(cfg.rerun)  prms['rerun']  = rerun_gr_id;
+  if(cfg.repair) prms['repair'] = repair_id;
   
   var q = '';
   for(var k in prms) {
@@ -441,6 +446,7 @@ function Stats(force=false) {
   if(cfg.autore || cfg.rerun) {
     if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
       Pause(1);
+      var stopit = false;
       SaveGlifetri({'stopped_at':failed_at});
       nGen ++;
       if(nGen>300) {
@@ -458,15 +464,32 @@ function Stats(force=false) {
         ReInitSeeds();
         Init();
       }
+      else if(Family=='Tricolor' && rec[S1].livecells.reduce((a, b) => a + b, 0)>50000) {
+        stopit = true;
+      }
       else {
         ReInitSeeds();
         Init();
       }
-      if(!reloading) Pause(-1);
+      if(!reloading && !stopit) Pause(-1);
     }
   }
   else if(nturn>=10000 && !saved) {  // saving all long-runned cases
     SaveGlifetri({'stopped_at':'x'});
+  }
+  
+  if(cfg.repair) {
+    Pause(1);
+    SaveGlifetri({'noorga':true});
+    repair_continue = GetRepair();
+    if(!repair_continue) {
+      //ReloadPage();
+    }
+    else {
+      Rrand32(Rseed);  document.getElementById('rseedinp').value = Rseed;
+      Init();
+      Stats(true);
+    }
   }
   
   if(sstat) stxtstat.innerHTML = sstat;

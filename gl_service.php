@@ -86,6 +86,31 @@ elseif($_GET['rerun_new_orga']) {
   $page->z .= GLifeJS('rerun', ['family'=>$fm_id], $send2js);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+elseif($_GET['repair_mutaset']) {
+  $fm_id = 6;
+  
+  $page->bread[] = ["repair_mutaset", "?repair_mutaset=1"];
+  
+  $send2js = '';
+  $res = mysql_query(
+   "SELECT gl.*, gr.rseed, gr.context
+    FROM rr_glifetris gl
+    JOIN rr_glifetriruns gr ON gr.gl_id=gl.id
+    WHERE family_id=$fm_id AND LENGTH(mutaset=500)
+    LIMIT 1000
+  ");
+  while($r = mysql_fetch_object($res)) {
+    preg_match("`&nmuta=(\d+)`", $r->context, $nmuta);
+    $send2js .= "[$r->id, $r->rseed, $nmuta[1]],\n";
+  }
+  $send2js = "
+    gl_repair = [
+      $send2js
+    ];
+  ";
+  $page->z .= GLifeJS('repair', ['family'=>$fm_id], $send2js);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

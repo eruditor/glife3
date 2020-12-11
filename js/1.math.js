@@ -70,7 +70,8 @@ var base64enc = [
   'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
   '$','@',
 ];
-function myBase64encode(m, nn=2) {
+
+function myBase64encode(m, nn) {
   var ret = '';
   for(var i=0; i<nn; i++) {
     var d = m % 64;
@@ -78,10 +79,11 @@ function myBase64encode(m, nn=2) {
     m /= 64;
     ret = ''+base64enc[d]+ret;
   }
+  if(m>0) alert('base64 encoding error: not enough digits!');
   return ret;
 }
 
-function myBase64decode(s, nn=2) {
+function myBase64decode(s, nn) {
   var ret = [];
   var m = 0;
   var tz = s.split('');

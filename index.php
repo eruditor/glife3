@@ -32,7 +32,7 @@ $page->zabst = $_GET
   It's primary target is the search of artificial life (alife) — evolving self-repairing self-replicating structures.<br>
   &rarr; <a href='?glife=Harbinger&fseed=186356772&LF=100'>First emergent appearance of something vaguely resembling Artificial Life in Cellular Automata</a><br>
   &rarr; <a href='?glife=Plexus&fseed=2779294873'>Second one</a>.
-         <a href='?gl_run=727595'>Third one</a>.<br>
+         <a href='?gl_run=727595'>Third one</a>. <a href='?gl_run=839157'>#4</a>.<br>
   "
 ;
 

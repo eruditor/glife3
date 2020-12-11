@@ -9,6 +9,7 @@ include_once("lib/lib.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+$_POST['mutamd5'] = md5($_POST['mutaset']);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(isset($_POST['rerun'])) {
@@ -40,16 +41,44 @@ if(isset($_POST['rerun'])) {
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+elseif(isset($_POST['repair'])) {
+  $repair_id = intval($_POST['repair']);  if(!$repair_id) die("no repair_id");
+  
+  $old = mysql_o("SELECT * FROM rr_glifetris WHERE id='$repair_id'");  if(!$old) die("rerun_gr not found");
+  if(substr($old->mutaset,0,100)<>substr($_POST['mutaset'],0,100)) die("different mutaset beginning: $repair_id");
+  
+  $new = clone $old;
+  foreach(['mutaset','mutamd5'] as $k) {
+    $new->$k = $_POST[$k];
+  }
+  
+  $q = $val0 = $val1 = '';
+  foreach(['mutaset','mutamd5'] as $k) {
+    if($old->$k==$new->$k) continue;
+    $q .= ($q?",":"") . "$k='".MRES($new->$k)."'";
+    $val0 .= "$k:|".MRES($old->$k)."|";
+    $val1 .= "$k:|".MRES($new->$k)."|";
+  }
+  
+  if($q) {
+    mysql_query("UPDATE rr_glifetris SET $q WHERE id='$old->id' LIMIT 1");
+    mysql_query("INSERT INTO rr_glogs SET glife_id='$old->id', usr_id=0, dt=NOW(), val0='$val0', val1='$val1'");
+  }
+  else {
+    echo "equal values: $repair_id\n";
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_POST['family_id']) {
   // insert/select glifetri
   $gl = mysql_o("SELECT * FROM rr_glifetris WHERE 
                         family_id='".intval($_POST['family_id'])."'
                     AND notaset  ='".MRES(  $_POST['notaset'  ])."'
-                    AND mutaset  ='".MRES(  $_POST['mutaset'  ])."'
+                    AND mutamd5  ='".MRES(  $_POST['mutamd5'  ])."'
                 ");
   if(!$gl) {
     $q = '';
-    $post = ['family_id'=>'', 'notaset'=>'', 'mutaset'=>0, 'named'=>'', 'typed'=>''];
+    $post = ['family_id'=>0, 'notaset'=>'', 'mutaset'=>'', 'mutamd5'=>'', 'named'=>'', 'typed'=>''];
     foreach($post as $k=>$v) {
       $post[$k] = MRES($_POST[$k]);
       $q .= ($q?", ":"") . "$k='".$post[$k]."'";

@@ -46,6 +46,9 @@ class glDicts {
     if($gl->notaset) {
       $FD = count(explode(",", $gl->notaset));
     }
+    elseif($gl->mutaset) {
+      $FD = count(explode("\n", $gl->mutaset));
+    }
     elseif($gl->records) {
       $json = json_decode($gl->records);
       if(is_array($json->livecells)) $FD = count($json->livecells);

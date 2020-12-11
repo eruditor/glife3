@@ -119,7 +119,7 @@ function GlifeBigInfo($gl, $q4runs='', $single=true) {
     <tr><td>
       <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm ".($gl->typed?"<span class=gr>($gl->typed)</span>":"")."</h3>
       ".glDicts::GetFamily($gl->family_id)->name.": $cleanstr<br>
-      <small class='nrrw gr'>".RN($gl->mutaset)."</small>
+      <small class='nrrw gr'>".ProcrustMutaset($gl->mutaset)."</small>
     </td>
     <td><table><tr>$srun</tr></table><br></td>
     <td>".GlifeEditInput($gl)."</td>
@@ -137,6 +137,18 @@ function GlifeEditInput($r) {
     : "";
 }
 
+function ProcrustMutaset($s) {
+  $nsymb = 8;
+  
+  $ret = '';
+  $ar = explode("\n", $s);
+  foreach($ar as $a) {
+    $t = strlen($a)<=2*$nsymb ? $a : substr($a,0,$nsymb) . "&hellip;(" . strlen($a) . ")&hellip;" . substr($a,-$nsymb);
+    $ret .= ($ret?"<br>":"") . $t;
+  }
+  return $ret;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -149,11 +161,12 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   
   if($notaset=='random') {
     $prms['randrules'] = 1;
-    $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);
   }
   elseif($notaset=='rerun') {
     $prms['rerun'] = 1;
-    $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);
+  }
+  elseif($notaset=='repair') {
+    $prms['repair'] = 1;
   }
   elseif(substr($notaset,0,8)=="anyrand_") {
     $prms['anyrand'] = 1;
@@ -174,11 +187,13 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   else {
     $gl = glDicts::GetGL4Notaset($notaset);  if(!$gl) dierr("incorrect notaset");
     $fm = glDicts::GetFamily($gl->family_id);
-    $prms['notaset'] = $gl->notaset;
-    $prms['mutaset'] = $gl->mutaset;
     $prms['FD'] = glDicts::GetFD($gl);
+    $prms['notaset'] = $gl->notaset;
+    //$prms['mutaset'] = $gl->mutaset;
+    $send2js .= "Mutaset = '".str_replace("\n", "\\n", $gl->mutaset)."';\n";
   }
   
+  if(!$fm) $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);
   if(!$fm) dierr("#48379230");
   $prms['family'] = $fm->name;
   $send2js .= "glFamily = JSON.parse(`" . json_encode($fm) . "`);\n";

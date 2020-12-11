@@ -21,6 +21,7 @@ class Cfg {
     this.autore    = GetBoolParam('autore');
     this.rerun     = GetBoolParam('rerun');
     this.anyrand   = GetBoolParam('anyrand');
+    this.repair    = GetBoolParam('repair');
     
     this.paused    = GetBoolParam('paused');
     this.pausestat = GetBoolParam('pausestat');
@@ -46,12 +47,14 @@ const Family = GetStrParam('family', glFamily.name);   // name of rule's family
 const RB     = GetIntParam('RB',     glFamily.RB);     // number of states for cell
 const Rgeom  = GetIntParam('Rgeom',  glFamily.Rgeom);  // neighborhood geometry (see RG)
 const Rsymm  = GetIntParam('Rsymm',  glFamily.Rsymm);  // symmetry of rules (rotational, parity, etc)
-const FD     = GetIntParam('FD', glFamily.FD || 3);  // field depth (number of layers)
+const FD     = GetIntParam('FD', int10(glFamily.FD) || 3);  // field depth (number of layers)
 const FW     = GetIntParam('FW', 600);  // field width
 const FH     = GetIntParam('FH', 350);  // field height
 
 var Notaset = GetStrParam('notaset');  // encoded or named rules
-var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)
+if(typeof Mutaset === 'undefined') {
+  var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)
+}
 
 var LF    = GetIntParam('LF', 90) / 100;  // initially filled piece (percent)
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
@@ -65,7 +68,7 @@ if(cfg.rerun) {
     if(!gl_reruns[rerun_n]) return false;
     [rerun_gr_id, Notaset, Mutaset, Fseed] = gl_reruns[rerun_n];
     if(!rerun_gr_id) return false;
-    console.log(rerun_n, rerun_gr_id, Notaset, Mutaset, Fseed);
+    console.log('rerun:', rerun_n, rerun_gr_id, Notaset, Mutaset, Fseed);
     rerun_n ++;
     return true;
   }
@@ -81,12 +84,28 @@ if(cfg.anyrand) {
     if(!gl_cleannamed[anyrand_n]) return false;
     [anyrand_named, Notaset] = gl_cleannamed[anyrand_n];
     if(!Notaset) return false;
-    console.log(anyrand_n, anyrand_named, Notaset);
+    console.log('anyrand:', anyrand_n, anyrand_named, Notaset);
     anyrand_n ++;
     return true;
   }
   var anyrand_go = GetAnyrand();
   if(!anyrand_go) alert('Anyrand error!');
+}
+
+// REPAIR ////////////////////////////////////////////////////////////////
+
+repair_n = 0; repair_id = '';
+if(cfg.repair) {
+  function GetRepair() {
+    if(!gl_repair[repair_n]) return false;
+    [repair_id, Rseed, cfg.nmuta] = gl_repair[repair_n];
+    if(!Rseed) return false;
+    //console.log('repair:', repair_n, repair_id, Rseed);
+    repair_n ++;
+    return true;
+  }
+  var repair_go = GetRepair();
+  if(!repair_go) alert('Repair finished!');
 }
 
 // DEBUG ////////////////////////////////////////////////////////////////

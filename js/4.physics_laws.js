@@ -48,7 +48,9 @@ var RC = RG.length;  // number of cells in neighborhood that affects current cel
 // neib = configuration of cell states in neighborhood geometry
 
 // each cell in neighborhood geometry can take RB values
-var RL = Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule encoding)
+var RL = Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
+var RLv = RL * RB;  // length of rule encoding (rule space -> value)
+var RLv64 = Math.ceil(Math.log(RLv) / Math.log(64));  // number of base64-digits needed to encode rule
 
 function NeibArr4Int(b) {
   var ret = new Array(RC);
@@ -192,8 +194,6 @@ function UniqNeibs() {
   console.timeEnd('UniqNeibs');
   return arsort_keys(uniqrules);  // Object.keys(uniqrules);
 }
-//if(Rsymm==85) console.log(RL, UniqNeibs());
-//if(Rsymm==47) console.log(RL, UniqNeibs());
 
 // RANDOM MUTATIONS ////////////////////////////////////////////////////////////////
 // mutation = rule (b,v0) of some neib (b) has it's value (v) changed
@@ -227,23 +227,11 @@ function GenMutas(n=0) {
     mutas[z][minb] = v;
   }
   
-  /*
-  var log = '';
-  for(var z in mutas) {
-    for(var b in mutas[z]) {
-      var v = mutas[z][b];
-      var m = b * RB + v;
-      log += '\n'+z+':'+b+','+m+'('+myBase64encode(m)+')'+NeibStr4Int(b)+'->'+v;
-    }
-  }
-  console.log(log);
-  */
-  
   return mutas;
 }
 
 function SetMutaRules(mutas) {
-  var n = 0;
+  var n = 0, err = '';
   for(var z in mutas) {
     for(var b in mutas[z]) {
       var v = mutas[z][b];
@@ -269,12 +257,17 @@ function SetMutaRules(mutas) {
         }
       }
       else {
-        console.log('No mutation formula for this Family');
+        err = 'No mutation formula for this Family!';
+        for(var rule in EquivNeibs(b)) {
+          var bb = NeibInt4Str(rule);
+          SetRule(z, bb, v);
+        }
       }
       
       n ++;
     }
   }
+  if(err) console.log(err);
   
   var mutastr = EncodeMutaStr(mutas);
   divrules.innerHTML += "<pre class='nrrw'><a href='?notaset=" + Notaset + "&mutaset=" + encodeURIComponent(mutastr) + "'>" + mutastr + "</a></pre>";
@@ -290,7 +283,7 @@ function EncodeMutaStr(mutas) {  // myBase64-encoded Mutas
     for(var b in mutas[z]) {
       var v = mutas[z][b];
       var m = b * RB + v;
-      ret += myBase64encode(m);
+      ret += myBase64encode(m, RLv64);
     }
   }
   return ret;
@@ -301,7 +294,7 @@ function DecodeMutaStr(mutastr) {
   var ts = mutastr.split('\n');
   for(var z in ts) {
     ret[z] = {};
-    var ms = myBase64decode(ts[z]);
+    var ms = myBase64decode(ts[z], RLv64);
     for(var i in ms) {
       var m = ms[i];
       var v = m % RB;
@@ -523,7 +516,7 @@ function InitRules() {
        if(Family=='Langton')  SetLangtonRules();
   else if(Family=='Conway')   SetConway2DRules(Notaset);
   else if(Family=='Conway3D') SetConway3DRules(Notaset);
-  else alert('Unsupported Family');
+  else console.log('No rules formula for this Family!');
   
   if(Mutaset)          Mutas = DecodeMutaStr(Mutaset);
   else if(cfg.nmuta>0) Mutas = GenMutas(cfg.nmuta);
