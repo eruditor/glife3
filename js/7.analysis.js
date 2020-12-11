@@ -303,7 +303,7 @@ function Stats(force=false) {
   
   var x, y, z;
   
-  var specstat = [];  // stat for graph
+  var colorstat = [];  // stat for graph
   
   var qd = 10, qx, qy, qq = []; // grid of squares qd*qd with coordinates (qx,qy) is to measure how species spread
   var qw = floor(FW / qd), qh = floor(FH / qd);  // assuming FW%qd==0 && FH%qd==0
@@ -321,18 +321,21 @@ function Stats(force=false) {
     gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F, 4 * FW * FH * z);  // reading pixels of layer=z to F[z]
   }
   
+  for(var zv=0; zv<FD*RB; zv++) colorstat[zv] = 0;
   for(var z=0; z<FD; z++) {
-    specstat[z] = 0;  qq[z] = [];
+    qq[z] = [];
     for(var x=0; x<FW; x++) {
       qx = floor(x / qd);
       if(!qq[z][qx]) qq[z][qx] = [];
       for(var y=0; y<FH; y++) {
         var cell = GetCell(x, y, z);
-        if(!cell.a) continue;  // dead cell
+        if(cell.a<=200) continue;  // dead cell
+        var v = cell.a - 200;  // cell's value
         
-        specstat[z] ++;
+        var zv = z * RB + v;
+        colorstat[zv] ++;
+        
         rec[S1].ttl ++;
-
         rec[S1].livecells[z] ++;
         
         qy = floor(y / qd);
@@ -347,15 +350,17 @@ function Stats(force=false) {
   // plotting graphs
   infostep ++;
   if(infostep<zoom*FW) {
-    for(var z=0; z<FD; z++) {
-      var clr = Color4Cell(z);
+    for(var zv=0; zv<FD*RB; zv++) {
+      var v = zv % RB;
+      var z = (zv - v) / RB;
+      var clr = Color4Cell(z, v);
       var xx = infostep;
-      var yy = specstat[z] ? scnv_height - round(StatGraphFunc(specstat[z]) / StatGraphFunc(FW*FH) * scnv_height) : scnv_height;
+      var yy = colorstat[zv] ? scnv_height - round(StatGraphFunc(colorstat[zv]) / StatGraphFunc(FW*FH) * scnv_height) : scnv_height;
       var style = 'rgba('+clr.r+','+clr.g+','+clr.b+',0.9)';
-      if(prevpoints[z] && xx>0) {
+      if(prevpoints[zv] && xx>0) {
         sctx.beginPath();
         sctx.strokeStyle = style;
-        sctx.moveTo(xx-1, prevpoints[z]);
+        sctx.moveTo(xx-1, prevpoints[zv]);
         sctx.lineTo(xx, yy);
         sctx.stroke();
       }
@@ -363,7 +368,7 @@ function Stats(force=false) {
         sctx.fillStyle = style;
         sctx.fillRect(xx, yy, 1, 1);
       }
-      prevpoints[z] = yy;
+      prevpoints[zv] = yy;
     }
   }
   
