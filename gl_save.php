@@ -45,7 +45,7 @@ elseif(isset($_POST['repair'])) {
   $repair_id = intval($_POST['repair']);  if(!$repair_id) die("no repair_id");
   
   $old = mysql_o("SELECT * FROM rr_glifetris WHERE id='$repair_id'");  if(!$old) die("rerun_gr not found");
-  if(substr($old->mutaset,0,100)<>substr($_POST['mutaset'],0,100)) die("different mutaset beginning: $repair_id");
+  //if(substr($old->mutaset,0,100)<>substr($_POST['mutaset'],0,100)) die("different mutaset beginning: $repair_id");
   
   $new = clone $old;
   foreach(['mutaset','mutamd5'] as $k) {
@@ -65,7 +65,7 @@ elseif(isset($_POST['repair'])) {
     mysql_query("INSERT INTO rr_glogs SET glife_id='$old->id', usr_id=0, dt=NOW(), val0='$val0', val1='$val1'");
   }
   else {
-    echo "equal values: $repair_id\n";
+    echo "equal values: $repair_id\n$old->mutaset\n$new->mutaset";
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

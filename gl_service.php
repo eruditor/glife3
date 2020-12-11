@@ -87,17 +87,20 @@ elseif($_GET['rerun_new_orga']) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 elseif($_GET['repair_mutaset']) {
+  exit("already done");
   $fm_id = 6;
   
   $page->bread[] = ["repair_mutaset", "?repair_mutaset=1"];
+  
+  $PP = intval($_GET['pp']) ?: 1000;
   
   $send2js = '';
   $res = mysql_query(
    "SELECT gl.*, gr.rseed, gr.context
     FROM rr_glifetris gl
     JOIN rr_glifetriruns gr ON gr.gl_id=gl.id
-    WHERE family_id=$fm_id AND LENGTH(mutaset=500)
-    LIMIT 1000
+    WHERE family_id=$fm_id AND LENGTH(mutaset) BETWEEN 500 AND 15000
+    LIMIT $PP
   ");
   while($r = mysql_fetch_object($res)) {
     preg_match("`&nmuta=(\d+)`", $r->context, $nmuta);

@@ -487,7 +487,7 @@ function Stats(force=false) {
     }
     else {
       Rrand32(Rseed);  document.getElementById('rseedinp').value = Rseed;
-      Init();
+      InitRules();
       Stats(true);
     }
   }

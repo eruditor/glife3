@@ -135,7 +135,10 @@ function SliceNeib(rule) {
   return {'r0':r0, 'pfx':pfx, 'rr':rr, 'l':l, 'sfx':sfx};
 }
 
+var equivneibs_cache = new Array(RL);
 function EquivNeibs(b) {
+  if(typeof equivneibs_cache[b]!=='undefined') return equivneibs_cache[b];
+  
   var ret = {};
   
   var rule = NeibArr4Int(b);
@@ -152,6 +155,7 @@ function EquivNeibs(b) {
   var ordered = {};
   Object.keys(ret).sort().forEach(function(key) { ordered[key] = ret[key]; });
   
+  equivneibs_cache[b] = {...ordered};
   return ordered;
 }
 
@@ -270,7 +274,10 @@ function SetMutaRules(mutas) {
   if(err) console.log(err);
   
   var mutastr = EncodeMutaStr(mutas);
-  divrules.innerHTML += "<pre class='nrrw'><a href='?notaset=" + Notaset + "&mutaset=" + encodeURIComponent(mutastr) + "'>" + mutastr + "</a></pre>";
+  var divstr = mutastr.length < 1000
+               ? "<a href='?notaset=" + Notaset + "&mutaset=" + encodeURIComponent(mutastr) + "'>" + mutastr + "</a>"
+               : mutastr.substring(0,8) + "&hellip;(" + mutastr.length + ")&hellip;" + mutastr.substring(mutastr.length-8);
+  divrules.innerHTML += "<pre class='nrrw'>" + divstr + "</pre>";
   console.log(n + ' random rule mutations:\n' + mutastr);
   
   return mutas;
