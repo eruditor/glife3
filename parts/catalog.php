@@ -31,7 +31,7 @@ $typeds = [
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if($_GET['typed']) {
-  $typed = $_GET['typed'];  if(!isCorrectID($typed)) dierr("#179236742");
+  $typed = $_GET['typed'];  if(!isCorrectID($typed) && $typed<>"?") dierr("#179236742");
   $otyped = $typeds[$typed];  if(!$otyped) dierr("#9187543243");
   
   $page->bread[] = ["<i style='background:#".$otyped."'>$typed</i>", "&typed=$typed"];
@@ -47,12 +47,16 @@ if($_GET['typed']) {
   ");
   $PG->Count($res);
   while($r = mysql_fetch_object($res)) {
+    $mutalnk = !$r->mutaset
+      ? ""
+      : (strlen($r->mutaset)<200 ? "<a href='?notaset=$r->notaset&mutaset=$r->mutaset&maxfps=300'>".RN($r->mutaset)."</a>"
+      : ProcrustMutaset($r->mutaset));
     $s .= "
       <tr>
         <td align=right><a href='?glife=$r->id'>$r->id</a></td>
         <td>".glDicts::GetFamily($r->family_id)->name."</td>
         <td><a href='?notaset=$r->notaset&maxfps=300'>$r->notaset</a></td>
-        <td class=nrrw>".($r->mutaset?"<a href='?notaset=$r->notaset&mutaset=$r->mutaset&maxfps=300'>".RN($r->mutaset)."</a>":"")."</td>
+        <td class=nrrw>$mutalnk</td>
         <td><a href='?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a></td>
         <td>$r->typed</td>
         <td>$r->found_dt</td>
@@ -75,6 +79,7 @@ elseif(isset($_GET['stopped'])) {
   $stopped  = $_GET['stopped'];  if($stopped && !isCorrectVar($stopped)) dierr("#47592374");
   $goodness = intval($_GET['goodness']);  if(!$goodness) dierr("#74428766");
   $ogoodness = $goodnesses[$goodness];  if(!$ogoodness) dierr("#109743282");
+  $nonmutated = intval($_GET['nonmutated']);
   
   $page->bread[] = [($stopped?:"---") . " (".$ogoodness['nam'].")", "&stopped=$stopped&goodness=".$ogoodness['id']];
   
@@ -85,13 +90,14 @@ elseif(isset($_GET['stopped'])) {
     FROM rr_glifetriruns gr
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
     WHERE stopped_at='".MRES($stopped)."' AND stopped_nturn<10000 AND ".$ogoodness['wh']." $famQplus
+      " . ($nonmutated ? "AND gl.mutaset=''" : "") . "
     ORDER BY gr.id DESC
     LIMIT $PG->LP,$PG->PP
   ");
   $PG->Count($res);
   while($r = mysql_fetch_object($res)) {
     $a_notaset = explode(",",  $r->notaset);
-    $a_mutaset = explode("\n", $r->mutaset);
+    $a_mutaset = explode("\n", ProcrustMutaset($r->mutaset,200,"\n"));
     $a_stopped = explode(";",  trim($r->stopped_at, ";"));
     $a_records = [];
     if($r->records) {
@@ -113,9 +119,9 @@ elseif(isset($_GET['stopped'])) {
       $tr .= "<tr>";
       if($z==0) {
         $tr .= "
-          <td rowspan=$FD>
-            <a href='?glife=$r->gl_id'>$r->gl_id</a><br>
-            $r->gr_id
+          <td rowspan=$FD style='line-height:1.5em;'>
+            <a href='?glife=$r->gl_id&maxfps=300#show'>$r->gl_id</a><br>
+            <a href='?gl_run=$r->gr_id&maxfps=300#cont'>$r->gr_id</a>
           </td>
           <td rowspan=$FD class=nrrw>$r->dt</td>
           <td rowspan=$FD>".glDicts::GetFamily($r->family_id)->name."</td>
@@ -124,13 +130,13 @@ elseif(isset($_GET['stopped'])) {
         ";
       }
       $tr .= "
-          <td>{$a_notaset[$z]}</td>
-          <td class=nrrw>{$a_mutaset[$z]}</td>
-          <td>".($z==0?"$r->stopped_nturn":"")."</td>
-          <td>{$a_stopped[$z]}</td>
-          <td class=tar>{$a_records['fillin'][$z]}</td>
-          <td class=tar>{$a_records['spread'][$z]}</td>
-          <td class=tar>{$a_records['variat'][$z]}</td>
+          <td class='pd0'>{$a_notaset[$z]}</td>
+          <td class='pd0 nrrw'>{$a_mutaset[$z]}</td>
+          <td class='pd0'>".($z==0?"$r->stopped_nturn":"")."</td>
+          <td class='pd0'>{$a_stopped[$z]}</td>
+          <td class='pd0 tar'>{$a_records['fillin'][$z]}</td>
+          <td class='pd0 tar'>{$a_records['spread'][$z]}</td>
+          <td class='pd0 tar'>{$a_records['variat'][$z]}</td>
       ";
       if($z==0 && _local==="1") {
         $tr .= "

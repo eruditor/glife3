@@ -4,6 +4,7 @@ var IW = round100(canvas.parentNode.clientWidth);  // container (interface) widt
 
 //if(document.body.clientWidth < document.body.clientHeight) [FW, FH] = [FH, FW];
 var zoom = Math.floor(IW / FW);
+if(zoom<1) zoom = 1;
 if(FD>1 && zoom<2) zoom = 2;  // for displaying 3D case we need at least 2*2 pixels for each cell
 
 canvas.width  = zoom * FW;  canvas.style.width  = canvas.width  + 'px';

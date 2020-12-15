@@ -126,25 +126,34 @@ function GlifeBigInfo($gl, $q4runs='', $single=true) {
     </tr>
   ";
   
-  if($single) $s = "<table id='SavedListTB'>$s</table>";
+  if($single) $s = "<a name='show'></a><table id='SavedListTB'>$s</table>";
   
   return $s;
 }
 
 function GlifeEditInput($r) {
   return _local==="1"
-    ? "<span style='position:absolute;'><input type=text id='glrule$r->id' value='".SPCQA($r->named . ($r->typed?":$r->typed":""))."' size=16><input type=button value=' Save ' onclick='XHRsave3(`id=$r->id&named=`+encodeURIComponent(document.getElementById(`glrule$r->id`).value));'></span>"
+    ? "<span style='position:absolute;'>
+         <input type=text id='glrule$r->id' value='".SPCQA($r->named . ($r->typed?":$r->typed":""))."' size=16><input type=button value=' Save ' onclick='XHRsave3(`id=$r->id&named=`+encodeURIComponent(document.getElementById(`glrule$r->id`).value));'><br>
+         ".(!$r->named && !$r->typed ? "
+           <a href='./gl_save.php?id=$r->id&typed=foam'>foam</a> &nbsp;
+           <a href='./gl_save.php?id=$r->id&typed=amoeba'>amoeba</a> &nbsp;
+           <a href='./gl_save.php?id=$r->id&typed=boil'>boil</a> &nbsp;
+           <a href='./gl_save.php?id=$r->id&typed=train'>train</a>
+         " : "")."
+      </span>
+      "
     : "";
 }
 
-function ProcrustMutaset($s) {
+function ProcrustMutaset($s, $max=0, $delim="<br>") {
   $nsymb = 8;
-  
+  if(!$max) $max = 2 * $nsymb;
   $ret = '';
   $ar = explode("\n", $s);
   foreach($ar as $a) {
-    $t = strlen($a)<=2*$nsymb ? $a : substr($a,0,$nsymb) . "&hellip;(" . strlen($a) . ")&hellip;" . substr($a,-$nsymb);
-    $ret .= ($ret?"<br>":"") . $t;
+    $t = strlen($a)<=$max ? $a : substr($a,0,$nsymb) . "&hellip;(" . strlen($a) . ")&hellip;" . substr($a,-$nsymb);
+    $ret .= ($ret?$delim:"") . $t;
   }
   return $ret;
 }
@@ -209,6 +218,7 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);\n";
   
   return "
+    <a name='cont'></a>
     <div id=GLifeCont></div>
     
     <script>$send2js</script>

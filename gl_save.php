@@ -109,10 +109,12 @@ elseif($_POST['family_id']) {
   mysql_query("INSERT INTO rr_glogs SET glife_id='$glid', usr_id=0, dt=NOW(), val0='', val1='tri:".MRES($q)."'");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-else if(_local==="1" && $_POST['named']) {
-  $id = intval($_POST['id']);
+else if(_local==="1" && ($_POST['named'] || $_GET['typed'])) {
+  $id = intval($_POST['id'] ?: $_GET['id']);
   $old = mysql_o("SELECT * FROM rr_glifetris WHERE id='$id'");  if(!$old) die("glife3 $id not found");
-  $named = SPCQA($_POST['named']);
+  if($old->named && $_GET['typed']) die("already named");
+  $named = SPCQA($_POST['named']) ?: ":".SPCQA($_GET['typed']);
+  $typed = '';
   if(strpos($named, ":")!==false) {
     list($named, $typed) = explode(":", $named);
   }

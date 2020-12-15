@@ -176,6 +176,7 @@ function MakePage() {
     TABLE.nrrw TD, TABLE.nrrw TH {font-family:arial narrow, arial!important; font-stretch:condensed!important;}
     
     #SavedListTB TD, #SavedListTB TH {font:normal 11px/13px arial; padding:1px 3px; vertical-align:top;}
+    #SavedListTB TD.pd0 {padding:0 1px;}
     #SavedListTB TH {background:#f4f4f4; border-bottom:solid 1px #ddd; text-align:left; font-weight:bold;}
     #SavedListTB TD INPUT {font:normal 11px/11px arial; padding:0;}
     #SavedListTB TD.tar {text-align:right;}
