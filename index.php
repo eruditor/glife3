@@ -21,7 +21,10 @@ $page->zabst = $_GET
   "
   <b>GLife is a cellular automata platform based on WebGL2.</b>
   <ul>
-  <li> Universal logic: represents both Conway's Game of Life and Langton's Ant as particular examples.
+  <li> Universal logic: represents both
+       <a href='?glife=Game+of+Life&FW=1200&FH=700&LF=80&maxfps=300'>Conway's Game of Life</a> and
+       <a href='?glife=Langtons+Ant&LF=1&maxfps=300'>Langton's Ant</a>
+       as particular examples.
   <li> 2D/3D: multi-layer grids.
   <li> Cross-platfom: works in (almost every) browser; independent of hardware; doesn't need any software installation.
   <li> Insanely fast: GPU is ~1000 times faster than CPU due to parallel computing.

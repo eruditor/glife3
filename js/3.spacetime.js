@@ -25,7 +25,7 @@ function InitialFill() {
   F.fill(0);  // zeroing F in case this call is not the first
   
   if(Family=='Langton') {
-    if(0) {
+    if(LF<=0.0101) {
       InitSetCell(round(FW/2), round(FH/2), 1, 1);
     }
     else {
