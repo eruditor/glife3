@@ -92,7 +92,7 @@ elseif($_POST['family_id']) {
   
   // insert glifetrirun
   $q = '';
-  $post = ['rseed'=>'', 'fseed'=>'', 'stopped_at'=>0, 'stopped_nturn'=>0, 'records'=>'', 'context'=>''];
+  $post = ['rseed'=>'', 'fseed'=>'', 'FW'=>0, 'FH'=>0, 'LF'=>0, 'stopped_at'=>0, 'stopped_nturn'=>0, 'records'=>'', 'context'=>''];
   foreach($post as $k=>$v) {
     $post[$k] = MRES($_POST[$k]);
     $q .= ($q?", ":"") . "$k='".$post[$k]."'";

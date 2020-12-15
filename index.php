@@ -8,8 +8,6 @@ include_once("lib/var.php");
 include_once("lib/lib.php");
 include_once("lib/tpl.php");
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 include_once("parts/backstage.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +49,7 @@ elseif($_GET['gl_run']) {
   $gl = mysql_o("SELECT * FROM rr_glifetris WHERE id='$gr->gl_id'");  if(!$gl) die("#r84238237434");
   $page->bread[] = ["Run #$gr->id", "?gl_run=$gr->id"];
   $page->z .= GlifeBigInfo($gl, " AND gr.id='$gr_id'");
-  $page->z .= GLifeJS($gl->id, ['fseed'=>$gr->fseed]);
+  $page->z .= GLifeJS($gl->id, ['rseed'=>$gr->rseed, 'fseed'=>$gr->fseed, 'FW'=>$gr->FW, 'FH'=>$gr->FH, 'LF'=>$gr->LF]);
 }
 else {
   $page->z .= GLifeJS();
