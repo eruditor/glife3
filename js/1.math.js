@@ -62,40 +62,4 @@ function HSL2RGB(h, s, l) {
   return {'r': Math.round(r * 255), 'g': Math.round(g * 255), 'b': Math.round(b * 255)};
 }
 
-// CUSTOM BASE64 ////////////////////////////////////////////////////////////////
-
-var base64enc = [
-  '0','1','2','3','4','5','6','7','8','9',
-  'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
-  'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-  '$','@',
-];
-
-function myBase64encode(m, nn) {
-  var ret = '';
-  for(var i=0; i<nn; i++) {
-    var d = m % 64;
-    m -= d;
-    m /= 64;
-    ret = ''+base64enc[d]+ret;
-  }
-  if(m>0) alert('base64 encoding error: not enough digits!');
-  return ret;
-}
-
-function myBase64decode(s, nn) {
-  var ret = [];
-  var m = 0;
-  var tz = s.split('');
-  for(var i in tz) {
-    var d = base64enc.indexOf(tz[i]);  if(d<0) continue;
-    m = m * 64 + d;
-    if(i % nn == nn-1) {
-      ret.push(m);
-      m = 0;
-    }
-  }
-  return ret;
-}
-
 //  ////////////////////////////////////////////////////////////////

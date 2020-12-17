@@ -43,7 +43,10 @@ class glDicts {
   
   static function GetFD($gl) {
     $FD = 0;
-    if($gl->notaset) {
+    if($gl->FD) {
+      $FD = $gl->FD;
+    }
+    elseif($gl->notaset) {
       $FD = count(explode(",", $gl->notaset));
     }
     elseif($gl->mutaset) {

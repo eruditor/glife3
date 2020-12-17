@@ -9,7 +9,7 @@ include_once("lib/lib.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$_POST['mutamd5'] = md5($_POST['mutaset']);
+$_POST['mutamd5'] = $_POST['mutaset'] ? md5($_POST['mutaset']) : "";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(isset($_POST['rerun'])) {
@@ -78,7 +78,7 @@ elseif($_POST['family_id']) {
                 ");
   if(!$gl) {
     $q = '';
-    $post = ['family_id'=>0, 'notaset'=>'', 'mutaset'=>'', 'mutamd5'=>'', 'named'=>'', 'typed'=>''];
+    $post = ['family_id'=>0, 'FD'=>0, 'notaset'=>'', 'mutaset'=>'', 'mutamd5'=>'', 'named'=>'', 'typed'=>''];
     foreach($post as $k=>$v) {
       $post[$k] = MRES($_POST[$k]);
       $q .= ($q?", ":"") . "$k='".$post[$k]."'";

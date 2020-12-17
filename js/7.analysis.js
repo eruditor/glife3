@@ -162,6 +162,7 @@ function SaveGlifetri(prms={}) {
     prms['notaset'] = '';
   }
   
+  prms['FD'] = FD;
   prms['mutaset'] = EncodeMutaStr(Mutas);
   prms['rseed'] = Rseed;
   prms['fseed'] = Fseed;

@@ -105,7 +105,7 @@ function ArrVectorRotate(r, l) {
   return ret;
 }
 
-function SliceNeib(rule) {
+function SliceNeib(rule) {  // slices neib to: r0 = cell itself, rr = rotatable neighborhood, sfx = fixed top and bottom neighbors
   var r0 = rule[0];
   var pfx = ''+rule[0];
   if(Rgeom>100) {  // 3D case
@@ -175,14 +175,21 @@ function EquivRules(b, v=1) {
   return ordered;
 }
 
+function MinimalOfEquivRules(b) {
+  var minb = 0;
+  for(var rule in EquivRules(b)) {  // EquivRules are already sorted - take the first one
+    minb = NeibInt4Str(rule);
+    break;
+  }
+  return minb;
+}
+
 // RANDOM MUTATIONS ////////////////////////////////////////////////////////////////
 // mutation = rule (b,v0) of some neib (b) has it's value (v) changed
 
 var Mutas = [];
 
 function GenMutas(n=0) {
-  if(Rseed==1936799038) return DecodeMutaStr(`0f0L0X1o1r2r2V2@3X4I4L4@5p6Xbpbvb@d@wrwJx9yryvyEyXzvzXALAZBKB@CvHtLX\n0V0Z1d1q1X2u2G2X2@6t7WaVaZbtdVdWfZwVw@yry@zVAHBoBqBvBGCoCqHpHV\n080q0G0@1d1p4I4Z5p5t5V5X5Z6tbWwHwLx9xVx@yqyvyZzZBXCXCZJ@LW`);
-  
   var mutas = [];
   for(var z=0; z<FD; z++) mutas[z] = {};
   
@@ -192,12 +199,7 @@ function GenMutas(n=0) {
     
     if(mutas[z][b]!==undefined) continue;  // no strict duplicates
     
-    var minb = 0;  // minimal b among equiv rules
-    var eqr = EquivRules(b, 1);
-    for(var rule in eqr) {
-      minb = NeibInt4Str(rule);
-      break;
-    }
+    var minb = MinimalOfEquivRules(b);
     if(mutas[z][minb]!==undefined) continue;  // no equiv duplicates
     
     var v  = rndR(0, RB);
@@ -211,45 +213,21 @@ function GenMutas(n=0) {
 }
 
 function SetMutaRules(mutas) {
-  var n = 0, err = '';
+  var n = 0;
   for(var z in mutas) {
     for(var b in mutas[z]) {
       var v = mutas[z][b];
       
-      if(Family=='Langton') {
-        var eqr = EquivRules(b, v);
-        for(var rule in eqr) {
-          var bb = NeibInt4Str(rule);
-          var vv = eqr[rule];
-          SetRule(z, bb, vv);
-        }
-      }
-      else if(Family=='Conway3D') {
-        var eqr = EquivRules(b, v);
-        for(var rule in eqr) {
-          var bb = NeibInt4Str(rule);
-          var vv = eqr[rule];
-          SetRule(z, bb, v);
-        }
-      }
-      else if(Family=='Conway') {
-        for(var rule in EquivRules(b)) {
-          var bb = NeibInt4Str(rule);
-          SetRule(z, bb, v);
-        }
-      }
-      else {
-        err = 'No mutation formula for this Family!';
-        for(var rule in EquivRules(b)) {
-          var bb = NeibInt4Str(rule);
-          SetRule(z, bb, v);
-        }
+      var eqr = EquivRules(b, v);
+      for(var rule in eqr) {
+        var bb = NeibInt4Str(rule);
+        var vv = eqr[rule];
+        SetRule(z, bb, vv);
       }
       
       n ++;
     }
   }
-  if(err) console.log(err);
   
   var mutastr = EncodeMutaStr(mutas);
   var divstr = mutastr.length < 1000
@@ -259,6 +237,42 @@ function SetMutaRules(mutas) {
   console.log(n + ' random rule mutations:\n' + mutastr);
   
   return mutas;
+}
+
+// BASE64 ENCODING ////////////////////////////////////////////////////////////////
+
+var base64enc = [
+  '0','1','2','3','4','5','6','7','8','9',
+  'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+  'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+  '$','@',
+];
+
+function myBase64encode(m, nn) {
+  var ret = '';
+  for(var i=0; i<nn; i++) {
+    var d = m % 64;
+    m -= d;
+    m /= 64;
+    ret = ''+base64enc[d]+ret;
+  }
+  if(m>0) alert('base64 encoding error: not enough digits!');
+  return ret;
+}
+
+function myBase64decode(s, nn) {
+  var ret = [];
+  var m = 0;
+  var tz = s.split('');
+  for(var i in tz) {
+    var d = base64enc.indexOf(tz[i]);  if(d<0) continue;
+    m = m * 64 + d;
+    if(i % nn == nn-1) {
+      ret.push(m);
+      m = 0;
+    }
+  }
+  return ret;
 }
 
 function EncodeMutaStr(mutas) {  // myBase64-encoded Mutas

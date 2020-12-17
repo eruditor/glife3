@@ -19,15 +19,19 @@ INSERT INTO `rr_glfamilies` (`id`, `name`, `FD`, `RB`, `Rgeom`, `Rsymm`) VALUES
 CREATE TABLE IF NOT EXISTS `rr_glifetris` (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `family_id` tinyint(4) NOT NULL,
+  `FD` tinyint(3) UNSIGNED NOT NULL,
   `notaset` varchar(88) NOT NULL,
-  `mutaset` varchar(500) NOT NULL,
+  `mutaset` varchar(64000) NOT NULL,
+  `mutamd5` varchar(32) NOT NULL,
   `named` varchar(50) NOT NULL,
   `typed` varchar(50) NOT NULL,
   `found_dt` datetime NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `frm` (`family_id`,`notaset`,`mutaset`),
+  UNIQUE KEY `fnm5` (`family_id`,`notaset`,`mutamd5`),
   KEY `named` (`named`),
-  KEY `typed` (`typed`)
+  KEY `typed` (`typed`),
+  KEY `fnm` (`family_id`,`notaset`,`mutaset`(100)) USING BTREE,
+  KEY `famfd` (`family_id`,`FD`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
 
 
