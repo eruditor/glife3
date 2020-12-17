@@ -2,55 +2,62 @@
 // geom = geometry of neighborhood
 
 // neighborhood geometry coords (dx,dy,dz)
-if(Rgeom==18) {  // Moore2D
-  var RG = [
-    [ 0,  0,  0],  //  0 = self
-    [-1, -1,  0],  //  1
-    [ 0, -1,  0],  //  2 = up
-    [ 1, -1,  0],  //  3
-    [ 1,  0,  0],  //  4 = right
-    [ 1,  1,  0],  //  5
-    [ 0,  1,  0],  //  6 = down
-    [-1,  1,  0],  //  7
-    [-1,  0,  0],  //  8 = left
-  ];
-}
-else if(Rgeom==182) {  // Moore2D + vonNeumann1D
-  var RG = [
-    [ 0,  0,  0],  //  0 = self
-    [-1, -1,  0],  //  1
-    [ 0, -1,  0],  //  2 = up
-    [ 1, -1,  0],  //  3
-    [ 1,  0,  0],  //  4 = right
-    [ 1,  1,  0],  //  5
-    [ 0,  1,  0],  //  6 = down
-    [-1,  1,  0],  //  7
-    [-1,  0,  0],  //  8 = left
-    [ 0,  0,  1],  //  9 = upper
-    [ 0,  0, -1],  // 10 = lower
-  ];
-}
-else if(Rgeom==142) {  // vonNeumann2D + vonNeumann1D
-  var RG = [
-    [ 0,  0,  0],  //  0 = self
-    [ 0, -1,  0],  //  1 = up
-    [ 1,  0,  0],  //  2 = right
-    [ 0,  1,  0],  //  3 = down
-    [-1,  0,  0],  //  4 = left
-    [ 0,  0,  1],  //  5 = upper
-    [ 0,  0, -1],  //  6 = lower
-  ];
-}
+const RG = 
+  Rgeom==18  // Moore2D
+  ?
+    [
+      [ 0,  0,  0],  //  0 = self
+      [-1, -1,  0],  //  1
+      [ 0, -1,  0],  //  2 = up
+      [ 1, -1,  0],  //  3
+      [ 1,  0,  0],  //  4 = right
+      [ 1,  1,  0],  //  5
+      [ 0,  1,  0],  //  6 = down
+      [-1,  1,  0],  //  7
+      [-1,  0,  0],  //  8 = left
+    ]
+  : (
+  Rgeom==182  // Moore2D + vonNeumann1D
+  ?
+    [
+      [ 0,  0,  0],  //  0 = self
+      [-1, -1,  0],  //  1
+      [ 0, -1,  0],  //  2 = up
+      [ 1, -1,  0],  //  3
+      [ 1,  0,  0],  //  4 = right
+      [ 1,  1,  0],  //  5
+      [ 0,  1,  0],  //  6 = down
+      [-1,  1,  0],  //  7
+      [-1,  0,  0],  //  8 = left
+      [ 0,  0,  1],  //  9 = upper
+      [ 0,  0, -1],  // 10 = lower
+    ]
+  : (
+  Rgeom==142  // vonNeumann2D + vonNeumann1D
+  ?
+    [
+      [ 0,  0,  0],  //  0 = self
+      [ 0, -1,  0],  //  1 = up
+      [ 1,  0,  0],  //  2 = right
+      [ 0,  1,  0],  //  3 = down
+      [-1,  0,  0],  //  4 = left
+      [ 0,  0,  1],  //  5 = upper
+      [ 0,  0, -1],  //  6 = lower
+    ]
+  :
+  []
+  ))
+;
 
-var RC = RG.length;  // number of cells in neighborhood that affects current cell's state (length of neib encoding)
+const RC = RG.length;  // number of cells in neighborhood that affects current cell's state (length of neib encoding)
 
 // NEIBS ////////////////////////////////////////////////////////////////
 // neib = configuration of cell states in neighborhood geometry
 
-// each cell in neighborhood geometry can take RB values
-var RL = Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
-var RLv = RL * RB;  // length of rule encoding (rule space -> value)
-var RLv64 = Math.ceil(Math.log(RLv) / Math.log(64));  // number of base64-digits needed to encode rule
+// each cell in neighborhood geometry can take one of RB values
+const RL = Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
+const RLv = RL * RB;  // length of rule encoding (rule space -> value)
+const RLv64 = Math.ceil(Math.log(RLv) / Math.log(64));  // number of base64-digits needed to encode rule
 
 function NeibArr4Int(b) {
   var ret = new Array(RC);
@@ -72,7 +79,6 @@ function NeibStr4Int(b) {
     ret = ''+d+ret;
   }
   return ret;
-  //return b.toString(RB).padStart(RC, "0");  // it's slower!
 }
 
 function NeibInt4Str(str) {
@@ -99,26 +105,6 @@ function ArrVectorRotate(r, l) {
   return ret;
 }
 
-function AllScalarRotations(rr, l) {
-  var ret = {};
-  ret[rr.join('')] = 1;
-  if(Rsymm==85) {
-    for(var i=1; i<l; i++) {
-      rr = ArrRotate(rr, l);
-      ret[rr.join('')] = 1;
-    }
-    
-    rr = ArrMirror(rr, l);
-    ret[rr.join('')] = 1;
-    
-    for(var i=1; i<l; i++) {
-      rr = ArrRotate(rr, l);
-      ret[rr.join('')] = 1;
-    }
-  }
-  return ret;
-}
-
 function SliceNeib(rule) {
   var r0 = rule[0];
   var pfx = ''+rule[0];
@@ -135,31 +121,16 @@ function SliceNeib(rule) {
   return {'r0':r0, 'pfx':pfx, 'rr':rr, 'l':l, 'sfx':sfx};
 }
 
-var equivneibs_cache = new Array(RL);
-function EquivNeibs(b) {
-  if(typeof equivneibs_cache[b]!=='undefined') return equivneibs_cache[b];
-  
-  var ret = {};
-  
-  var rule = NeibArr4Int(b);
-  let {pfx, rr, l, sfx} = SliceNeib(rule);
-  
-  if(Rsymm==85) {  // rotating by pi/4 (8 cells) plus parity
-    var asr = AllScalarRotations(rr, l);
-    for(var k in asr) ret[pfx+k+sfx] = asr[k];
-  }
-  else {
-    ret[pfx+rr.join('')+sfx] = 1;
-  }
-  
-  var ordered = {};
-  Object.keys(ret).sort().forEach(function(key) { ordered[key] = ret[key]; });
-  
-  equivneibs_cache[b] = {...ordered};
-  return ordered;
+function GlueNeib(r0, rr, sfx) {
+  return '' + r0 + rr.join('') + sfx;
 }
 
-function EquivRules(b, v) {
+var equiv_cache = new Array(RL);
+function EquivRules(b, v=1) {
+  var bv = b * RB + v;
+  
+  if(equiv_cache[bv]!==undefined) return equiv_cache[bv];
+  
   var ret = {};
   
   var rule = NeibArr4Int(b);
@@ -167,36 +138,41 @@ function EquivRules(b, v) {
   var vv = v;
   var kk = '';
   
-  if(Rsymm==47) {  // rotating by pi/2 with vector (rotating with space rotation) values
+  if(Rsymm==85) {  // rotating by pi/4 (8 cells) plus parity
+    ret[GlueNeib(r0, rr, sfx)] = vv;
+    
+    for(var i=1; i<l; i++) {
+      rr = ArrRotate(rr, l);
+      ret[GlueNeib(r0, rr, sfx)] = vv;
+    }
+    
+    rr = ArrMirror(rr, l);
+    ret[GlueNeib(r0, rr, sfx)] = vv;
+    
+    for(var i=1; i<l; i++) {
+      rr = ArrRotate(rr, l);
+      ret[GlueNeib(r0, rr, sfx)] = vv;
+    }
+  }
+  else if(Rsymm==47) {  // rotating by pi/2 with vector (rotating with space rotation) values
     for(var i=0; i<l; i++) {
       r0 = ValueVectorRotate(r0, l);
       rr = ArrVectorRotate(rr, l);
       vv = ValueVectorRotate(vv, l);
-      kk = '' + r0 + rr.join('') + sfx;
+      kk = GlueNeib(r0, rr, sfx);
       if(ret[kk]!==undefined && ret[kk]!=vv) return {};  // forbidden (symmetry violating) rule
       ret[kk] = vv;
     }
+  }
+  else {  // no symmetry = just the rule itself
+    ret[GlueNeib(r0, rr, sfx)] = vv;
   }
   
   var ordered = {};
   Object.keys(ret).sort().forEach(function(key) { ordered[key] = ret[key]; });
   
+  equiv_cache[bv] = {...ordered};
   return ordered;
-}
-
-function UniqNeibs() {
-  console.time('UniqNeibs');
-  var uniqrules = {}, allrules = {};
-  for(var b=0; b<RL; b++) {
-    var rule0 = NeibStr4Int(b);
-    if(allrules[rule0]) continue;
-    uniqrules[rule0] = 1;
-    for(var rule in EquivNeibs(b)) {
-      allrules[rule] = 1;
-    }
-  }
-  console.timeEnd('UniqNeibs');
-  return arsort_keys(uniqrules);  // Object.keys(uniqrules);
 }
 
 // RANDOM MUTATIONS ////////////////////////////////////////////////////////////////
@@ -214,15 +190,15 @@ function GenMutas(n=0) {
     var z  = rndR(0, FD);  if(Family=='Langton') z = 1;  if(Family=='Conway') z = 0;
     var b  = rndR(0, RL);
     
-    if(typeof mutas[z][b] !== 'undefined') continue;  // no strict duplicates
+    if(mutas[z][b]!==undefined) continue;  // no strict duplicates
     
     var minb = 0;  // minimal b among equiv rules
-    var eqr = Family=='Langton' ? EquivRules(b, 1) : EquivNeibs(b);
+    var eqr = EquivRules(b, 1);
     for(var rule in eqr) {
       minb = NeibInt4Str(rule);
       break;
     }
-    if(typeof mutas[z][minb] !== 'undefined') continue;  // no equiv duplicates
+    if(mutas[z][minb]!==undefined) continue;  // no equiv duplicates
     
     var v  = rndR(0, RB);
     var v0 = GetRule(z, minb);
@@ -249,20 +225,22 @@ function SetMutaRules(mutas) {
         }
       }
       else if(Family=='Conway3D') {
-        for(var rule in EquivNeibs(b)) {
+        var eqr = EquivRules(b, v);
+        for(var rule in eqr) {
           var bb = NeibInt4Str(rule);
+          var vv = eqr[rule];
           SetRule(z, bb, v);
         }
       }
       else if(Family=='Conway') {
-        for(var rule in EquivNeibs(b)) {
+        for(var rule in EquivRules(b)) {
           var bb = NeibInt4Str(rule);
           SetRule(z, bb, v);
         }
       }
       else {
         err = 'No mutation formula for this Family!';
-        for(var rule in EquivNeibs(b)) {
+        for(var rule in EquivRules(b)) {
           var bb = NeibInt4Str(rule);
           SetRule(z, bb, v);
         }

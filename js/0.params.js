@@ -53,9 +53,7 @@ const FH     = GetIntParam('FH', 350);  // field height
 const LF     = GetIntParam('LF', 90) / 100;  // initially filled piece (percent)
 
 var Notaset = GetStrParam('notaset');  // encoded or named rules
-if(typeof Mutaset === 'undefined') {
-  var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)
-}
+if(Mutaset===undefined) var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)
 
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)

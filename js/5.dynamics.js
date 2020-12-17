@@ -139,6 +139,8 @@ function Calc() {
   
   nturn ++;
   
+  if(cfg.pauseat>0 && nturn==cfg.pauseat) Pause(1);
+  
   if(cfg.showiter) { if(nturn % cfg.showiter == 0) Show(); }
   else if(cfg.maxfps<=60) Show();
   // else Show() rotates in its own cycle
@@ -148,8 +150,6 @@ function Calc() {
   if(cfg.maxfps>1000) { if(nturn%10==0) setTimeout(Calc, 1); else Calc(); }
   else if(cfg.maxfps && cfg.maxfps!=60) setTimeout(Calc, Math.floor(1000 / cfg.maxfps));
   else requestAnimationFrame(Calc);
-  
-  if(cfg.pauseat>0 && nturn==cfg.pauseat) Pause(1);
 }
 
 //  ////////////////////////////////////////////////////////////////
