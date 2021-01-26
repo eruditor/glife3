@@ -51,13 +51,45 @@ const RG =
 
 const RC = RG.length;  // number of cells in neighborhood that affects current cell's state (length of neib encoding)
 
-// NEIBS ////////////////////////////////////////////////////////////////
+const SNN = intval((''+Rgeom)[1]);  // number of cells in same-layer neighborhood (8 for Moore, 4 for vonNeumann)
+
+// NEIB VARS ////////////////////////////////////////////////////////////////
 // neib = configuration of cell states in neighborhood geometry
 
 // each cell in neighborhood geometry can take one of RB values
 const RL = Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
 const RLv = RL * RB;  // length of rule encoding (rule space -> value)
 const RLv64 = Math.ceil(Math.log(RLv) / Math.log(64));  // number of base64-digits needed to encode rule
+
+// RULES ARRAY ////////////////////////////////////////////////////////////////
+// rule = correspondence: neib -> cell_state (RB^RL)
+
+const RX = gl.getParameter(gl.MAX_TEXTURE_SIZE);  // max texture length (MAX_3D_TEXTURE_SIZE for 3D)
+var Rtx = RL, Rty = 1;
+if(RL>RX) { Rtx = RX;  Rty = Math.ceil(RL/RX); }
+if(Rty>RX) alert('max_texture_size is not sufficient to store rules ('+Rty+'>'+RX+')');
+
+var R = [];
+for(var z=0; z<FD; z++) R[z] = new jsdata_Array(4 * Rtx * Rty);
+
+function SetRule(z, b, v) {
+  R[z][4*b + 3] = v;  // alpha-channel for texture value
+}
+
+function GetRule(z, b) {
+  return R[z][4*b + 3];
+}
+
+// RULES TEXTURE ////////////////////////////////////////////////////////////////
+
+var RulesTexture = [];
+for(var z=0; z<FD; z++) RulesTexture[z] = CreateTexture(Rtx, Rty);
+
+function SetRulesTexture() {
+  for(var z=0; z<FD; z++) SetTexture(2 + z, RulesTexture[z], R[z], Rtx, Rty);
+}
+
+// NEIB ENCODINGS ////////////////////////////////////////////////////////////////
 
 function NeibArr4Int(b) {
   var ret = new Array(RC);
@@ -231,7 +263,7 @@ function SetMutaRules(mutas) {
   
   var mutastr = EncodeMutaStr(mutas);
   var divstr = mutastr.length < 1000
-               ? "<a href='?notaset=" + Notaset + "&mutaset=" + encodeURIComponent(mutastr) + "'>" + mutastr + "</a>"
+               ? "<a href='?notaset=" + MD5(Notaset) + "&mutamd5=" + MD5(mutastr) + "'>" + mutastr + "</a>"
                : mutastr.substring(0,8) + "&hellip;(" + mutastr.length + ")&hellip;" + mutastr.substring(mutastr.length-8);
   divrules.innerHTML += "<pre class='nrrw'>" + divstr + "</pre>";
   console.log(n + ' random rule mutations:\n' + mutastr);
@@ -247,6 +279,8 @@ var base64enc = [
   'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
   '$','@',
 ];
+// js.encodeURIComponent leaves -_.!~*'() 
+// php.urlencode leaves -_.
 
 function myBase64encode(m, nn) {
   var ret = '';
@@ -304,8 +338,254 @@ function DecodeMutaStr(mutastr) {
   return ret;
 }
 
+// RULES NOTATION ////////////////////////////////////////////////////////////////
+// nota = rules encoded in short symbolic notation (neib-setting specific)
+// notaset = set of notas for all FD layers
+
+// UNI-CONWAY RULES ////////////////////////////////////////////////////////////////
+// 0->         : 1->         : 2->
+// 0->1 . 0->2 : 1->1 . 1->2 : 2->1 . 2->2
+
+// digits = number of living cells in same-layer neib: 25 means that there are 2 cells of value=1 and 5 cells of value=2 around current cell
+// "20.14:.35:" means:
+// - cell with value=0 transforms to value=1 if there are 2 cells with value=1 and 0 cells with value=2 around
+// - cell with value=0 transforms to value=2 if there are 1 cells with value=1 and 4 cells with value=2 around
+// - cell with value=1 transforms to value=2 if there are 3 cells with value=1 and 5 cells with value=2 around
+// - in all other cases cell dies (value->0)
+
+// inter-plane (different layers) interactions are listed after "!" sign:
+// "!21*-0" means: if current cell has value=1 and the cell above (z+1) has value=2 and no matter (*) which cell is below - current cell dies ->0
+
+// alphabet is to be used for large neighborhoods (having >9 of cells): amount of alive neibs must be always denoted by single char
+var sum_alphabet = [0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f','g','h'];  // not implemented yet
+
+function Nota_Decode(notaset, fd=FD, rb=RB) {
+  function Split_Layers(nota) {
+    var layers = nota.split( nota.indexOf('\n')>-1 ? '\n' : ',' );  if(layers.length!=fd) alert('splitted length ('+layers.length+') is not fd='+fd);
+    return layers;
+  }
+  
+  var layers = Split_Layers(notaset);
+  
+  if(glFamily.plane_inter && notaset.indexOf('!')<0) {  // Family default plane interaction
+    var plane_inters = Split_Layers(glFamily.plane_inter);
+    for(var z=0; z<fd; z++) {
+      layers[z] += '!' + plane_inters[z];
+    }
+  }
+  
+  var sigma_conditions = [], plane_interactions = [];
+  for(var z=0; z<fd; z++) {
+    var layer = layers[z];
+    
+    var affecting_layers = layer.split('!');  // 0 = layer itself, 1 = upper layer (z+1), 2 = lower layer (z-1); can add more if needed
+    
+    sigma_conditions[z] = [];
+    var affecting_self_layer = affecting_layers[0];  // first part of !-string describes interaction in self-plane
+    var state0s = affecting_self_layer.split(':');
+    for(var state0=0; state0<state0s.length; state0++) {
+      sigma_conditions[z][state0] = [];
+      var state1s = state0s[state0].split('.');
+      for(var state1=0; state1<state1s.length; state1++) {
+        var sumstr = state1s[state1];
+        var ncond = sumstr.length / (rb-1);
+        for(var i=0; i<ncond; i++) {
+          var chars = sumstr.substring(i*(rb-1), (i+1)*(rb-1));  // not checking if values in sumstr are correct; their sum must be <=8 for 3*3 Moore2D
+          sigma_conditions[z][state0][chars] = state1 + 1;  // state1=0 is default, so we store only states>0 in our encoding
+        }
+      }
+    }
+    
+    plane_interactions[z] = [];
+    for(var i=1; i<affecting_layers.length; i++) {  // other parts of !-string describe interactions with other layers (they override self-plane rules)
+      var upperlower_restriction = affecting_layers[i];
+      if(!upperlower_restriction) continue;
+      
+      var [upper, ccell, lower, dash, val] = upperlower_restriction.split('');
+      if(dash!='-') alert('error in nota_decode: missing dash');
+      
+      var check_ucl = function(char, n) {
+        return (char==n || char=='*' || char=='?' && n>0);
+      };
+      
+      for(var u=0; u<rb; u++) {
+        if(!check_ucl(upper, u)) continue;
+        for(var c=0; c<rb; c++) {
+          if(!check_ucl(ccell, c)) continue;
+          for(var l=0; l<rb; l++) {
+            if(!check_ucl(lower, l)) continue;
+            plane_interactions[z][''+u+c+l] = val;
+          }
+        }
+      }
+    }
+  }
+  
+  return {'sigma_conditions':sigma_conditions, 'plane_interactions':plane_interactions};
+}
+//print_r(Nota_Decode(`1234.77:3456.:.7809!*00-0!11*-0\n55.:.1032:03.!*0?-1\n43.:.:.`, 3, 3));
+
+function CheckLegacyBorder(r, z) {  // this is not necessary, but keeps less significant (nonzero) values in rules table
+       if(z==FD-1 && r[ 9]==1) return 0;  // no uppers for top-layer
+  else if(z==0    && r[10]==1) return 0;  // no lowers for bottom-layer
+  return false;
+}
+  
+function CheckPlaneInteraction(r, plane_interaction_z) {
+  if(!plane_interaction_z) return false;
+  var ucl = '';
+       if(Rgeom==182) ucl = ''+r[9]+r[0]+r[10];
+  else if(Rgeom==142) ucl = ''+r[5]+r[0]+r[6];
+  else return false;
+  if(plane_interaction_z[ucl]===undefined) return false;
+  return plane_interaction_z[ucl];
+}
+  
+function CheckSigmaCondition(r, sigma_condition_z) {
+  if(sigma_condition_z[r[0]]===undefined) return 0;
+  var sums = Array(RB).fill(0);
+  for(var i=1; i<=SNN; i++) {
+    sums[r[i]] ++;
+  }
+  var sigma = '';
+  for(var i=1; i<RB; i++) {
+    sigma += sums[i] || '0';
+  }
+  if(sigma_condition_z[r[0]][sigma]===undefined) return 0;
+  return sigma_condition_z[r[0]][sigma];
+}
+
+function SetConwayRules(notaset) {
+  var {sigma_conditions, plane_interactions} = Nota_Decode(notaset);
+  
+  for(var z=0; z<FD; z++) {
+    for(var b=0; b<RL; b++) {
+      var r = NeibArr4Int(b);
+      
+      var v = 0;
+      
+      var legbor = CheckLegacyBorder(r, z);
+      if(legbor!==false) {
+        v = legbor;
+      }
+      else {
+        var plin = CheckPlaneInteraction(r, plane_interactions[z]);
+        if(plin!==false) {  // plane interactions override self-layer rules
+          v = plin;
+        }
+        else {
+          v = CheckSigmaCondition(r, sigma_conditions[z]);
+        }
+      }
+      
+      SetRule(z, b, v);
+    }
+  }
+}
+
+function SetLangtonRules() {
+  console.time('SetLangtonRules');
+  // direction of Ant's movement is encoded in cell's values: 1=down, 2=left, 3=up, 4=right
+  // these values are "vector", they rotate with space rotation
+  var v, z;
+  for(var b=0; b<RL; b++) {
+    var r = NeibArr4Int(b);
+    
+    z = 0;  // ground level
+    v = GetRule(z, b);
+         if(v) {}  // if already set - don't change
+    else if(r[6]!=0) v = 0;  // no lower for bottom
+    else if(r[5]!=0) v = r[0]==0 ? 1 : 0;  // if upper alive = switch ground
+    else             v = r[0]==0 ? 0 : 1;  // if no upper = stay same
+    if(v) SetRule(z, b, v);
+    
+    z = 1;  // ant level
+    v = GetRule(z, b);
+         if(v==99) {}  // if already set - don't change
+    else if(r[5]!=0) v = 0;  // no upper for top
+    else if(r[6]>=2) v = 0;  // only 0 and 1 at ground layer
+    else if(r[1]==1) v = r[6]==0 ? 2 : 4;
+    else if(r[2]==2) v = r[6]==0 ? 3 : 1;
+    else if(r[3]==3) v = r[6]==0 ? 4 : 2;
+    else if(r[4]==4) v = r[6]==0 ? 1 : 3;
+    else             v = 0;
+    if(v) {
+      var eqr = EquivRules(b, v);
+      for(var rule in eqr) {
+        var bb = NeibInt4Str(rule);
+        var vv = eqr[rule];
+        SetRule(z, bb, vv);
+      }
+    }
+  }
+  console.timeEnd('SetLangtonRules');
+}
+
+function SetRules(notaset) {
+  if(Family=='Langton') SetLangtonRules();
+  else                  SetConwayRules(notaset);
+}
+
 // RANDOM NOTASET ////////////////////////////////////////////////////////////////
 
+function RandomConwayRules(fd=FD, rb=RB) {
+  var zero_gene = '';  for(var i=1; i<rb; i++) zero_gene += '0';
+  
+  var gene_count = 0, countar = {};
+  function CountSigmaGenes(n, max, base) {
+    for(var d=0; d<=max; d++) {  // each digit in gene is 0..max
+      if(n<rb-2) {
+        CountSigmaGenes(n + 1, max - d, base + d);
+      }
+      else {
+        gene_count ++;
+        countar[base + d] = 1;
+      }
+    }
+  }
+  CountSigmaGenes(0, SNN, '');
+  gene_count -= 1;  // substracting 1 zero_gene
+  
+  var nota = '';
+  for(var z=0; z<fd; z++) {
+    if(z>0) nota += ',';
+    var layer = '';
+    for(var from=0; from<rb; from++) {
+      if(from>0) layer += ':';
+      var s = '', genes = {};
+      for(var to=1; to<rb; to++) {
+        if(to>1) s += '.';
+        
+        var l = rndR(1, gene_count);  // 1..gene_count-1: no zero length and no all-genes
+        var r = {};
+        for(var j=0; j<l; j++) {
+          var dd = rnd_split(rb, SNN, rndR);
+          var gene = '';
+          for(var i=1; i<rb; i++) {
+            gene += dd[i];  // use alphabet here
+          }
+          if(genes[gene]) continue;  // same neib (gene) and same center-cell (from) can not lead to different values (to); farther to's are slightly shorter
+          if(gene==zero_gene) continue;  // nothing appeares from nowhere and everything dies in vacuum
+          genes[gene] = 1;
+          r[gene] = 1;
+        }
+        
+        var strand = '';
+        for(var k in r) {
+          if(r[k]) strand += k;
+        }
+        
+        s += strand;
+      }
+      layer += s;
+    }
+    nota += layer;
+  }
+  return nota;
+}
+//print_r(RandomConwayRules(3, 3).length);
+
+/*
 function ConwayRandomRules() {
   function ConwayRandomStrand(min=0) {
     var ret = '';
@@ -330,177 +610,18 @@ function ConwayRandomRules() {
   
   return notaset;
 }
+*/
 
 function RandomNotaset() {
   var notaset = '';
   if(Family=='Langton') {
     // todo
   }
-  else if(Family=='Conway' || Family=='Conway3D') {
-    notaset = ConwayRandomRules();
+  else {
+    notaset = RandomConwayRules();
   }
-  
-  divrules.innerHTML += "<pre><a href='?notaset=" + notaset + "'>" + notaset + "</a></pre>";
-  
+  divrules.innerHTML += "<pre><a href='?notaset=" + MD5(notaset) + "'>" + notaset + "</a></pre>";
   return notaset;
-}
-
-// RULES ARRAY ////////////////////////////////////////////////////////////////
-// rule = correspondence: neib -> cell_state (RB^RL)
-
-var RX = gl.getParameter(gl.MAX_TEXTURE_SIZE);  // max texture length (MAX_3D_TEXTURE_SIZE for 3D)
-var Rtx = RL, Rty = 1;
-if(RL>RX) { Rtx = RX;  Rty = Math.ceil(RL/RX); }
-if(Rty>RX) alert('max_texture_size is not sufficient to store rules ('+Rty+'>'+RX+')');
-
-var R = [];
-for(var z=0; z<FD; z++) R[z] = new jsdata_Array(4 * Rtx * Rty);
-
-function SetRule(z, b, v) {
-  R[z][4*b + 3] = v;  // alpha-channel for texture value
-}
-
-function GetRule(z, b) {
-  return R[z][4*b + 3];
-}
-
-// RULES TEXTURE ////////////////////////////////////////////////////////////////
-
-var RulesTexture = [];
-for(var z=0; z<FD; z++) RulesTexture[z] = CreateTexture(Rtx, Rty);
-
-function SetRulesTexture() {
-  for(var z=0; z<FD; z++) SetTexture(2 + z, RulesTexture[z], R[z], Rtx, Rty);
-}
-
-// RULES NOTATION ////////////////////////////////////////////////////////////////
-// nota = rules encoded in short symbolic notation (neib-setting specific)
-// notaset = set of notas for all FD layers
-
-// CONWAY RULES ////////////////////////////////////////////////////////////////
-// each Rule ('3:23') encodes two DNA Strands of Born and Surv rules
-// each Strand consists of 9 Genes
-// each Gene is a bit (0/1)
-
-function ConwayNotaset(notaset) {
-  var ret = [];
-  if(notaset.indexOf(':')>-1) {
-    ret = notaset.split(',');
-  }
-  return ret;
-}
-
-function ConwayStrand(r) {
-  var strand = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-  var ar = r.split('');
-  if(ar) for(k in ar) strand[ar[k]] = 1;
-  return strand;
-}
-
-function ConwayList4Nota(rule) {
-  var b, s;
-  [b, s] = rule.split(':');
-  return [ConwayStrand(b), ConwayStrand(s)];
-}
-
-function SetConway2DRules(notaset) {
-  var notas = ConwayNotaset(notaset);  console.log(notas);
-  
-  for(var z=0; z<FD; z++) {
-    var conwayar = ConwayList4Nota(notas[z]);
-    for(var b=0; b<RL; b++) {
-      var v = 0, nope = false;
-      var r = NeibArr4Int(b);
-      if(true) {
-        var sum = 0;
-        for(var i=1; i<=8; i++) {
-               if(r[i]==1) { sum ++; }
-          else if(r[i]!=0) { nope = true;  break; }
-        }
-        var vv = conwayar[r[0]];
-        v = vv ? vv[sum] : 0;
-      }
-      if(nope) v = 0;
-      
-      SetRule(z, b, v);
-    }
-  }
-}
-
-function SetConway3DRules(notaset) {
-  var notas = ConwayNotaset(notaset);  console.log(notas);
-  
-  for(var z=0; z<FD; z++) {
-    var conwayar = ConwayList4Nota(notas[z]);
-    for(var b=0; b<RL; b++) {
-      var v = 0, nope = false;
-      var r = NeibArr4Int(b);
-      if(r[ 9]!=0 && r[ 9]!=1) nope = true;
-      if(r[10]!=0 && r[10]!=1) nope = true;
-           if(FD>1 && z==FD-1 && r[ 9]==1) v = 0;  // no uppers for top-layer
-      else if(FD>1 && z==0    && r[10]==1) v = 0;  // no lowers for bottom-layer
-      else if(FD>1 && z!=FD-1 && r[ 9]==1 && r[0]==1) v = 0;  // die, eaten by carnivore
-      else if(FD>1 && z!=0    && r[10]==0 && r[0]==0) v = 0;  // can't be born without food below
-      else if(FD==1 && (r[9]!=0 || r[10]!=0)) v = 0;
-      else {
-        var sum = 0;
-        for(var i=1; i<=8; i++) {
-               if(r[i]==1) { sum ++; }
-          else if(r[i]!=0) { nope = true;  break; }
-        }
-        var vv = conwayar[r[0]];
-        v = vv ? vv[sum] : 0;
-      }
-      if(nope) v = 0;
-      
-      SetRule(z, b, v);
-    }
-  }
-}
-
-// LANGTON RULES ////////////////////////////////////////////////////////////////
-// direction of Ant's movement is encoded in cell's values: 1=down, 2=left, 3=up, 4=right
-// these values are "vector", they rotate with space rotation
-
-function SetLangtonRules() {
-  console.time('SetLangtonRules');
-  var v, z;
-  for(var b=0; b<RL; b++) {
-    var r = NeibArr4Int(b);
-    
-    z = 0;  // ground level
-    v = GetRule(z, b);
-         if(v) {}  // if already set - don't change
-    else if(r[6]!=0) v = 0;  // no lower for bottom
-    else if(r[5]!=0) v = r[0]==0 ? 1 : 0;  // if upper alive = switch ground
-    else             v = r[0]==0 ? 0 : 1;  // if no upper = stay same
-    if(v) SetRule(z, b, v);
-    
-    z = 1;  // ant level
-    v = GetRule(z, b);
-         if(v==99) {}  // if already set - don't change
-    else if(r[5]!=0) v = 0;  // no upper for top
-    else if(r[6]>=2) v = 0;  // only 0 and 1 at ground layer
-    else if(r[1]==1) v = r[6]==0 ? 2 : 4;
-    else if(r[2]==2) v = r[6]==0 ? 3 : 1;
-    else if(r[3]==3) v = r[6]==0 ? 4 : 2;
-    else if(r[4]==4) v = r[6]==0 ? 1 : 3;
-    else             v = 0;
-    if(v) {
-      if(0) {
-        SetRule(z, b, v);
-      }
-      else {
-        var eqr = EquivRules(b, v);
-        for(var rule in eqr) {
-          var bb = NeibInt4Str(rule);
-          var vv = eqr[rule];
-          SetRule(z, bb, vv);
-        }
-      }
-    }
-  }
-  console.timeEnd('SetLangtonRules');
 }
 
 // INIT RULES ////////////////////////////////////////////////////////////////
@@ -512,17 +633,16 @@ function InitRules() {
     Notaset = RandomNotaset();
   }
   
-       if(Family=='Langton')  SetLangtonRules();
-  else if(Family=='Conway')   SetConway2DRules(Notaset);
-  else if(Family=='Conway3D') SetConway3DRules(Notaset);
-  else console.log('No rules formula for this Family!');
+  SetRules(Notaset);
+  
+  console.log('Notaset:', Notaset);
   
   if(Mutaset)          Mutas = DecodeMutaStr(Mutaset);
   else if(cfg.nmuta>0) Mutas = GenMutas(cfg.nmuta);
   
   if(Mutas) SetMutaRules(Mutas);
   
-  console.log(Mutas);
+  console.log('Mutas:', Mutas);
   
   SetRulesTexture();
 }

@@ -36,6 +36,7 @@ if(!function_exists("mysql_num_rows"))      { function mysql_num_rows($res) { re
 if(!function_exists("mysql_insert_id"))     { function mysql_insert_id() { return 0; } }
 if(!function_exists("mysql_affected_rows")) { function mysql_affected_rows() { return 0; } }
 if(!function_exists("mysql_real_escape_string")) { function mysql_real_escape_string($s) { return $s; } }
+if(!function_exists("mysql_error"))         { function mysql_error() { return ''; } }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -79,7 +80,8 @@ function U2W($x) { return iconver("UTF-8", "Windows-1251//TRANSLIT", $x); }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function RN($s) { return str_replace(array("\r","\n"),array("","<br>"),trim($s)); }
+function RN($s)  { return str_replace(["\r", "\n"], ["", "<br>"], trim($s)); }
+function RNZ($s) { return str_replace(["\r", "\n"], ["", ","   ], trim($s)); }
 
 function ShortenNumber($num) {
   static $letters = [1000000000=>"G", 1000000=>"M", 1000=>"k"];

@@ -11,8 +11,8 @@ const SLF = new URLSearchParams(myScript.src);
 
 function int10(x) { if(!x) return 0;  return parseInt(x, 10); }
 
-function GetIntParam(nm, def=0)  { return int10(URL.get(nm)   || SLF.get(nm)) || def;    }
-function GetStrParam(nm, def='') { return       URL.get(nm)   || SLF.get(nm)  || def;    }
+function GetIntParam(nm, def=0)  { return int10(URL.get(nm)   || SLF.get(nm) || def);    }
+function GetStrParam(nm, def='') { return       URL.get(nm)   || SLF.get(nm) || def;    }
 function GetBoolParam(nm)        { return      (URL.get(nm)>0 || SLF.get(nm)>0) ? 1 : 0; }
 
 class Cfg {
@@ -58,7 +58,7 @@ if(Mutaset===undefined) var Mutaset = GetStrParam('mutaset');  // encoded mutati
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 
-// RERUN ////////////////////////////////////////////////////////////////
+// RERUN MODE ////////////////////////////////////////////////////////////////
 
 rerun_n = 0;  rerun_gr_id = 0;
 if(cfg.rerun) {
@@ -74,7 +74,7 @@ if(cfg.rerun) {
   if(!rerun_go) alert('Rerun finished');
 }
 
-// ANYRAND ////////////////////////////////////////////////////////////////
+// ANYRAND MODE ////////////////////////////////////////////////////////////////
 
 anyrand_n = 0; anyrand_named = '';
 if(cfg.anyrand) {
@@ -90,7 +90,7 @@ if(cfg.anyrand) {
   if(!anyrand_go) alert('Anyrand error!');
 }
 
-// REPAIR ////////////////////////////////////////////////////////////////
+// REPAIR MODE ////////////////////////////////////////////////////////////////
 
 repair_n = 0; repair_id = '';
 if(cfg.repair) {
@@ -106,7 +106,7 @@ if(cfg.repair) {
   if(!repair_go) alert('Repair finished!');
 }
 
-// DEBUG ////////////////////////////////////////////////////////////////
+// DEBUG MODE ////////////////////////////////////////////////////////////////
 
 if(cfg.debug) {
   cfg.paused = 1;
@@ -123,6 +123,38 @@ reloading = false;
 function ReloadPage() {
   reloading = true;
   setTimeout(function() { window.location.reload(); }, 100);
+}
+
+// DEBUGGER ////////////////////////////////////////////////////////////////
+
+function print_r(arr, level=0) {
+  var print = '';
+  var level_padding = '';
+  for(var j=0; j<=level; j++) level_padding += "    ";
+  if(typeof(arr)=='object') {
+    for(var key in arr) {
+      var value = arr[key];
+      if(typeof(value) == 'object') {
+        print += level_padding + key + ":\n";
+        print += print_r(value, level+1);
+      } 
+      else {
+        print += level_padding + key + " => '" + value + "'\n";
+      }
+    }
+  }
+  else {
+    print = "(" + typeof(arr) + "): " + "'" + arr + "'";
+  }
+  
+  if(level==0) {
+    var printcont = document.createElement('div');
+    printcont.style.cssText = '';
+    printcont.innerHTML = '<pre>' + print + '</pre>';
+    glcont.append(printcont);
+  }
+  
+  return print;
 }
 
 //  ////////////////////////////////////////////////////////////////

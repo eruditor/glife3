@@ -146,6 +146,15 @@ function GlifeEditInput($r) {
     : "";
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function GLtitle($gl) {
+  if($gl->name) return $gl->name;
+  $s4nota = strlen($gl->notaset)>40 ? $gl->notamd5 : RNZ($gl->notaset);
+  $s4muta = strlen($gl->mutaset)>40 ? $gl->mutamd5 : RNZ($gl->mutaset);
+  return $s4nota . ($s4muta ? "+$s4muta" : "");
+}
+
 function ProcrustMutaset($s, $max=0, $delim="<br>") {
   $nsymb = 8;
   if(!$max) $max = 2 * $nsymb;
@@ -181,7 +190,7 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
     $prms['anyrand'] = 1;
     $fm = glDicts::GetFamily(substr($notaset,8));
     $send = '';  $FD = 0;
-    $res = mysql_query("SELECT * FROM rr_glifetris WHERE family_id='$fm->id' AND named<>'' AND mutaset=''");
+    $res = mysql_query("SELECT * FROM rr_glifetris WHERE family_id='$fm->id' AND named<>'' AND mutamd5=''");
     while($r = mysql_fetch_object($res)) {
       if(!$FD) $FD = glDicts::GetFD($r);
       $send .= "['".SPCQA($r->named)."', '$r->notaset'],\n";

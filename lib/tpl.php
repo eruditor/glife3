@@ -135,8 +135,8 @@ function MakePage() {
   <META name=\"Keywords\" content=\"$page->kws\">
   <META name=\"Description\" content=\"$page->descr\">
   $page->meta
-  <LINK href=\"/style.css?v=40\" rel=stylesheet>
-  <script src=\"/js.js?v=2\"></script>".($page->jquery?"
+  <LINK href=\"./style.css?v=$_ENV->ver\" rel=stylesheet>
+  <script src=\"./js.js?v=$_ENV->ver\"></script>".($page->jquery?"
   <script src='//ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js'></script>":"").($page->scripts?"
   $page->scripts":"")."
   ".trim($yam)."

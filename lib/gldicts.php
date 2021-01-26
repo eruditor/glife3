@@ -25,18 +25,19 @@ class glDicts {
   
   
   static function GetNonmutated($gl) {
-    if(!isset(self::$nonmutated[$gl->family_id][$gl->notaset])) {
-      self::$nonmutated[$gl->family_id][$gl->notaset]
-        = mysql_o("SELECT * FROM rr_glifetris WHERE family_id='".MRES($gl->family_id)."' AND notaset='".MRES($gl->notaset)."' AND mutaset=''");
+    if(!isset(self::$nonmutated[$gl->family_id][$gl->notamd5])) {
+      self::$nonmutated[$gl->family_id][$gl->notamd5]
+        = mysql_o("SELECT * FROM rr_glifetris WHERE family_id='".MRES($gl->family_id)."' AND notamd5='".MRES($gl->notamd5)."' AND mutamd5=''");
     }
-    return self::$nonmutated[$gl->family_id][$gl->notaset];
+    return self::$nonmutated[$gl->family_id][$gl->notamd5];
   }
   
   
   static function GetGL4Notaset($notaset) {
     if(is_numeric($notaset))             $fld = "id";
-    elseif(strpos($notaset,":")===false) $fld = "named";
-    else                                 $fld = "notaset";
+    elseif(strpos($notaset,":")!==false) $fld = "notaset";
+    elseif(strlen($notaset)==32)         $fld = "notamd5";
+    else                                 $fld = "named";
     return mysql_o("SELECT * FROM rr_glifetris WHERE $fld='".MRES($notaset)."'");
   }
   

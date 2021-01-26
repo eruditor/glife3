@@ -116,7 +116,7 @@ var CalcFragmentShaderSource = `
       ` + fs_Prepare2Return('color') + `
     }
   }
-`;//console.log(CalcFragmentShaderSource);
+`;
 var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture"]);
 
 // CALC MAIN ////////////////////////////////////////////////////////////////

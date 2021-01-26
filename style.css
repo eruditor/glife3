@@ -23,6 +23,8 @@ BLOCKQUOTE.noquotes:after {content:none; padding:0;}
 
 SUP {vertical-align:middle; position:relative; font-size:70%; bottom:0.4em;}
 
+PRE {font:normal 10px/11px Lucida Console, Monaco, Monospace; white-space:pre-wrap;}
+
 DIV.author4quote {margin:-8px 5px 0 0; text-align:right; font:normal 13px/15px Arial; color:#888;}
 DIV.author4quote:before {content:"— ";}
 DIV.subquote {margin-left:50%; text-align:left; font-style:italic;}

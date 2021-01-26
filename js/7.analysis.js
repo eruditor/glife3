@@ -139,30 +139,13 @@ function SaveGlifetri(prms={}) {
   
   if(!prms['noorga']) StatORGA();  // calc orga stats before saving
   
-  if(Family=='Conway') {
-    prms['family_id'] = 1;
-    var notaset = '';
-    var notas = ConwayNotaset(Notaset);
-    for(z in notas) notaset += (notaset?',':'') + notas[z];
-    prms['notaset'] = notaset;
-  }
-  else if(Family=='Conway3D') {
-    prms['family_id'] = 3;
-    var notaset = '';
-    var notas = ConwayNotaset(Notaset);
-    for(z in notas) notaset += (notaset?',':'') + notas[z];
-    prms['notaset'] = notaset;
-  }
-  else if(Family=='Langton') {
-    prms['family_id'] = 10;
-    prms['notaset'] = '';
-  }
-  else if(Family=='Tricolor') {
-    prms['family_id'] = 6;
-    prms['notaset'] = '';
-  }
+       if(Family=='Conway')   prms['family_id'] = 1;
+  else if(Family=='Conway3D') prms['family_id'] = 3;
+  else if(Family=='Langton')  prms['family_id'] = 10;
+  else if(Family=='Tricolor') prms['family_id'] = 6;
   
   prms['FD'] = FD;
+  prms['notaset'] = Notaset;
   prms['mutaset'] = EncodeMutaStr(Mutas);
   prms['rseed'] = Rseed;
   prms['fseed'] = Fseed;
@@ -473,9 +456,7 @@ function Stats(force=false) {
         ReInitSeeds();
         Init();
       }
-      else if(Family=='Tricolor' && rec[S1].livecells.reduce((a, b) => a + b, 0)>50000) {
-        stopit = true;
-      }
+      //else if(Family=='Tricolor' && rec[S1].livecells.reduce((a, b) => a + b, 0)>50000) { stopit = true; }
       else {
         ReInitSeeds();
         Init();

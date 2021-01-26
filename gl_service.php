@@ -114,6 +114,23 @@ elseif($_GET['repair_mutaset']) {
   $page->z .= GLifeJS('repair', ['family'=>$fm_id], $send2js);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+elseif($_GET['notamd5']) {
+  $page->bread[] = ["notamd5", "?notamd5=1"];
+  $res = mysql_query(
+   "SELECT SQL_CALC_FOUND_ROWS *
+    FROM rr_glifetris
+    WHERE 1
+    ORDER BY id
+    LIMIT $AQ->LP,$AQ->PP
+  ");
+  $AQ->shwn = mysql_num_rows($res);
+  $AQ->nttl = mysql_r("SELECT FOUND_ROWS()");
+  while($r = mysql_fetch_object($res)) {
+    if(!$r->notamd5 && $r->notaset) $AQ->AQs[] = "UPDATE rr_glifetris SET notamd5='".MRES(md5($r->notaset))."' WHERE id='$r->id' LIMIT 1";
+  }
+  $AQ->RunAQs();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

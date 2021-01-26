@@ -90,7 +90,7 @@ elseif(isset($_GET['stopped'])) {
     FROM rr_glifetriruns gr
     JOIN rr_glifetris gl ON gl.id=gr.gl_id
     WHERE stopped_at='".MRES($stopped)."' AND stopped_nturn<10000 AND ".$ogoodness['wh']." $famQplus
-      " . ($nonmutated ? "AND gl.mutaset=''" : "") . "
+      " . ($nonmutated ? "AND gl.mutamd5=''" : "") . "
     ORDER BY gr.id DESC
     LIMIT $PG->LP,$PG->PP
   ");

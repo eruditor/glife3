@@ -16,11 +16,11 @@ $s = '';
 $where = "ver='$_ENV->anver' AND rating>0 $famQplus";
 $res = mysql_query(
  "SELECT gr.*, family_id, named, typed, notaset
- FROM rr_glifetriruns gr
- JOIN rr_glifetris gl ON gl.id=gr.gl_id
- WHERE $where
- ORDER BY rating, orgasum DESC
- LIMIT $PG->LP,$PG->PP
+  FROM rr_glifetriruns gr
+  JOIN rr_glifetris gl ON gl.id=gr.gl_id
+  WHERE $where
+  ORDER BY rating, orgasum DESC
+  LIMIT $PG->LP,$PG->PP
 ");
 $PG->shwn = mysql_num_rows($res);
 $PG->nttl = mysql_r("SELECT COUNT(*) FROM rr_glifetriruns gr JOIN rr_glifetris gl ON gl.id=gr.gl_id WHERE $where");

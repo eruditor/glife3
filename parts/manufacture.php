@@ -46,7 +46,7 @@ else {
   
   $namopts = "<option value=''>";
   foreach(glDicts::GetFamilies() as $r) $namopts .= "<option value='anyrand_$r->name'>Any random from $r->name";
-  $res = mysql_query("SELECT * FROM rr_glifetris WHERE mutaset='' AND named<>'' ORDER BY family_id, named");
+  $res = mysql_query("SELECT * FROM rr_glifetris WHERE named<>'' AND mutamd5='' ORDER BY family_id, named");
   while($r = mysql_fetch_object($res)) $namopts .= "<option value='".SPCQA($r->named)."'>".glDicts::GetFamily($r->family_id)->name.": ".SPCQA($r->named);
   
   $famsel = "onchange='var fd=this.options[this.selectedIndex].getAttribute(`data-fd`); var fdinp=document.getElementById(`glfdinp`); fdinp.value=fd>0?fd:3; fdinp.disabled=fd>0?true:false;'";

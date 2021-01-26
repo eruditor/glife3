@@ -9,6 +9,7 @@ include_once("lib/lib.php");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+$_POST['notamd5'] = $_POST['notaset'] ? md5($_POST['notaset']) : "";
 $_POST['mutamd5'] = $_POST['mutaset'] ? md5($_POST['mutaset']) : "";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,12 +74,12 @@ elseif($_POST['family_id']) {
   // insert/select glifetri
   $gl = mysql_o("SELECT * FROM rr_glifetris WHERE 
                         family_id='".intval($_POST['family_id'])."'
-                    AND notaset  ='".MRES(  $_POST['notaset'  ])."'
+                    AND notamd5  ='".MRES(  $_POST['notamd5'  ])."'
                     AND mutamd5  ='".MRES(  $_POST['mutamd5'  ])."'
                 ");
   if(!$gl) {
     $q = '';
-    $post = ['family_id'=>0, 'FD'=>0, 'notaset'=>'', 'mutaset'=>'', 'mutamd5'=>'', 'named'=>'', 'typed'=>''];
+    $post = ['family_id'=>0, 'FD'=>0, 'notaset'=>'', 'mutaset'=>'', 'notamd5'=>'', 'mutamd5'=>'', 'named'=>'', 'typed'=>''];
     foreach($post as $k=>$v) {
       $post[$k] = MRES($_POST[$k]);
       $q .= ($q?", ":"") . "$k='".$post[$k]."'";
@@ -130,6 +131,7 @@ else if(_local==="1" && ($_POST['named'] || $_GET['typed'])) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // legacy, but might be used some day
+/*
 function gl3_AvgRuns($gl, $inx=false) {
   $gls = [];
   
@@ -184,5 +186,6 @@ function gl3_AvgRuns($gl, $inx=false) {
   
   return $gls;
 }
+*/
 
 ?>
