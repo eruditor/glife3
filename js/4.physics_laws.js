@@ -355,6 +355,7 @@ function DecodeMutaStr(mutastr) {
 
 // inter-plane (different layers) interactions are listed after "!" sign:
 // "!21*-0" means: if current cell has value=1 and the cell above (z+1) has value=2 and no matter (*) which cell is below - current cell dies ->0
+// wildcards: * = any value, ? = any > 0
 
 // alphabet is to be used for large neighborhoods (having >9 of cells): amount of alive neibs must be always denoted by single char
 var sum_alphabet = [0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f','g','h'];  // not implemented yet
@@ -378,7 +379,7 @@ function Nota_Decode(notaset, fd=FD, rb=RB) {
   for(var z=0; z<fd; z++) {
     var layer = layers[z];
     
-    var affecting_layers = layer.split('!');  // 0 = layer itself, 1 = upper layer (z+1), 2 = lower layer (z-1); can add more if needed
+    var affecting_layers = layer.split('!');
     
     sigma_conditions[z] = [];
     var affecting_self_layer = affecting_layers[0];  // first part of !-string describes interaction in self-plane
@@ -401,8 +402,13 @@ function Nota_Decode(notaset, fd=FD, rb=RB) {
       var upperlower_restriction = affecting_layers[i];
       if(!upperlower_restriction) continue;
       
+      // 0 = layer itself, 1 = upper layer (z+1), 2 = lower layer (z-1); can add more if needed
+      if(upperlower_restriction.length!=5) alert('error in nota_decode: upperlower_restriction.length<>5');
       var [upper, ccell, lower, dash, val] = upperlower_restriction.split('');
       if(dash!='-') alert('error in nota_decode: missing dash');
+      
+      // 11*-0,11*-0!*00-0,*00-0
+      // ??*-0,??*-0!*00-0,*00-0
       
       var check_ucl = function(char, n) {
         return (char==n || char=='*' || char=='?' && n>0);

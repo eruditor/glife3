@@ -8,7 +8,7 @@ else die("nothing to show");
 
 $gl = mysql_o("SELECT * FROM rr_glifetris WHERE $q");  if(!$gl) die("no gl found");
 
-$page->bread[] = [SPCQA($gl->named ?: $gl->notaset ?: $gl->id)];
+$page->bread[] = [GLtitle($gl)];
 
 $page->z .= GlifeBigInfo($gl);
 

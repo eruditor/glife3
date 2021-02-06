@@ -103,22 +103,24 @@ function GlifeBigInfo($gl, $q4runs='', $single=true) {
     $srun .= "</td>";
   }
   
-  $nm = $gl->named ?: $gl->notaset;
+  $nm = GLtitle($gl);
   $nm = $single && !$q4runs ? "<u>$nm</u>" : "<a href='?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
   
   if($gl->mutaset) {
     $clean = glDicts::GetNonmutated($gl);
-    $cleanstr = $clean->named ?: $clean->notaset;
+    $cleanstr = GLtitle($clean);
     $cleanstr = "mutated <a href='?glife=".($clean->named ?: $clean->id)."'>$cleanstr</a>";
   }
   else {
-    $cleanstr = $gl->notaset;
+    $cleanstr = RN(str_replace(",", "\n", $gl->notaset));
+    
   }
   
   $s = "
     <tr><td>
       <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm ".($gl->typed?"<span class=gr>($gl->typed)</span>":"")."</h3>
-      ".glDicts::GetFamily($gl->family_id)->name.": $cleanstr<br>
+      ".glDicts::GetFamily($gl->family_id)->name.":<br>
+      <span class='nrrw'>$cleanstr</span><br>
       <small class='nrrw gr'>".ProcrustMutaset($gl->mutaset)."</small>
     </td>
     <td><table><tr>$srun</tr></table><br></td>
@@ -149,10 +151,11 @@ function GlifeEditInput($r) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function GLtitle($gl) {
-  if($gl->name) return $gl->name;
+  if($gl->named) return $gl->named;
   $s4nota = strlen($gl->notaset)>40 ? $gl->notamd5 : RNZ($gl->notaset);
   $s4muta = strlen($gl->mutaset)>40 ? $gl->mutamd5 : RNZ($gl->mutaset);
-  return $s4nota . ($s4muta ? "+$s4muta" : "");
+  $sfull = $s4nota . ($s4muta ? "+$s4muta" : "");
+  return SPCQA($sfull);
 }
 
 function ProcrustMutaset($s, $max=0, $delim="<br>") {

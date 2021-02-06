@@ -139,10 +139,7 @@ function SaveGlifetri(prms={}) {
   
   if(!prms['noorga']) StatORGA();  // calc orga stats before saving
   
-       if(Family=='Conway')   prms['family_id'] = 1;
-  else if(Family=='Conway3D') prms['family_id'] = 3;
-  else if(Family=='Langton')  prms['family_id'] = 10;
-  else if(Family=='Tricolor') prms['family_id'] = 6;
+  prms['family_id'] = glFamily.id;
   
   prms['FD'] = FD;
   prms['notaset'] = Notaset;
