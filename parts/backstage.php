@@ -113,16 +113,22 @@ function GlifeBigInfo($gl, $q4runs='', $single=true) {
   }
   else {
     $cleanstr = RN(str_replace(",", "\n", $gl->notaset));
-    
+  }
+  
+  $colspan = $tr = '';
+  if(strlen($cleanstr)>80*$FD) {
+    $colspan = " colspan=2";
+    $tr = "</tr><tr>";
   }
   
   $s = "
-    <tr><td>
-      <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm ".($gl->typed?"<span class=gr>($gl->typed)</span>":"")."</h3>
-      ".glDicts::GetFamily($gl->family_id)->name.":<br>
+    <tr><td$colspan>
+      <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm " . ($gl->typed?"<span class=gr>($gl->typed)</span>":"") . "</h3>
+      " . glDicts::GetFamily($gl->family_id)->name . ":<br>
       <span class='nrrw'>$cleanstr</span><br>
       <small class='nrrw gr'>".ProcrustMutaset($gl->mutaset)."</small>
     </td>
+    $tr
     <td><table><tr>$srun</tr></table><br></td>
     <td>".GlifeEditInput($gl)."</td>
     </tr>
@@ -232,6 +238,9 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   return "
     <a name='cont'></a>
     <div id=GLifeCont></div>
+    
+    <script src='vendor/jquery-fft/jquery.fft.js'></script>
+    <script src='//cdn.plot.ly/plotly-latest.min.js'></script>
     
     <script>$send2js</script>
     

@@ -1,0 +1,122 @@
+ <head>
+ <meta charset="UTF-8">
+
+ <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+ <script src="jquery.fft.js"" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script type="text/javascript">
+
+</script>
+</head>
+
+<body>
+
+<script type="text/javascript">
+    $(function(){ 
+        console.time('fft');
+
+        function out(array){
+            $("#console").html( $("#console").html() +"<br/><br/>" +  JSON.stringify(array)  );
+            console.log( JSON.stringify(array));
+        }
+        var fft = new FFT();
+
+//////////////////////////////////////////////////////////
+/////                INPUT DATA
+//////////////////////////////////////////////////////////
+         real=[];
+         N = 32;
+         for (i = 0;  i<N; i++){
+             real.push(Math.sin((5.5 * 3.1415926535 * i) / N ));
+         }
+        
+        //var real =[1,0,1,0];
+        var imaginary =new Array(real.length);
+        imaginary.fill(0);
+
+        original = real.slice(0);
+//////////////////////////////////////////////////////////
+////                 OUTPUT
+//////////////////////////////////////////////////////////
+        
+        out('Original source (real array)');
+        out(original);
+        
+        fft.calc( 1, real, imaginary ) ;
+        out('FFT');
+        out(real);
+        out(imaginary);
+
+        var amplitude = fft.amplitude(real,imaginary);
+        out("amplitude");
+        out(amplitude);
+
+        var power = fft.power(real, imaginary);
+        out("power");
+        out(power);
+
+        var phase = fft.phase(real, imaginary);
+        out("phase");
+        out(phase);
+
+        var frequencies = fft.frequencies(real, imaginary, 1);
+        out("frequencies");
+        out(frequencies);
+
+        var periods = fft.periods(real, imaginary, 1);
+        out("periods");
+        out(periods);
+
+        var data1=[{
+                name:'original source',
+                y:original
+            }];
+
+        var data2=[{
+                name:'real array',
+                y:real
+            },
+            {   
+                name:'imaginary array',
+                y:imaginary
+            }];
+
+        var data3=[{
+                name:'amplitude array',
+                x:frequencies,
+                y:amplitude
+            },
+            {   
+                name:'phase array',
+                x:frequencies,
+                y:phase
+            }];
+
+        Plotly.plot('stage1', data1, {
+                                    title: 'original source',
+                                    xaxis: {title: 'index'}
+                                 });
+        Plotly.plot('stage2', data2, {
+                                    title: 'FFT',
+                                    xaxis: {title: 'index'}
+                                 });
+        Plotly.plot('stage3', data3, {
+                                    title: 'amplitude, phase vs frequency',
+                                    xaxis: {title: 'frequencies'}
+                                 });
+
+        out('iFFT');
+        fft.calc( -1, real, imaginary);
+        out(real);
+        out(imaginary);
+    
+        console.timeEnd('fft');
+    });
+</script>
+<H1>jquery.fft exsample</H1>
+<div id="stage1" ></div>
+<div id="stage2" ></div>
+<div id="stage3" ></div>
+<div id = "console"> </div>
+</body>
+

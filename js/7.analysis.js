@@ -5,7 +5,7 @@ DynamicScriptLoad('js/7b.orga.js');
 
 // PARAMS ////////////////////////////////////////////////////////////////
 
-var StatGraphFuncName = 'log';
+var StatGraphFuncName = 'root4';  // log, cbrt, root4
 
 var drawRzoom = 1;
 
@@ -38,12 +38,13 @@ var scnvs = document.createElement('canvas');
 statcanvas.append(scnvs);
 scnvs.width  = IW;           scnvs.style.width  = scnvs.width  + 'px';
 scnvs.height = scnv_height;  scnvs.style.height = scnvs.height + 'px';
+scnvs.style.margin = '0 0 5px 0';
 var sctx = scnvs.getContext('2d');
 
 if(cfg.drawrules) {
   var sdivttl0 = document.createElement('div');
   sdivttl0.textContent = "physics (rules):";
-  sdivttl0.style.margin = '10px 0 0 0';
+  sdivttl0.style.margin = '5px 0 0 0';
   statcont.append(sdivttl0);
   
   var rcnv = document.createElement('canvas');
@@ -71,8 +72,6 @@ else if(StatGraphFuncName=='root4') function StatGraphFunc(x) { return Math.pow(
 
 class Record {
   constructor() {
-    this.ttl = 0;  // total number of living cells
-    
     this.livecells = [];  // total number of living cells in this z-plane
     this.icehsh = [];  // quasi-sum of living cell coordinates, to detect frozen states
     this.frozentime = [];  // for how many turns this z-plane is frozen
@@ -253,7 +252,7 @@ function InitStats() {
   
   rec = new Records();  
   
-  prevpoints = [], infostep = -1;
+  graphpoints = [], graphnums = [], graphstep = -1, graphcnvnum = 0;
   
   S0 = 0;  S1 = 1;  // time moments for Stats
   
@@ -285,9 +284,7 @@ function Stats(force=false) {
   
   var sstat = '';
   
-  var x, y, z;
-  
-  var colorstat = [];  // stat for graph
+  var x, y, z, v;
   
   var qd = 10, qx, qy, qq = []; // grid of squares qd*qd with coordinates (qx,qy) is to measure how species spread
   var qw = floor(FW / qd), qh = floor(FH / qd);  // assuming FW%qd==0 && FH%qd==0
@@ -305,9 +302,12 @@ function Stats(force=false) {
     gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F, 4 * FW * FH * z);  // reading pixels of layer=z to F[z]
   }
   
-  for(var zv=0; zv<FD*RB; zv++) colorstat[zv] = 0;
+  graphstep ++;
+  
+  graphnums[graphstep] = [];
   for(var z=0; z<FD; z++) {
     qq[z] = [];
+    graphnums[graphstep][z] = [];  for(v=1; v<RB; v++) graphnums[graphstep][z][v] = 0;
     for(var x=0; x<FW; x++) {
       qx = floor(x / qd);
       if(!qq[z][qx]) qq[z][qx] = [];
@@ -316,10 +316,8 @@ function Stats(force=false) {
         if(cell.a<=200) continue;  // dead cell
         var v = cell.a - 200;  // cell's value
         
-        var zv = z * RB + v;
-        colorstat[zv] ++;
+        graphnums[graphstep][z][v] ++;
         
-        rec[S1].ttl ++;
         rec[S1].livecells[z] ++;
         
         qy = floor(y / qd);
@@ -332,19 +330,21 @@ function Stats(force=false) {
   }
   
   // plotting graphs
-  infostep ++;
-  if(infostep<zoom*FW) {
-    for(var zv=0; zv<FD*RB; zv++) {
-      var v = zv % RB;
-      var z = (zv - v) / RB;
+  var StatGraphFuncFWFH = StatGraphFunc(FW*FH);
+  function GraphY(yv) { return round(scnv_height * (1 - yv)); }
+  var xx = graphstep - IW * graphcnvnum;
+  graphpoints[graphstep] = [];
+  for(z=0; z<FD; z++) {
+    graphpoints[graphstep][z] = [];
+    for(v=1; v<RB; v++) {
+      var yv = graphnums[graphstep][z][v] ? StatGraphFunc(graphnums[graphstep][z][v]) / StatGraphFuncFWFH : 0;  // [0..1]
+      var yy = GraphY(yv);  // [scnv_height .. 0]
       var clr = Color4Cell(z, v);
-      var xx = infostep;
-      var yy = colorstat[zv] ? scnv_height - round(StatGraphFunc(colorstat[zv]) / StatGraphFunc(FW*FH) * scnv_height) : scnv_height;
       var style = 'rgba('+clr.r+','+clr.g+','+clr.b+',0.9)';
-      if(prevpoints[zv] && xx>0) {
+      if(xx>0) {
         sctx.beginPath();
         sctx.strokeStyle = style;
-        sctx.moveTo(xx-1, prevpoints[zv]);
+        sctx.moveTo(xx-1, graphpoints[graphstep-1][z][v]);
         sctx.lineTo(xx, yy);
         sctx.stroke();
       }
@@ -352,8 +352,48 @@ function Stats(force=false) {
         sctx.fillStyle = style;
         sctx.fillRect(xx, yy, 1, 1);
       }
-      prevpoints[zv] = yy;
+      graphpoints[graphstep][z][v] = yy;
     }
+  }
+  if(xx>=IW) {
+    graphcnvnum ++;
+    var scnvs = document.createElement('canvas');
+    statcanvas.append(scnvs);
+    scnvs.width  = IW;           scnvs.style.width  = scnvs.width  + 'px';
+    scnvs.height = scnv_height;  scnvs.style.height = scnvs.height + 'px';
+    scnvs.style.margin = '0 0 5px 0';
+    sctx = scnvs.getContext('2d');
+  }
+  if(false && graphnums.length==256) {
+    console.log(graphnums);
+    
+    var real = [];
+    for(var i=0; i<graphnums.length; i++) real[i] = graphnums[i][0][1];
+    var real0 = [...real];
+    
+    var imaginary = new Array(real.length);
+    imaginary.fill(0);
+    
+    var fft = new FFT(); 
+    
+    var spaces = [];  for(var i=0; i<graphnums.length; i++) spaces[i] = i;
+    var plotly1 = document.createElement('div');  statcanvas.append(plotly1);
+    Plotly.plot(plotly1, [{name:'signal', x:spaces, y:real0}], {title:'title1', xaxis:{title:'spaces'}});
+    
+    fft.calc(1, real, imaginary);
+    var amplitude = fft.amplitude(real, imaginary);
+    
+    var frequencies = fft.frequencies(real, imaginary, 1);
+    var plotly2 = document.createElement('div');  statcanvas.append(plotly2);
+    Plotly.plot(plotly2, [{name:'amplitude', x:frequencies, y:amplitude}], {title:'title2', xaxis:{title:'frequencies'}});
+    
+    fft.calc(-1, real, imaginary);
+    var amplitude2 = fft.amplitude(real, imaginary);
+    console.log(spaces);
+    var plotly3 = document.createElement('div');  statcanvas.append(plotly3);
+    Plotly.plot(plotly3, [{name:'signal2', x:spaces, y:amplitude2}], {title:'title3', xaxis:{title:'spaces'}});
+    
+    Pause(1);
   }
   
   // counting squares
@@ -369,7 +409,7 @@ function Stats(force=false) {
   
   // for how long planes are frozen
   for(z=0; z<FD; z++) {
-    if(!rec[S1].ttl || !rec[S1].icehsh[z]) rec[S1].frozentime[z] = rec[S0].frozentime[z] + 10;
+    if(!rec[S1].icehsh[z]) rec[S1].frozentime[z] = rec[S0].frozentime[z] + 10;
     else if(rec.absdelta('icehsh', z) < 0.01 && rec.absdelta('livecells', z) < 0.01) rec[S1].frozentime[z] = rec[S0].frozentime[z] + 1;
     else rec[S1].frozentime[z] = 0;
   }

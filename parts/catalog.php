@@ -130,8 +130,8 @@ elseif(isset($_GET['stopped'])) {
         ";
       }
       $tr .= "
-          <td class='pd0'>{$a_notaset[$z]}</td>
-          <td class='pd0 nrrw'>{$a_mutaset[$z]}</td>
+          <td class='pd0 nrrw'>".ProcrustMutaset($a_notaset[$z], 32)."</td>
+          <td class='pd0 nrrw'>".ProcrustMutaset($a_mutaset[$z], 16)."</td>
           <td class='pd0'>".($z==0?"$r->stopped_nturn":"")."</td>
           <td class='pd0'>{$a_stopped[$z]}</td>
           <td class='pd0 tar'>{$a_records['fillin'][$z]}</td>

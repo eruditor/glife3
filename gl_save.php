@@ -119,6 +119,10 @@ else if(_local==="1" && ($_POST['named'] || $_GET['typed'])) {
   if(strpos($named, ":")!==false) {
     list($named, $typed) = explode(":", $named);
   }
+  if($named && $named<>$old->named) {
+    $another_named = mysql_o("SELECT * FROM rr_glifetris WHERE named='".MRES($named)."' AND id!='$id'");
+    if($another_named) dierr("same name has: $another_named->id");
+  }
   $q = '';
   $q .= ($q?", ":"") . "named='".MRES($named)."'";
   $q .= ($q?", ":"") . "typed='".MRES($typed)."'";

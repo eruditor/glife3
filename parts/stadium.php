@@ -34,7 +34,7 @@ while($r = mysql_fetch_object($res)) {
   $s .= "
     <tr>
       <td><a href='?gl_run=$r->id&maxfps=1001&pauseat=$r->stopped_nturn'>$r->id</a></td>
-      <td><a href='?glife=$gllink'>$gllink</a></td>
+      <td><a href='?glife=$gllink'>$gllink</a>".($r->typed?":$r->typed":"")."</td>
       <td>".($nonmutated->named ?: $nonmutated->notaset)."</td>
       <td>".glDicts::GetFamily($r->family_id)->name."</td>
       <td class=tar>".glRecords::RecordsSpan($r, 'stopped_nturn')."</td>

@@ -1,0 +1,22 @@
+{
+  "name": "jquery.fft",
+  "version": "1.0.3",
+  "description": "Simple and pure javascript FFT module.",
+  "main": "jquery.fft.js",
+  "scripts": {
+    "test": "node -c jquery.fft.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hotstaff/jquery.fft.git"
+  },
+  "keywords": [
+    "FFT"
+  ],
+  "author": "Hideto Manjo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hotstaff/jquery.fft/issues"
+  },
+  "homepage": "https://github.com/hotstaff/jquery.fft#readme"
+}

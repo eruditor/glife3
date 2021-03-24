@@ -147,7 +147,8 @@ function MakePage() {
       xhr.open('POST', 'gl_save.php');
       xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
       xhr.onload = function() {
-        if(xhr.status==200) { if(xhr.responseText) alert(xhr.responseText); }
+        if(xhr.status==200) {  }
+        if(xhr.responseText) alert(xhr.responseText);
       };
       xhr.send(q);
     }
