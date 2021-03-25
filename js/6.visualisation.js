@@ -110,14 +110,14 @@ var ShowProgram = createProgram4Frag(gl, ShowFragmentShaderSource, ["a_position"
 
 // SHOW MAIN ////////////////////////////////////////////////////////////////
 
-function Show(single=0, showt1=0) {
+function Show(single=0, t=-1) {
   if(cfg.paused && single!=1) { return 0; }
   
   gl.useProgram(ShowProgram);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);  // render to canvas
-  ActivateTexture(showt1 ? T1 : T0, ShowProgram.location.u_fieldtexture);
+  ActivateTexture(t<0 ? T0 : t, ShowProgram.location.u_fieldtexture);
   
   gl.uniform2f(ShowProgram.location.u_canvas, gl.canvas.width, gl.canvas.height);
   gl.uniform3f(ShowProgram.location.u_surface, surface.left, surface.top, surface.zoom);

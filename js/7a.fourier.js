@@ -9,8 +9,8 @@ function InitDFT() {
   if(DFT.inited) return false;
   
   DFT.TX = new Array(2);
-  DFT.TX[0] = FD+2;  Textures[DFT.TX[0]] = CreateTexture(FW, FH, FD, 'Fl32');
-  DFT.TX[1] = FD+3;  Textures[DFT.TX[1]] = CreateTexture(FW, FH, FD, 'Fl32');
+  DFT.TX[0] = FD+TT+0;  Textures[DFT.TX[0]] = CreateTexture(FW, FH, FD, 'Fl32');
+  DFT.TX[1] = FD+TT+1;  Textures[DFT.TX[1]] = CreateTexture(FW, FH, FD, 'Fl32');
   
   DFT.FB = new Array(2);
   DFT.FB[0] = CreateFramebuffer(Textures[DFT.TX[0]], FD);

@@ -86,7 +86,7 @@ var RulesTexture = [];
 for(var z=0; z<FD; z++) RulesTexture[z] = CreateTexture(Rtx, Rty);
 
 function SetRulesTexture() {
-  for(var z=0; z<FD; z++) SetTexture(2 + z, RulesTexture[z], R[z], Rtx, Rty);
+  for(var z=0; z<FD; z++) SetTexture(TT + z, RulesTexture[z], R[z], Rtx, Rty);
 }
 
 // NEIB ENCODINGS ////////////////////////////////////////////////////////////////

@@ -49,6 +49,7 @@ var CalcFragmentShaderSource = `
   precision highp int;
   
   uniform highp usampler3D u_fieldtexture;  // Field texture
+  uniform highp usampler3D u_prevtexture;  // Previous Field texture
   uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
@@ -61,6 +62,8 @@ var CalcFragmentShaderSource = `
   ` + fs_ModuloTorus + `
   
   ` + fs_GetCell() + `
+  
+  ` + (TT>2 ? fs_GetCell('GetPrevCell', 'u_prevtexture') : ``) + `
   
   ` + fs_GetTexel2D + `
   
@@ -94,57 +97,72 @@ var CalcFragmentShaderSource = `
       
       uvec4 rule = GetTexel2D(u_rulestexture, layer, t);
       
-      uvec4 prev = cells[0];  // previous cell state
+      uvec4 self = cells[0];  // previous self cell state
       
       // setting new cell value (based on the rule)
       // rule.a is the new color (value) of the cell
       // color.a: 200u+ = alive cell, 100u+ - decaying dead cell, 0u = empty cell
       
            if(rule.a>0u)   color.a = 200u + rule.a;   // alive cell
-      else if(prev.a>200u) color.a = prev.a - 100u;   // dying cell
-      else if(prev.a>30u)  color.a = prev.a - 10u;    // color decay for died cell
+      else if(self.a>200u) color.a = self.a - 100u;   // dying cell
+      else if(self.a>30u)  color.a = self.a - 10u;    // color decay for died cell
       else                 color.a = 0u;              // empty cell
+      
+      ` + (TT>2 ? `
+      uvec4 prev = GetPrevCell(0, 0, 0);
+      uint newv  = color.a > 200u ? color.a - 200u : 0u;
+      uint prevv = prev.a  > 200u ? prev.a  - 200u : 0u;
+      // newv - prevv
+      if(prevv>0u) {
+        uint newnewv = newv > 0u ? 0u : 1u;
+        if(newnewv>0u) color.a = 201u;
+        else           color.a = 101u;
+      }
+      ` : ``) + `
       
       // storing neighboorhood data in rgb of the cell (needed for analytics)
       // one may also store not rulecoord, but some data from rule texel
       
-      color.r =  (nliveneib << 4u);         // higher 4 bits for nliveneib
-      color.r += (rulecoord >> 16u) % 16u;  // lower 4 bits for rulecoord
-      color.g =  (rulecoord >>  8u) % 256u;
-      color.b =  (rulecoord >>  0u) % 256u;
+      //color.r =  (nliveneib << 4u);         // higher 4 bits for nliveneib
+      //color.r += (rulecoord >> 16u) % 16u;  // lower 4 bits for rulecoord
+      //color.g =  (rulecoord >>  8u) % 256u;
+      //color.b =  (rulecoord >>  0u) % 256u;
       
       ` + fs_Prepare2Return('color') + `
     }
   }
 `;
-var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture"]);
+var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_prevtexture", "u_rulestexture"]);
 
 // CALC MAIN ////////////////////////////////////////////////////////////////
 
-function Calc() {
-  if(cfg.paused) return 0;
+function Calc(single=0) {
+  if(cfg.paused && single!=1) return 0;
   
   gl.useProgram(CalcProgram);
   gl.viewport(0, 0, FW, FH);
   
   BindBuffersAttachments(Framebuffers[T1]);
   ActivateTexture(T0, CalcProgram.location.u_fieldtexture);
+  ActivateTexture(TT>2 ? T2 : T0, CalcProgram.location.u_prevtexture);
   
-  var rulestexture_nums = [];  for(var z=0; z<FD; z++) rulestexture_nums[z] = 2 + z;
+  var rulestexture_nums = [];  for(var z=0; z<FD; z++) rulestexture_nums[z] = TT + z;
   gl.uniform1iv(CalcProgram.location.u_rulestexture, rulestexture_nums);
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
+  
   FlipTime();
   
   nturn ++;
+  
+  if(single==1) return true;
   
   if(cfg.pauseat>0 && nturn==cfg.pauseat) Pause(1);
   
   if(cfg.showiter) { if(nturn % cfg.showiter == 0) Show(); }
   else if(cfg.maxfps<=60) Show();
   // else Show() rotates in its own cycle
-
+  
   if((nturn % cfg.turn4stats)==0) Stats();
   
   if(cfg.maxfps>1000) { if(nturn%10==0) setTimeout(Calc, 1); else Calc(); }

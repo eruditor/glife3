@@ -44,6 +44,7 @@ var cfg = new Cfg();
 // global vars for constant things, good for shorter names in formulas
 
 const Family = GetStrParam('family', glFamily.name);   // name of rule's family
+const TT     = GetIntParam('TT',     glFamily.TT);;    // number of moments of time involved in dynamics (2 or 3)
 const RB     = GetIntParam('RB',     glFamily.RB);     // number of states for cell
 const Rgeom  = GetIntParam('Rgeom',  glFamily.Rgeom);  // neighborhood geometry (see RG)
 const Rsymm  = GetIntParam('Rsymm',  glFamily.Rsymm);  // symmetry of rules (rotational, parity, etc)

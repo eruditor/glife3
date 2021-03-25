@@ -287,9 +287,9 @@ function InitORGA() {
   
   ORGA.F = new jsUI32_Array(4 * FW * FH * FD);
   
-  ORGA.TXF0 = FD+2;  Textures[ORGA.TXF0] = CreateTexture(FW, FH, FD, 'UI32');  // fill-texture for F[T0]
-  ORGA.TXF1 = FD+3;  Textures[ORGA.TXF1] = CreateTexture(FW, FH, FD, 'UI32');  // fill-texture for F[T1]
-  ORGA.TXC  = FD+4;  Textures[ORGA.TXC ] = CreateTexture(FW, FH, FD, 'UI32');  // calc-texture
+  ORGA.TXF0 = FD+TT+0;  Textures[ORGA.TXF0] = CreateTexture(FW, FH, FD, 'UI32');  // fill-texture for F[T0]
+  ORGA.TXF1 = FD+TT+1;  Textures[ORGA.TXF1] = CreateTexture(FW, FH, FD, 'UI32');  // fill-texture for F[T1]
+  ORGA.TXC  = FD+TT+2;  Textures[ORGA.TXC ] = CreateTexture(FW, FH, FD, 'UI32');  // calc-texture
   
   ORGA.FBF0 = CreateFramebuffer(Textures[ORGA.TXF0], FD);
   ORGA.FBF1 = CreateFramebuffer(Textures[ORGA.TXF1], FD);

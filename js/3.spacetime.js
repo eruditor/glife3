@@ -50,6 +50,15 @@ function InitialFill() {
     }
     return;
   }
+  else if(Family=='Conway' && LF==0.33) {
+    for(var d=1; d<1000; d++) {
+      var x = round(FW/2 + FW/4*Math.cos(2*Math.PI*d/1000));
+      var y = round(FH/2 + FH/4*Math.sin(2*Math.PI*d/1000));
+      var z = 0;
+      var v = 1;
+      InitSetCell(x, y, z, v);
+    }
+  }
   else {
     for(var z=0; z<FD; z++) {
       for(var x=round(FW/2-FW*LF/2); x<round(FW/2+FW*LF/2); x++) {
@@ -70,29 +79,47 @@ function InitialFill() {
 
 // TIME (ITERATIONS) ////////////////////////////////////////////////////////////////
 
-var T0 = 0, T1 = 1;  // previous (0) and current (1) moments
+var T0 = 0, T1 = 1, T2 = 2;  // previous (0) and current (1) moments; or T2=t+1 (next), T1=t+0 (prev), T0=t-1 (grand-parent)
 
-function FlipTime() {
-  if(T1==1) { T1 = 0;  T0 = 1; } else { T1 = 1;  T0 = 0; } // switching between previous and current moment fields
+var DT = 1;
+
+function FlipTime() {  // switching between previous and current moment fields
+  if(TT==2) {
+    if(T0==0) { T0 = 1;  T1 = 0; }
+    else      { T0 = 0;  T1 = 1; }
+  }
+  else if(TT==3) {
+    if(DT>0) {
+           if(T0==0) { T0 = 1;  T1 = 2;  T2 = 0; }
+      else if(T0==1) { T0 = 2;  T1 = 0;  T2 = 1; }
+      else           { T0 = 0;  T1 = 1;  T2 = 2; }
+    }
+    else {
+           if(T0==0) { T0 = 2;  T1 = 1;  T2 = 0; }
+      else if(T0==1) { T0 = 0;  T1 = 2;  T2 = 1; }
+      else           { T0 = 1;  T1 = 0;  T2 = 2; }
+    }
+  }
+  else { alert('incorrect time configuration'); }
 }
 
 // INIT SPACETIME ////////////////////////////////////////////////////////////////
 
 function InitSpacetime() {
-  T0 = 0;  T1 = 1;  // time moments for Calc
+  T0 = 0;  T1 = 1;  T2 = 2;  // time moments for Calc
+  
+  //F.fill(0);  // clearing textures: required for TT=3 case
+  //for(var t=0; t<TT; t++) SetTexture(t, Textures[t], F, FW, FH, FD);
   
   InitialFill();
-  
   SetTexture(T0, Textures[T0], F, FW, FH, FD);
 }
 
 // CREATE TEXTURES ////////////////////////////////////////////////////////////////
 
-Textures[0] = CreateTexture(FW, FH, FD);
-Textures[1] = CreateTexture(FW, FH, FD);
+for(var t=0; t<TT; t++) Textures[t] = CreateTexture(FW, FH, FD);
 
-var Framebuffers = new Array(2);
-Framebuffers[0] = CreateFramebuffer(Textures[0], FD);
-Framebuffers[1] = CreateFramebuffer(Textures[1], FD);
+var Framebuffers = new Array(TT);
+for(var t=0; t<TT; t++) Framebuffers[t] = CreateFramebuffer(Textures[t], FD);
 
 //  ////////////////////////////////////////////////////////////////
