@@ -11,9 +11,9 @@ const SLF = new URLSearchParams(myScript.src);
 
 function int10(x) { if(!x) return 0;  return parseInt(x, 10); }
 
-function GetIntParam(nm, def=0)  { return int10(URL.get(nm)   || SLF.get(nm) || def);    }
-function GetStrParam(nm, def='') { return       URL.get(nm)   || SLF.get(nm) || def;    }
-function GetBoolParam(nm)        { return      (URL.get(nm)>0 || SLF.get(nm)>0) ? 1 : 0; }
+function GetIntParam(nm, def=0)  { return int10(SLF.get(nm)   || URL.get(nm) || def);    }
+function GetStrParam(nm, def='') { return       SLF.get(nm)   || URL.get(nm) || def;    }
+function GetBoolParam(nm)        { return      (SLF.get(nm)>0 || URL.get(nm)>0) ? 1 : 0; }
 
 class Cfg {
   constructor() {
@@ -44,6 +44,7 @@ var cfg = new Cfg();
 // global vars for constant things, good for shorter names in formulas
 
 const Family = GetStrParam('family', glFamily.name);   // name of rule's family
+const FM     = GetIntParam('fm',     glFamily.id);
 const TT     = GetIntParam('TT',     glFamily.TT);;    // number of moments of time involved in dynamics (2 or 3)
 const RB     = GetIntParam('RB',     glFamily.RB);     // number of states for cell
 const Rgeom  = GetIntParam('Rgeom',  glFamily.Rgeom);  // neighborhood geometry (see RG)

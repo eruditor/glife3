@@ -108,8 +108,8 @@ function FlipTime() {  // switching between previous and current moment fields
 function InitSpacetime() {
   T0 = 0;  T1 = 1;  T2 = 2;  // time moments for Calc
   
-  //F.fill(0);  // clearing textures: required for TT=3 case
-  //for(var t=0; t<TT; t++) SetTexture(t, Textures[t], F, FW, FH, FD);
+  F.fill(0);  // clearing textures: required for TT=3 case
+  for(var t=0; t<TT; t++) SetTexture(t, Textures[t], F, FW, FH, FD);
   
   InitialFill();
   SetTexture(T0, Textures[T0], F, FW, FH, FD);

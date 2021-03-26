@@ -33,12 +33,12 @@ class glDicts {
   }
   
   
-  static function GetGL4Notaset($notaset) {
+  static function GetGL4Notaset($notaset, $fm_id=0) {
     if(is_numeric($notaset))             $fld = "id";
     elseif(strpos($notaset,":")!==false) $fld = "notaset";
     elseif(strlen($notaset)==32)         $fld = "notamd5";
     else                                 $fld = "named";
-    return mysql_o("SELECT * FROM rr_glifetris WHERE $fld='".MRES($notaset)."'");
+    return mysql_o("SELECT * FROM rr_glifetris WHERE $fld='".MRES($notaset)."'".($fm_id?" AND family_id='$fm_id'":"")."");
   }
   
   

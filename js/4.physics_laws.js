@@ -263,7 +263,7 @@ function SetMutaRules(mutas) {
   
   var mutastr = EncodeMutaStr(mutas);
   var divstr = mutastr.length < 1000
-               ? "<a href='?notaset=" + MD5(Notaset) + "&mutamd5=" + MD5(mutastr) + "'>" + mutastr + "</a>"
+               ? "<a href='?fm=" + FM + "&notaset=" + (Notaset) + "&mutamd5=" + MD5(mutastr) + "'>" + mutastr + "</a>"
                : mutastr.substring(0,8) + "&hellip;(" + mutastr.length + ")&hellip;" + mutastr.substring(mutastr.length-8);
   divrules.innerHTML += "<pre class='nrrw'>" + divstr + "</pre>";
   console.log(n + ' random rule mutations:\n' + mutastr);
@@ -626,7 +626,7 @@ function RandomNotaset() {
   else {
     notaset = RandomConwayRules();
   }
-  divrules.innerHTML += "<pre><a href='?notaset=" + MD5(notaset) + "'>" + notaset + "</a></pre>";
+  divrules.innerHTML += "<pre><a href='?fm=" + FM + "&notaset=" + (notaset) + "'>" + notaset + "</a></pre>";
   return notaset;
 }
 

@@ -182,7 +182,9 @@ function ProcrustMutaset($s, $max=0, $delim="<br>") {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function GLifeJS($notaset='', $prms=[], $send2js = '') {
-  if(!$notaset) $notaset = "Aphrodite";
+  if(!$notaset) {
+    $notaset = $_GET['notaset'] ?: "Aphrodite";
+  }
   
   $fm = null;  // family is required to run
   
@@ -212,7 +214,8 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
     $prms['FD'] = $FD;
   }
   else {
-    $gl = glDicts::GetGL4Notaset($notaset);  if(!$gl) dierr("incorrect notaset");
+    $fm_id = intval($prms['fm_id'] ?: $_GET['fm']);
+    $gl = glDicts::GetGL4Notaset($notaset, $fm_id);  if(!$gl) dierr("incorrect notaset");
     $fm = glDicts::GetFamily($gl->family_id);
     $prms['FD'] = glDicts::GetFD($gl);
     $prms['notaset'] = $gl->notaset;
