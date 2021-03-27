@@ -562,7 +562,10 @@ function RandomConwayRules(fd=FD, rb=RB) {
       for(var to=1; to<rb; to++) {
         if(to>1) s += '.';
         
-        var l = rndR(1, gene_count);  // 1..gene_count-1: no zero length and no all-genes
+        var l = TT==2
+          ? rndR(1, gene_count)  // 1..gene_count-1: no zero length and no all-genes
+          : round(Math.sqrt(rndR(0, sqr(gene_count+1))))  // higher probability for many-digit genes for TT=3
+        ;
         var r = {};
         for(var j=0; j<l; j++) {
           var dd = rnd_split(rb, SNN, rndR);
@@ -571,7 +574,7 @@ function RandomConwayRules(fd=FD, rb=RB) {
             gene += dd[i];  // use alphabet here
           }
           if(genes[gene]) continue;  // same neib (gene) and same center-cell (from) can not lead to different values (to); farther to's are slightly shorter
-          if(gene==zero_gene) continue;  // nothing appeares from nowhere and everything dies in vacuum
+          if(TT==2 && gene==zero_gene) continue;  // nothing appeares from nowhere and everything dies in vacuum
           genes[gene] = 1;
           r[gene] = 1;
         }
@@ -589,6 +592,7 @@ function RandomConwayRules(fd=FD, rb=RB) {
   }
   return nota;
 }
+//for(var i=0; i<100; i++) print_r(RandomConwayRules());
 //print_r(RandomConwayRules(3, 3).length);
 
 /*

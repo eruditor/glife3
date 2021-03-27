@@ -213,6 +213,12 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
     ";
     $prms['FD'] = $FD;
   }
+  elseif($_GET['fm'] && $_GET['notaset']) {
+    $fm_id = intval($_GET['fm']);  if(!$fm_id) die("#87234852");
+    $fm = glDicts::GetFamily($fm_id);  if(!$fm) die("#87234853");
+    $prms['FD'] = $fm->FD ?: 3;
+    $prms['notaset'] = $notaset;
+  }
   else {
     $fm_id = intval($prms['fm_id'] ?: $_GET['fm']);
     $gl = glDicts::GetGL4Notaset($notaset, $fm_id);  if(!$gl) dierr("incorrect notaset");
@@ -223,8 +229,7 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
     $send2js .= "Mutaset = '".str_replace("\n", "\\n", $gl->mutaset)."';\n";
   }
   
-  if(!$fm) $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);
-  if(!$fm) dierr("#48379230");
+  if(!$fm) $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);  if(!$fm) dierr("#48379230");
   $prms['family'] = $fm->name;
   $send2js .= "glFamily = JSON.parse(`" . json_encode($fm) . "`);\n";
   
