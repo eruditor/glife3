@@ -114,7 +114,6 @@ if(cfg.debug) {
   cfg.paused = 1;
   cfg.maxfps = 1;
   cfg.turn4stats = 1;
-  FW = 10;  FH = 5;
 }
 
 if(RB<=3) cfg.drawrules = 1;

@@ -37,7 +37,7 @@ DFT.FillFragmentShaderSource = `
       uvec4 pixel =  texelFetch(u_fieldtexture, ivec3(v_texcoord, layer), 0);
       
       vec4 color = vec4(0);
-      color.r = pixel.a>200u ? 1. : float(pixel.a) / 255.;
+      color.r = pixel.a>0u ? 1. : float(pixel.b) / 255.;
       
       ` + fs_Prepare2Return('color') + `
     }

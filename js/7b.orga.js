@@ -42,7 +42,7 @@ ORGA.FillFragmentShaderSource = `
       
       uvec4 color = uvec4(0);
       
-      if(curr.a>200u) {
+      if(curr.a>0u) {
         
         uint summs[4], idx = 0u, bits = 0u, nlive = 0u;
         for(int dx=-rad; dx<=rad; dx++) {
@@ -57,8 +57,8 @@ ORGA.FillFragmentShaderSource = `
             
             summs[idx] *= `+RB+`u;
             
-            if(cell.a>200u) {
-              summs[idx] += (cell.a - 200u);
+            if(cell.a>0u) {
+              summs[idx] += cell.a;
               nlive ++;
             }
           }

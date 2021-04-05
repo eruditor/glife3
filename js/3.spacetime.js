@@ -18,7 +18,7 @@ function GetCell(x, y, z) {
 }
 
 function InitSetCell(x, y, z, v) {
-  SetCell(x, y, z, 0, 0, 0, v>0 ? 200+v : 0);
+  SetCell(x, y, z, 0, 0, 0, v);
 }
 
 function InitialFill() {
@@ -43,10 +43,14 @@ function InitialFill() {
   }
   else if(cfg.debug) {
     if(1) {
-      InitSetCell(1, 2, 0, 1);
-      InitSetCell(2, 2, 0, 1);
-      InitSetCell(3, 2, 0, 1);
-      InitSetCell(4, 3, 0, 1);
+      var FW2 = round(FW/2);
+      var FH2 = round(FH/2);
+      InitSetCell(FW2  , FH2+1, 0, 1);
+      InitSetCell(FW2+1, FH2  , 0, 1);
+      InitSetCell(FW2-1, FH2-1, 0, 1);
+      InitSetCell(FW2  , FH2-1, 0, 1);
+      InitSetCell(FW2+1, FH2-1, 0, 1);
+      
     }
     return;
   }

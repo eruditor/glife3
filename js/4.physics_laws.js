@@ -564,7 +564,11 @@ function RandomConwayRules(fd=FD, rb=RB) {
         
         var l = TT==2
           ? rndR(1, gene_count)  // 1..gene_count-1: no zero length and no all-genes
-          : round(Math.sqrt(rndR(0, sqr(gene_count+1))))  // higher probability for many-digit genes for TT=3
+          : (
+            RB==2
+            ? round(Math.sqrt(rndR(0, sqr(gene_count+1))))  // higher probability for many-digit genes for TT=3/RB=2
+            : sqr(rndR(0, round(Math.sqrt(gene_count+1))))
+          )
         ;
         var r = {};
         for(var j=0; j<l; j++) {

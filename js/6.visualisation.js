@@ -57,11 +57,11 @@ for(var z=0; z<FD; z++) {
 var fs_Color4Cell = `
   vec4 Color4Cell(uvec4 cell, int layer) {
     vec4 ret = vec4(0., 0., 0., 1.);
-    if(cell.a==0u) return ret;
+    if(cell.b==0u && cell.a==0u) return ret;
     uint v;
-    v = cell.a>200u ? (cell.a - 200u) : (cell.a % 10u);
+    v = cell.a>0u ? cell.a : (cell.b % 10u);
     ` + fs_colors + `
-    float sat = cell.a>200u ? 1. : float(cell.a) / 255.;
+    float sat = cell.a>0u ? 1. : float(cell.b - v) / 255.;
     ret.r *= sat;
     ret.g *= sat;
     ret.b *= sat;

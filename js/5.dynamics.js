@@ -83,50 +83,36 @@ var CalcFragmentShaderSource = `
       
       // finding rule for this neighborhood
       
-      uint rulecoord = 0u, nliveneib = 0u;
+      uint rulecoord = 0u;
       for(int n=0; n<`+RC+`; n++) {
         rulecoord *= `+RB+`u;
-        uint cellna = cells[n].a;
-        if(cellna>200u) {
-          rulecoord += (cellna - 200u);
-          nliveneib ++;  // number of alive neighbors (for analytics)
-        }
+        rulecoord += cells[n].a;
       }
       ivec2 t = ivec2(rulecoord, 0);
       if(t.x>`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
       
       uvec4 rule = GetTexel2D(u_rulestexture, layer, t);
       
-      uvec4 self = cells[0];  // previous self cell state
-      
-      // setting new cell value (based on the rule)
       // rule.a is the new color (value) of the cell
-      // color.a: 200u+ = alive cell, 100u+ - decaying dead cell, 0u = empty cell
-      
-           if(rule.a>0u)   color.a = 200u + rule.a;   // alive cell
-      else if(self.a>200u) color.a = self.a - 100u;   // dying cell
-      else if(self.a>30u)  color.a = self.a - 10u;    // color decay for died cell
-      else                 color.a = 0u;              // empty cell
+      color.a = rule.a;
       
       ` + (TT>2 ? `
       uvec4 prev = GetPrevCell(0, 0, 0);
-      uint newv  = color.a > 200u ? color.a - 200u : 0u;
-      uint prevv = prev.a  > 200u ? prev.a  - 200u : 0u;
-      // newv - prevv
-      if(prevv>0u) {
-        uint newnewv = newv > 0u ? 0u : 1u;
-        if(newnewv>0u) color.a = 201u;
-        else           color.a = 101u;
+      // color.a - prev.a
+      if(prev.a>0u) {
+        int inewv = int(color.a) - int(prev.a);
+        if(inewv<0) inewv += `+RB+`;
+        color.a = uint(inewv);
       }
       ` : ``) + `
       
-      // storing neighboorhood data in rgb of the cell (needed for analytics)
-      // one may also store not rulecoord, but some data from rule texel
+      uvec4 self = cells[0];  // previous self cell state
       
-      //color.r =  (nliveneib << 4u);         // higher 4 bits for nliveneib
-      //color.r += (rulecoord >> 16u) % 16u;  // lower 4 bits for rulecoord
-      //color.g =  (rulecoord >>  8u) % 256u;
-      //color.b =  (rulecoord >>  0u) % 256u;
+      // color.b = color decay value (optional)
+           if(color.a>0u) color.b = 200u;           // alive cell
+      else if(self.a>0u)  color.b = 100u + self.a;  // dying cell
+      else if(self.b>30u) color.b = self.b - 10u;   // color decay for died cell
+      else                color.b = 0u;             // empty cell
       
       ` + fs_Prepare2Return('color') + `
     }

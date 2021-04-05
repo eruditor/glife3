@@ -313,8 +313,8 @@ function Stats(force=false) {
       if(!qq[z][qx]) qq[z][qx] = [];
       for(var y=0; y<FH; y++) {
         var cell = GetCell(x, y, z);
-        if(cell.a<=200) continue;  // dead cell
-        var v = cell.a - 200;  // cell's value
+        if(cell.a==0) continue;  // dead cell
+        var v = cell.a;  // cell's value
         
         graphnums[graphstep][z][v] ++;
         
