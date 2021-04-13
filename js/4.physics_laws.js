@@ -73,11 +73,20 @@ var R = [];
 for(var z=0; z<FD; z++) R[z] = new jsdata_Array(4 * Rtx * Rty);
 
 function SetRule(z, b, v) {
-  R[z][4*b + 3] = v;  // alpha-channel for texture value
+  if(v<255) {
+    R[z][4*b+3] = v;  // alpha-channel for texture value
+  }
+  else {  // for partitioning CA
+    for(var i=3; i>=0; i--) {
+      var byte = v % 256;
+      v = (v - byte) / 256;
+      R[z][4*b+i] = byte;
+    }
+  }
 }
 
-function GetRule(z, b) {
-  return R[z][4*b + 3];
+function GetRule(z, b) {  // @todo: for partitioning
+  return R[z][4*b+3];
 }
 
 // RULES TEXTURE ////////////////////////////////////////////////////////////////
@@ -179,6 +188,14 @@ function EquivRules(b, v=1) {
     }
     
     rr = ArrMirror(rr, l);
+    ret[GlueNeib(r0, rr, sfx)] = vv;
+    
+    for(var i=1; i<l; i++) {
+      rr = ArrRotate(rr, l);
+      ret[GlueNeib(r0, rr, sfx)] = vv;
+    }
+  }
+  else if(Rsymm==80) {  // rotating by pi/4 (8 cells)
     ret[GlueNeib(r0, rr, sfx)] = vv;
     
     for(var i=1; i<l; i++) {
@@ -489,6 +506,8 @@ function SetConwayRules(notaset) {
   }
 }
 
+// LANGTON RULES ////////////////////////////////////////////////////////////////
+
 function SetLangtonRules() {
   console.time('SetLangtonRules');
   // direction of Ant's movement is encoded in cell's values: 1=down, 2=left, 3=up, 4=right
@@ -527,8 +546,71 @@ function SetLangtonRules() {
   console.timeEnd('SetLangtonRules');
 }
 
+// PARTITIONING RULES ////////////////////////////////////////////////////////////////
+// classic rules are: neib->value, but partitioning rules are: neib->neib
+
+function SetPartitRules() {
+  var neibs_by_class = [];
+  var class4neib = [];
+  
+  for(var b=0; b<RL; b++) {
+    var eqr = EquivRules(b);
+    var neq = Object.keys(eqr).length;
+    var r = NeibArr4Int(b);
+    var ned = r.reduce((a, b) => a + b, 0);
+    
+    var bclass = RC * neq + ned;  // classifying neibs by number of it's equiv-neibs
+    
+    class4neib[b] = bclass;
+    
+    if(neibs_by_class[bclass]===undefined) neibs_by_class[bclass] = [];
+    neibs_by_class[bclass].push(b);
+  }
+  //var strs = [];  for(var bclass in neibs_by_class) { strs[bclass] = [];  for(var k in neibs_by_class[bclass]) strs[bclass][k] = NeibStr4Int(neibs_by_class[bclass][k]); }  console.log(strs);
+  
+  var rules = [], invrules = [];
+  for(var b=0; b<RL; b++) {
+    if(rules[b]) continue;
+    
+    var bclass = class4neib[b];
+    
+    var free_dests = [];
+    for(var i=0; i<neibs_by_class[bclass].length; i++) {
+      var dest = neibs_by_class[bclass][i];
+      if(!invrules[dest]) free_dests.push(dest);
+    }
+    if(!free_dests.length) console.log("ERROR: no free dests for b="+b);
+    
+    var rnd = rndR(0, free_dests.length);
+    var to = free_dests[rnd];  // rule is mapping: b->to
+    if(invrules[to]) console.log('IMPERR: not found <to> for b='+b);
+    
+    var arr1 = NeibArr4Int(b);   var slice1 = SliceNeib(arr1);  var r01=slice1.r0, rr1=slice1.rr, l1=slice1.l, sfx1 = slice1.sfx;
+    var arr2 = NeibArr4Int(to);  var slice2 = SliceNeib(arr2);  var r02=slice2.r0, rr2=slice2.rr, l2=slice2.l, sfx2 = slice2.sfx;
+    
+    if(Rsymm==80) {  // rotating by pi/4 (8 cells)
+      rules[NeibInt4Str(GlueNeib(r01, rr1, sfx1))] = NeibInt4Str(GlueNeib(r02, rr2, sfx2));
+      
+      for(var i=1; i<l1; i++) {
+        rr1 = ArrRotate(rr1, l1);
+        rr2 = ArrRotate(rr2, l2);
+        rules[NeibInt4Str(GlueNeib(r01, rr1, sfx1))] = NeibInt4Str(GlueNeib(r02, rr2, sfx2));
+      }
+    }
+    
+    invrules = array_flip(rules);
+  }
+  
+  for(var b=0; b<RL; b++) SetRule(0, b, rules[b]);
+  
+  //for(var b=0; b<RL; b++) console.log(b, NeibStr4Int(b), NeibStr4Int(rules[b]), rules[b]);
+}
+
+// SET RULES ////////////////////////////////////////////////////////////////
+
 function SetRules(notaset) {
   if(Family=='Langton') SetLangtonRules();
+  else if(PRT)          SetPartitRules();
   else                  SetConwayRules(notaset);
 }
 

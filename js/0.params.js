@@ -45,7 +45,8 @@ var cfg = new Cfg();
 
 const Family = GetStrParam('family', glFamily.name);   // name of rule's family
 const FM     = GetIntParam('fm',     glFamily.id);
-const TT     = GetIntParam('TT',     glFamily.TT);;    // number of moments of time involved in dynamics (2 or 3)
+const PRT    = GetIntParam('PRT',    glFamily.PRT);    // is this a partitioning CA?
+const TT     = GetIntParam('TT',     glFamily.TT);     // number of moments of time involved in dynamics (2 or 3)
 const RB     = GetIntParam('RB',     glFamily.RB);     // number of states for cell
 const Rgeom  = GetIntParam('Rgeom',  glFamily.Rgeom);  // neighborhood geometry (see RG)
 const Rsymm  = GetIntParam('Rsymm',  glFamily.Rsymm);  // symmetry of rules (rotational, parity, etc)

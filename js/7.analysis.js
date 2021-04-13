@@ -188,15 +188,18 @@ function DrawRules(full=false) {
       sum[z][r] ++;
     }
   }
-  var s = '';
-  for(var z=0; z<FD; z++) {
-    s += 'z='+z+': ';
-    for(var r in sum[z]) {
-      s += '&Sigma;'+r+'='+sum[z][r]+' ';
+  
+  if(!PRT) {
+    var s = '';
+    for(var z=0; z<FD; z++) {
+      s += 'z='+z+': ';
+      for(var r in sum[z]) {
+        s += '&Sigma;'+r+'='+sum[z][r]+' ';
+      }
+      s += '<br>';
     }
-    s += '<br>';
+    sdivttl1.innerHTML = s;
   }
-  sdivttl1.innerHTML = s;
   
   /*
   var ii = 0;

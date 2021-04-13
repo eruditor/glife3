@@ -13,6 +13,14 @@ function arsort_keys(obj) {
   return Object.keys(obj).sort(function(a,b){ if(a<b) return -1;  if(a>b) return  1;  return 0; });
 }
 
+function array_flip(trans) {
+  var key, ret = {};
+  for(key in trans) {
+    if(trans.hasOwnProperty(key)) ret[trans[key]] = key;
+  }
+  return ret;
+}
+
 // PRNG ////////////////////////////////////////////////////////////////
 
 function mulberry32(a) {
