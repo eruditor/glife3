@@ -44,7 +44,7 @@ function fs_Prepare2Return(varname='color') {
   return ret;
 }
 
-if(PRT) {
+if(Mode=='PRT') {
   var CalcFragmentShaderSource = `
     precision mediump float;
     precision highp int;
@@ -220,9 +220,9 @@ function Calc(single=0) {
   
   BindBuffersAttachments(Framebuffers[T1]);
   ActivateTexture(T0, CalcProgram.location.u_fieldtexture);
-  if(!PRT) ActivateTexture(TT>2 ? T2 : T0, CalcProgram.location.u_prevtexture);
+  if(Mode!='PRT') ActivateTexture(TT>2 ? T2 : T0, CalcProgram.location.u_prevtexture);
   
-  if(PRT) {
+  if(Mode=='PRT') {
     //PS[0] = rndJ(-1, 2);  PS[1] = rndJ(-1, 2);
     PS[0] = floor(nturn / 3) % 3 - 1;  PS[1] = nturn % 3 - 1;
     //PS[0] = RG[nturn % RC][0];  PS[1] = RG[nturn % RC][1];

@@ -106,7 +106,7 @@ var ShowFragmentShaderSource = `
       color = Color4Cell(cell, layer);
     }
     
-    ` + (PRT && zoom>=10 ? `
+    ` + (Mode=='PRT' && zoom>=10 ? `
       ivec3 cur3coord = ivec3(tex2coord, layer);
       int dx3 = (3 + cur3coord.x + u_ps[0]) % 3;
       int dy3 = (3 + cur3coord.y + u_ps[1]) % 3;

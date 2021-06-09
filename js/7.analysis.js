@@ -189,7 +189,7 @@ function DrawRules(full=false) {
     }
   }
   
-  if(!PRT) {
+  if(Mode!='PRT') {
     var s = '';
     for(var z=0; z<FD; z++) {
       s += 'z='+z+': ';

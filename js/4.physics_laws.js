@@ -619,7 +619,7 @@ function SetPartitRules() {
 
 function SetRules(notaset) {
   if(Family=='Langton') SetLangtonRules();
-  else if(PRT)          SetPartitRules();
+  else if(Mode=='PRT')  SetPartitRules();
   else                  SetConwayRules(notaset);
 }
 
