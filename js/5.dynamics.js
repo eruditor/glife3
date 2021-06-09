@@ -52,8 +52,7 @@ if(PRT) {
     uniform highp usampler3D u_fieldtexture;  // Field texture
     uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
     
-    uniform int u_sqdx;  // global shift of 3*3 squares
-    uniform int u_sqdy;
+    uniform int u_ps[`+ND+`];  // global shift of 3*3 squares
     
     in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
     
@@ -75,8 +74,8 @@ if(PRT) {
       
       for(int layer=0; layer<`+FD+`; layer++) {
         ivec3 cur3coord = ivec3(v_texcoord, layer);
-        int dx3 = (3 + cur3coord.x + u_sqdx) % 3;
-        int dy3 = (3 + cur3coord.y + u_sqdy) % 3;
+        int dx3 = (3 + cur3coord.x + u_ps[0]) % 3;
+        int dy3 = (3 + cur3coord.y + u_ps[1]) % 3;
         ivec3 shift2grid = ivec3(1 - dx3, 1 - dy3, 0);
         
         tex3coord = ivec3(v_texcoord, layer) + shift2grid;
@@ -93,13 +92,14 @@ if(PRT) {
           rulecoord += cells[n].a;
         }
         ivec2 t = ivec2(rulecoord, 0);
-        if(t.x>`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
+        if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
         
         uvec4 rule = GetTexel2D(u_rulestexture, layer, t);
-        int new_square = 256 * int(rule.b) + int(rule.a);
+        int new_square = 256 * 256 * int(rule.g) + 256 * int(rule.b) + int(rule.a);
+        uint u_new_square = 256u * rule.b + rule.a;
         
         int dxdy10 = 10 * dx3 + dy3;
-        int pwr = 0;
+        int pwr = 0;  // coordinate of needed cell in partition's square
              if(dxdy10== 0) pwr = 7;
         else if(dxdy10== 1) pwr = 0;
         else if(dxdy10== 2) pwr = 1;
@@ -109,11 +109,14 @@ if(PRT) {
         else if(dxdy10==20) pwr = 5;
         else if(dxdy10==21) pwr = 4;
         else if(dxdy10==22) pwr = 3;
-        int bit = (new_square / int(pow(`+RB+`., float(pwr)))) % `+RB+`;
-        color.a = uint(bit);
         
-        // rule.a is the new color (value) of the cell
-        //color.a = rule.a;
+        uint nth_bit = 0u;  // float pow() doesn't work here due to rounding precision!
+        for(int n=0; n<=pwr; n++) {
+          nth_bit = u_new_square % `+RB+`u;
+          u_new_square = (u_new_square - nth_bit) / `+RB+`u;
+        }
+        
+        color.a = nth_bit;
         
         uvec4 self = GetCell(dx3 - 1, dy3 - 1, 0);  // previous self cell state
         
@@ -127,7 +130,7 @@ if(PRT) {
       }
     }
   `;
-  var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_sqdx", "u_sqdy"]);
+  var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_ps"]);
 }
 else {
   var CalcFragmentShaderSource = `
@@ -175,7 +178,7 @@ else {
           rulecoord += cells[n].a;
         }
         ivec2 t = ivec2(rulecoord, 0);
-        if(t.x>`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
+        if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
         
         uvec4 rule = GetTexel2D(u_rulestexture, layer, t);
         
@@ -220,13 +223,11 @@ function Calc(single=0) {
   if(!PRT) ActivateTexture(TT>2 ? T2 : T0, CalcProgram.location.u_prevtexture);
   
   if(PRT) {
-    var sqdx = 0, sqdy = 0;
-    //sqdx = rndJ(-1, 2);  sqdy = rndJ(-1, 2);
-    //sqdx = floor(nturn / 3) % 3 - 1;  sqdy = nturn % 3 - 1;
-    var rg = RG[nturn % RC];  sqdx = rg[0];  sqdy = rg[1];
+    //PS[0] = rndJ(-1, 2);  PS[1] = rndJ(-1, 2);
+    PS[0] = floor(nturn / 3) % 3 - 1;  PS[1] = nturn % 3 - 1;
+    //PS[0] = RG[nturn % RC][0];  PS[1] = RG[nturn % RC][1];
     
-    gl.uniform1i(CalcProgram.location.u_sqdx, sqdx);
-    gl.uniform1i(CalcProgram.location.u_sqdy, sqdy);
+    gl.uniform1iv(CalcProgram.location.u_ps, PS);
   }
   
   var rulestexture_nums = [];  for(var z=0; z<FD; z++) rulestexture_nums[z] = TT + z;
@@ -240,13 +241,13 @@ function Calc(single=0) {
   
   if(single==1) return true;
   
-  if(cfg.pauseat>0 && nturn==cfg.pauseat) Pause(1);
-  
   if(cfg.showiter) { if(nturn % cfg.showiter == 0) Show(); }
   else if(cfg.maxfps<=60) Show();
   // else Show() rotates in its own cycle
   
   if((nturn % cfg.turn4stats)==0) Stats();
+  
+  if(cfg.pauseat>0 && nturn==cfg.pauseat) Pause(1);
   
   if(cfg.maxfps>1000) { if(nturn%10==0) setTimeout(Calc, 1); else Calc(); }
   else if(cfg.maxfps && cfg.maxfps!=60) setTimeout(Calc, Math.floor(1000 / cfg.maxfps));

@@ -76,6 +76,7 @@ var ShowFragmentShaderSource = `
   uniform highp usampler3D u_fieldtexture;  // Field texture, UInt32
   uniform vec2 u_canvas;  // canvas width and height
   uniform vec3 u_surface;  // surface: (left, top, zoom)
+  uniform int u_ps[`+ND+`];
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
@@ -104,9 +105,23 @@ var ShowFragmentShaderSource = `
       uvec4 cell = texelFetch(u_fieldtexture, ivec3(tex2coord, layer), 0);
       color = Color4Cell(cell, layer);
     }
+    
+    ` + (PRT && zoom>=10 ? `
+      ivec3 cur3coord = ivec3(tex2coord, layer);
+      int dx3 = (3 + cur3coord.x + u_ps[0]) % 3;
+      int dy3 = (3 + cur3coord.y + u_ps[1]) % 3;
+      
+      ivec2 cnv_coord = ivec2(gl_FragCoord.xy);
+      if(cnv_coord.x % `+zoom+` == 0 || cnv_coord.y % `+zoom+` == 0) {  // @todo: support surface
+        color = vec4(0.2, 0.2, 0.2, 1.);
+        if(dx3==0 && cnv_coord.x % `+zoom+` == 0 || dy3==0 && cnv_coord.y % `+zoom+` == 0) {
+          color = vec4(0., 0.7, 0., 1.);
+        }
+      }
+    ` : ``) + `
   }
 `;
-var ShowProgram = createProgram4Frag(gl, ShowFragmentShaderSource, ["a_position", "u_fieldtexture", "u_canvas", "u_surface"]);
+var ShowProgram = createProgram4Frag(gl, ShowFragmentShaderSource, ["a_position", "u_fieldtexture", "u_canvas", "u_surface", "u_ps"]);
 
 // SHOW MAIN ////////////////////////////////////////////////////////////////
 
@@ -121,6 +136,8 @@ function Show(single=0, t=-1) {
   
   gl.uniform2f(ShowProgram.location.u_canvas, gl.canvas.width, gl.canvas.height);
   gl.uniform3f(ShowProgram.location.u_surface, surface.left, surface.top, surface.zoom);
+  
+  gl.uniform1iv(ShowProgram.location.u_ps, PS);
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   

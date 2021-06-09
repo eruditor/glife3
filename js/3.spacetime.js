@@ -41,7 +41,7 @@ function InitialFill() {
       }
     }
   }
-  else if(cfg.debug) {
+  else if(cfg.debug && 0) {
     if(1) {
       var FW2 = round(FW/2);
       var FH2 = round(FH/2);
@@ -70,8 +70,8 @@ function InitialFill() {
           if(y<0 || y>=FH) continue;
           if(z>=1 && x>FW/2) continue;
           if(z>=2 && y<FH/2) continue;
-          var density = round((1 - Math.abs(2*y/FH-1)/LF) * 10);
-          if(rndF(0,10)<density) {
+          var density = round((1 - Math.abs(2*y/FH-1)/LF) * 100 * LD);
+          if(rndF(0,100)<density) {
             var v = RB>2 ? rndF(1, RB) : 1;
             InitSetCell(x, y, z, v);
           }
@@ -85,7 +85,7 @@ function InitialFill() {
 
 var T0 = 0, T1 = 1, T2 = 2;  // previous (0) and current (1) moments; or T2=t+1 (next), T1=t+0 (prev), T0=t-1 (grand-parent)
 
-var DT = 1;
+var DT = 1;  // direction of time (1=forward, -1=backward)
 
 function FlipTime() {  // switching between previous and current moment fields
   if(TT==2) {
@@ -107,6 +107,12 @@ function FlipTime() {  // switching between previous and current moment fields
   else { alert('incorrect time configuration'); }
 }
 
+// PARTITIONS ////////////////////////////////////////////////////////////////
+// partitions are shifting neib boundaries (see Toffoli & Margolus)
+
+const ND = FD>1 ? 3 : 2;  // number of space dimensions
+var PS = new Array(ND);  // shift in x,y,z-coord for current turn
+
 // INIT SPACETIME ////////////////////////////////////////////////////////////////
 
 function InitSpacetime() {
@@ -120,6 +126,9 @@ function InitSpacetime() {
   
   // setting previous moment
   if(TT>2) { InitialFill();  SetTexture(T2, Textures[T2], F, FW, FH, FD); }
+  
+  // clearing partition shift
+  for(var d=0; d<ND; d++) PS[d] = 0;
 }
 
 // CREATE TEXTURES ////////////////////////////////////////////////////////////////

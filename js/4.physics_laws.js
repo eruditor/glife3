@@ -557,9 +557,18 @@ function SetPartitRules() {
     var eqr = EquivRules(b);
     var neq = Object.keys(eqr).length;
     var r = NeibArr4Int(b);
-    var ned = r.reduce((a, b) => a + b, 0);
     
-    var bclass = RC * neq + ned;  // classifying neibs by number of it's equiv-neibs
+    var max_ned_per_cell = 99;
+    var ned = 0;  // for use in class to conserve some value of living cells
+    var conserving_value = 0;
+    for(var i=0; i<RC; i++) {
+      conserving_value = r[i]>0 ? 1 : 0;  // conserve number of living cells
+      //conserving_value = r[i];  // conserve total value of cells
+      //conserving_value = 
+      ned += conserving_value;
+    }
+    
+    var bclass = (max_ned_per_cell + 1) * RC * neq + ned;  // classifying neibs by number of it's equiv-neibs
     
     class4neib[b] = bclass;
     

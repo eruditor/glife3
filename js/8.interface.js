@@ -51,6 +51,7 @@ function CreateNavButtons() {
   
   <table cellspacing=0 class='navTB'><tr>
   <td><input type=button class='mediabtn' id='pausebtn'     value='` + (cfg.paused    ? `\u25B6\uFE0F` : `\u23F8\uFE0F`) + `' onclick='Pause();' autofocus title='Start/Stop Calculation'>
+  <td><input type=button class='mediabtn' value='\u23ED\uFE0F' onclick='Calc(1); Show(1); Stats(1);' title='One step'>
   <td><input type=button class='mediabtn' id='pausestatbtn' value='` + (cfg.pausestat ? `\u23FA\uFE0F` : `\u23F9\uFE0F`) + `' onclick='PauseStat();' title='Start/Stop Analysis'>
   <td><input type=button class='mediabtn' value='\u23EA\uFE0F' onclick='Speed(-1);' title='Speed Down'>
   <td><input type=button class='mediabtn' value='\u23E9\uFE0F' onclick='Speed( 1);' title='Speed Up'>
@@ -98,19 +99,20 @@ function CreateTopForm() {
   
   var inps = '';
   for(var p of URL.entries()) {
-    if(p[0]=='rseed' || p[0]=='fseed' || p[0]=='FW' || p[0]=='FH' || p[0]=='LF') continue;
-    inps += `` + p[0] + `=<input type=text name='` + p[0] + `' value='` + p[1] + `' size=` + (p[1].length+1) + `>` + sp;
+    if(p[0]=='rseed' || p[0]=='fseed' || p[0]=='FW' || p[0]=='FH' || p[0]=='LF' || p[0]=='LD') continue;
+    inps += `` + p[0] + `<input type=text name='` + p[0] + `' value='` + p[1] + `' size=` + (p[1].length+1) + `>` + sp;
   }
   
   return `
     <table cellspacing=0 cellpadding=0><tr>
     <td>
       ` + inps + `<br>
-      <span title="Field Width ">FW=</span><input type=text name="FW" value="` + FW + `" size=4>` + sp + `
-      <span title="Field Height">FH=</span><input type=text name="FH" value="` + FH + `" size=4>` + sp + `
-      <span title="% of initially filled area">LF=</span><input type=text name="LF" value="` + round(LF*100) + `" size=3><br>
-      <span title="PRNG seed for Rules">Rseed=</span><input type=text id="rseedinp" name="rseed" value="` + Rseed + `" size=10>` + sp + `
-      <span title="PRNG seed for Field">Fseed=</span><input type=text id="fseedinp" name="fseed" value="` + Fseed + `" size=10>` + sp + `
+      <span title="Field Width ">FW</span><input type=text name="FW" value="` + FW + `" size=4>` + sp + `
+      <span title="Field Height">FH</span><input type=text name="FH" value="` + FH + `" size=4>` + sp + `
+      <span title="% of initially filled area">LF</span><input type=text name="LF" value="` + round(LF*100) + `" size=3>` + sp + `
+      <span title="% of initially filled density">LD</span><input type=text name="LD" value="` + round(LD*100) + `" size=3><br>
+      <span title="PRNG seed for Rules">Rseed</span><input type=text id="rseedinp" name="rseed" value="` + Rseed + `" size=10>` + sp + `
+      <span title="PRNG seed for Field">Fseed</span><input type=text id="fseedinp" name="fseed" value="` + Fseed + `" size=10>` + sp + `
     </td>
     <td><input type=submit value=" OK " style="float:right; height:63px;"></td>
     </tr></table>
