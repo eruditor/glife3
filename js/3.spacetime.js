@@ -70,8 +70,8 @@ function InitialFill() {
           if(y<0 || y>=FH) continue;
           if(z>=1 && x>FW/2) continue;
           if(z>=2 && y<FH/2) continue;
-          var density = round((1 - Math.abs(2*y/FH-1)/LF) * 100 * LD);
-          if(rndF(0,100)<density) {
+          var density = round((1 - Math.abs(2*y/FH-1)/LF) * Lstep * LD);
+          if(rndF(0,Lstep)<density) {
             var v = RB>2 ? rndF(1, RB) : 1;
             InitSetCell(x, y, z, v);
           }

@@ -55,6 +55,7 @@ const FW     = GetIntParam('FW', 600);  // field width
 const FH     = GetIntParam('FH', 350);  // field height
 const LF     = GetIntParam('LF',  90) / 100;  // initially filled piece size
 const LD     = GetIntParam('LD', 100) / 100;  // initially filled piece density
+const Lstep  = 10;  // setting to 100 will break previously saved fseeds
 
 var Notaset = GetStrParam('notaset');  // encoded or named rules
 if(Mutaset===undefined) var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)

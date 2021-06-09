@@ -13,22 +13,22 @@ var gl_ext = gl.getExtension('EXT_color_buffer_float');  // for floating-point m
 // DATA FORMAT ////////////////////////////////////////////////////////////////
 
 // main: Field and Rules
-var pixelBits = 8;  // 8 or 32
-var gldata_Format   = gl.RGBA_INTEGER;
-var gldata_Internal = pixelBits==32 ? gl.RGBA32UI     : gl.RGBA8UI;
-var gldata_Type     = pixelBits==32 ? gl.UNSIGNED_INT : gl.UNSIGNED_BYTE;
-var jsdata_Array    = pixelBits==32 ? Uint32Array     : Uint8Array;
+const pixelBits = 8;  // 8 or 32
+const gldata_Format   = gl.RGBA_INTEGER;
+const gldata_Internal = pixelBits==32 ? gl.RGBA32UI     : gl.RGBA8UI;
+const gldata_Type     = pixelBits==32 ? gl.UNSIGNED_INT : gl.UNSIGNED_BYTE;
+const jsdata_Array    = pixelBits==32 ? Uint32Array     : Uint8Array;
 
 // auxiliary: floating-point math for Analysis
-var glFl32_Format   = gl.RGBA;  //RGBA_INTEGER  // if EXT_color_buffer_float is not supported - use INT32
-var glFl32_Internal = gl.RGBA32F;  //RGBA32I
-var glFl32_Type     = gl.FLOAT;  //INT
+const glFl32_Format   = gl.RGBA;  //RGBA_INTEGER  // if EXT_color_buffer_float is not supported - use INT32
+const glFl32_Internal = gl.RGBA32F;  //RGBA32I
+const glFl32_Type     = gl.FLOAT;  //INT
 
 // auxiliary: high precision UInt32 math for Analysis
-var glUI32_Format   = gl.RGBA_INTEGER;
-var glUI32_Internal = gl.RGBA32UI;
-var glUI32_Type     = gl.UNSIGNED_INT;
-var jsUI32_Array    = Uint32Array;
+const glUI32_Format   = gl.RGBA_INTEGER;
+const glUI32_Internal = gl.RGBA32UI;
+const glUI32_Type     = gl.UNSIGNED_INT;
+const jsUI32_Array    = Uint32Array;
 
 // PROGRAM ////////////////////////////////////////////////////////////////
 
