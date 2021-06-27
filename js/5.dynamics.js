@@ -36,6 +36,25 @@ for(var z=0; z<FD; z++) {
 }
 fs_GetTexel2D += `  }`;
 
+function fs_PackAliveness(alive='alive') {
+  return pixelBits>=32
+  ? `
+        // highest 16bit = alive cell's color; lowest = decay and color of died cell
+             if(`+alive+`>0u)  color.a = `+alive+` << 16u;        // alive cell
+        else if(self.a>65535u) color.a = (self.a >> 16u) + 100u;  // dying cell
+        else if(self.a>30u)    color.a = self.a - 10u;            // color decay for died cell
+        else                   color.a = 0u;                      // empty cell
+  `
+  : `
+        // color.b = color decay value (optional); color.a must be set already!
+             if(color.a>0u) color.b = 200u;           // alive cell
+        else if(self.a>0u)  color.b = 100u + self.a;  // dying cell
+        else if(self.b>30u) color.b = self.b - 10u;   // color decay for died cell
+        else                color.b = 0u;             // empty cell
+  `;
+}
+
+
 function fs_Prepare2Return(varname='color') {
   var ret = '';
   for(var z=0; z<FD; z++) {
@@ -44,6 +63,7 @@ function fs_Prepare2Return(varname='color') {
   return ret;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(Mode=='PRT') {
   var CalcFragmentShaderSource = `
     precision mediump float;
@@ -89,7 +109,7 @@ if(Mode=='PRT') {
         uint rulecoord = 0u;
         for(int n=0; n<`+RC+`; n++) {
           rulecoord *= `+RB+`u;
-          rulecoord += cells[n].a;
+          rulecoord += cells[n].a;  // 8bit-packing only!
         }
         ivec2 t = ivec2(rulecoord, 0);
         if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
@@ -120,11 +140,7 @@ if(Mode=='PRT') {
         
         uvec4 self = GetCell(dx3 - 1, dy3 - 1, 0);  // previous self cell state
         
-        // color.b = color decay value (optional)
-             if(color.a>0u) color.b = 200u;           // alive cell
-        else if(self.a>0u)  color.b = 100u + self.a;  // dying cell
-        else if(self.b>30u) color.b = self.b - 10u;   // color decay for died cell
-        else                color.b = 0u;             // empty cell
+        ` + fs_PackAliveness('color.a') + `
         
         ` + fs_Prepare2Return('color') + `
       }
@@ -132,6 +148,138 @@ if(Mode=='PRT') {
   `;
   var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_ps"]);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+else if(Mode=='MVM') {
+  var CalcFragmentShaderSource = `
+    precision mediump float;
+    precision highp int;
+    
+    uniform highp usampler3D u_fieldtexture;  // Field texture
+    uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
+    
+    in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
+    
+    out uvec4 glFragColor[`+FD+`];
+    
+    ivec3 tex3coord;
+    ivec3 fieldSize;
+    
+    ` + fs_ModuloTorus + `
+    
+    ` + fs_GetCell() + `
+    
+    ` + fs_GetTexel2D + `
+    
+    ivec4 ExtractCV(uvec4 cell) {
+      return ivec4(
+        // atom coords
+        int(cell.x & 65535u) - 32768,
+        int(cell.y & 65535u) - 32768,
+        // atom velocity
+        int(cell.x >> 16u) - 32768,
+        int(cell.y >> 16u) - 32768
+      );
+    }
+    
+    uvec2 PackCV(ivec4 cv) {
+      return uvec2(
+        (cv.x + 32768) | ((cv.z + 32768) << 16),
+        (cv.y + 32768) | ((cv.w + 32768) << 16)
+      );
+    }
+    
+    void main() {
+      fieldSize = textureSize(u_fieldtexture, 0);
+      
+      uvec4 color;
+      
+      for(int layer=0; layer<`+FD+`; layer++) {
+        tex3coord = ivec3(v_texcoord, layer);
+        
+        // getting cell's neighborhood
+        uvec4 cells[`+RC+`];
+        ` + fs_GetNeibs + `
+        
+        uvec4 self = cells[0];  // previous self cell state
+        
+        uint alive = 0u;  // aliveness = living cell type, to be put to color.a
+        
+        if(self.a>65535u) {  // 32bit-packing only!
+          ivec4 cv = ExtractCV(self);
+          int xx = cv.x, yy = cv.y;  // atom coords
+          int vx = cv.z, vy = cv.w;  // atom velocity
+          
+          // movement
+          cv.x += cv.z;
+          cv.y += cv.w;
+          
+          // packing back 2*16bit to 1*32bit
+          uvec2 packcv = PackCV(cv);
+          color.x = packcv.x;  // uint((cv.z << 16) | cv.x)
+          color.y = packcv.y;
+          
+          alive =
+            cv.x>1000 || cv.y>1000 || cv.x<-1000 || cv.y<-1000
+            ? 0u
+            : self.a >> 16u;
+        }
+        else {  // empty cell
+          for(int n=1; n<`+RC+`; n++) {
+            if(cells[n].a!=101u) continue;  // consider dying cells nearby
+            ivec4 cv = ExtractCV(cells[n]);
+            
+            if(     n==1 && cv.y>1000 && cv.x>1000) {
+              color.x = cells[n].x - 1000u;
+              color.y = cells[n].y - 1000u;
+              alive = 1u;
+            }
+            else if(n==3 && cv.y>1000 && cv.x<-1000) {
+              color.x = cells[n].x + 1000u;
+              color.y = cells[n].y - 1000u;
+              alive = 1u;
+            }
+            else if(n==2 && cv.y>1000 && cv.x>=-1000 && cv.x<=1000) {
+              color.x = cells[n].x;
+              color.y = cells[n].y - 1000u;
+              alive = 1u;
+            }
+            else if(n==5 && cv.y<-1000 && cv.x<-1000) {
+              color.x = cells[n].x + 1000u;
+              color.y = cells[n].y + 1000u;
+              alive = 1u;
+            }
+            else if(n==7 && cv.y<-1000 && cv.x>1000) {
+              color.x = cells[n].x - 1000u;
+              color.y = cells[n].y + 1000u;
+              alive = 1u;
+            }
+            else if(n==6 && cv.y<-1000 && cv.x>=-1000 && cv.x<=1000) {
+              color.x = cells[n].x;
+              color.y = cells[n].y + 1000u;
+              alive = 1u;
+            }
+            else if(n==4 && cv.x<-1000 && cv.y>=-1000 && cv.y<=1000) {
+              color.x = cells[n].x + 1000u;
+              color.y = cells[n].y;
+              alive = 1u;
+            }
+            else if(n==8 && cv.x>1000 && cv.y>=-1000 && cv.y<=1000) {
+              color.x = cells[n].x - 1000u;
+              color.y = cells[n].y;
+              alive = 1u;
+            }
+          }
+        }
+        
+        ` + fs_PackAliveness('alive') + `
+        
+        ` + fs_Prepare2Return('color') + `
+      }
+    }
+  `;//console.log(CalcFragmentShaderSource);
+  var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_ps"]);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {
   var CalcFragmentShaderSource = `
     precision mediump float;
@@ -175,7 +323,7 @@ else {
         uint rulecoord = 0u;
         for(int n=0; n<`+RC+`; n++) {
           rulecoord *= `+RB+`u;
-          rulecoord += cells[n].a;
+          rulecoord += cells[n].a;  // 8bit-packing only!
         }
         ivec2 t = ivec2(rulecoord, 0);
         if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
@@ -197,11 +345,7 @@ else {
         
         uvec4 self = cells[0];  // previous self cell state
         
-        // color.b = color decay value (optional)
-             if(color.a>0u) color.b = 200u;           // alive cell
-        else if(self.a>0u)  color.b = 100u + self.a;  // dying cell
-        else if(self.b>30u) color.b = self.b - 10u;   // color decay for died cell
-        else                color.b = 0u;             // empty cell
+        ` + fs_PackAliveness('color.a') + `
         
         ` + fs_Prepare2Return('color') + `
       }
@@ -209,6 +353,8 @@ else {
   `;
   var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_prevtexture", "u_rulestexture"]);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 // CALC MAIN ////////////////////////////////////////////////////////////////
 
@@ -243,7 +389,7 @@ function Calc(single=0) {
   
   if(cfg.showiter) { if(nturn % cfg.showiter == 0) Show(); }
   else if(cfg.maxfps<=60) Show();
-  // else Show() rotates in its own cycle
+  /* else Show() rotates in its own cycle */
   
   if((nturn % cfg.turn4stats)==0) Stats();
   

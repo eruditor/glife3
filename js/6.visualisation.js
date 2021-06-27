@@ -57,14 +57,27 @@ for(var z=0; z<FD; z++) {
 var fs_Color4Cell = `
   vec4 Color4Cell(uvec4 cell, int layer) {
     vec4 ret = vec4(0., 0., 0., 1.);
-    if(cell.b==0u && cell.a==0u) return ret;
-    uint v;
-    v = cell.a>0u ? cell.a : (cell.b % 10u);
+    
+    if(cell.a==0u` + (pixelBits<32 ? ` && cell.b==0u` : ``) + `) return ret;
+    
+    ` + (
+      pixelBits<32
+      ? `uint v = cell.a>0u ? cell.a : cell.b % 10u;`
+      : `uint v = cell.a>65535u ? cell.a >> 16u : cell.a % 10u;`
+    ) + `
+    
     ` + fs_colors + `
-    float sat = cell.a>0u ? 1. : float(cell.b - v) / 255.;
+    
+    ` + (
+      pixelBits<32
+      ? `float sat = cell.a>0u ? 1. : float(cell.b - v) / 255.;`
+      : `float sat = cell.a>65535u ? 1. : float(cell.a - v) / 255.;`
+    ) + `
+    
     ret.r *= sat;
     ret.g *= sat;
     ret.b *= sat;
+    
     return ret;
   }
 `;

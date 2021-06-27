@@ -13,7 +13,7 @@ var gl_ext = gl.getExtension('EXT_color_buffer_float');  // for floating-point m
 // DATA FORMAT ////////////////////////////////////////////////////////////////
 
 // main: Field and Rules
-const pixelBits = 8;  // 8 or 32
+const pixelBits = Mode=='MVM' ? 32 : 8;  // 8 or 32
 const gldata_Format   = gl.RGBA_INTEGER;
 const gldata_Internal = pixelBits==32 ? gl.RGBA32UI     : gl.RGBA8UI;
 const gldata_Type     = pixelBits==32 ? gl.UNSIGNED_INT : gl.UNSIGNED_BYTE;

@@ -3,6 +3,11 @@
 
 // neighborhood geometry coords (dx,dy,dz)
 const RG = 
+  /*
+      1 2 3
+      8 0 4
+      7 6 5
+  */
   Rgeom==18  // Moore2D
   ?
     [
