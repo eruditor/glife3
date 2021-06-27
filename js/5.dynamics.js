@@ -188,10 +188,33 @@ else if(Mode=='MVM') {
       );
     }
     
+    uint CalcTrend(ivec4 cv) {
+           if(cv.x<-1000 && cv.y<-1000) return 1u;
+      else if(cv.x> 1000 && cv.y<-1000) return 3u;
+      else if(              cv.y<-1000) return 2u;
+      else if(cv.x<-1000 && cv.y> 1000) return 7u;
+      else if(cv.x> 1000 && cv.y> 1000) return 5u;
+      else if(              cv.y> 1000) return 6u;
+      else if(cv.x<-1000              ) return 8u;
+      else if(cv.x> 1000              ) return 4u;
+      else                              return 0u;
+    }
+    
+    uint antitrends[9] = uint[9](0u, 5u, 6u, 7u, 8u, 1u, 2u, 3u, 4u);
+    
+    uvec4 XY4Trended(int n, uvec4 cell) {
+           if(n==1) return uvec4(cell.x - 2000u, cell.y - 2000u, 5u, 0u);
+      else if(n==3) return uvec4(cell.x + 2000u, cell.y - 2000u, 7u, 0u);
+      else if(n==2) return uvec4(cell.x        , cell.y - 2000u, 6u, 0u);
+      else if(n==7) return uvec4(cell.x - 2000u, cell.y + 2000u, 3u, 0u);
+      else if(n==5) return uvec4(cell.x + 2000u, cell.y + 2000u, 1u, 0u);
+      else if(n==6) return uvec4(cell.x        , cell.y + 2000u, 2u, 0u);
+      else if(n==8) return uvec4(cell.x - 2000u, cell.y        , 4u, 0u);
+      else if(n==4) return uvec4(cell.x + 2000u, cell.y        , 8u, 0u);
+    }
+    
     void main() {
       fieldSize = textureSize(u_fieldtexture, 0);
-      
-      uvec4 color;
       
       for(int layer=0; layer<`+FD+`; layer++) {
         tex3coord = ivec3(v_texcoord, layer);
@@ -202,9 +225,10 @@ else if(Mode=='MVM') {
         
         uvec4 self = cells[0];  // previous self cell state
         
+        uvec4 color = uvec4(0);
         uint alive = 0u;  // aliveness = living cell type, to be put to color.a
         
-        if(self.a>65535u) {  // 32bit-packing only!
+        if(self.a>65535u) {  // alive cell  // 32bit-packing only!
           ivec4 cv = ExtractCV(self);
           int xx = cv.x, yy = cv.y;  // atom coords
           int vx = cv.z, vy = cv.w;  // atom velocity
@@ -213,60 +237,47 @@ else if(Mode=='MVM') {
           cv.x += cv.z;
           cv.y += cv.w;
           
+          alive = self.a >> 16u;  // stay same by default
+          
+          if(self.b!=0u) {  // was trending at previous turn
+            uvec4 acceptor = cells[self.b];
+            if(acceptor.a<=65535u && acceptor.b==self.b) {  // neighbour empty cell accepted transfer from self to it
+              alive = 0u;
+            }
+            else {
+              color.b = CalcTrend(cv);
+              if(cv.x<-2000 && cv.z<0 || cv.x>2000 && cv.z>0) { cv.z = -cv.z; }
+              if(cv.y<-2000 && cv.w<0 || cv.y>2000 && cv.w>0) { cv.w = -cv.w; }
+            }
+          }
+          else {
+            color.b = CalcTrend(cv);  // wanted transfer marker
+          }
+          
           // packing back 2*16bit to 1*32bit
           uvec2 packcv = PackCV(cv);
-          color.x = packcv.x;  // uint((cv.z << 16) | cv.x)
+          color.x = packcv.x;
           color.y = packcv.y;
-          
-          alive =
-            cv.x>1000 || cv.y>1000 || cv.x<-1000 || cv.y<-1000
-            ? 0u
-            : self.a >> 16u;
         }
         else {  // empty cell
-          for(int n=1; n<`+RC+`; n++) {
-            if(cells[n].a!=101u) continue;  // consider dying cells nearby
-            ivec4 cv = ExtractCV(cells[n]);
-            
-            if(     n==1 && cv.y>1000 && cv.x>1000) {
-              color.x = cells[n].x - 1000u;
-              color.y = cells[n].y - 1000u;
+          if(self.b>0u) {  // accepting cell
+            uint atrend = antitrends[self.b];
+            uvec4 trender = cells[atrend];
+            if(trender.a>65535u && trender.b==self.b) {
+              color = self;  // motion skips a beat here
+              color.b = 0u;
               alive = 1u;
             }
-            else if(n==3 && cv.y>1000 && cv.x<-1000) {
-              color.x = cells[n].x + 1000u;
-              color.y = cells[n].y - 1000u;
-              alive = 1u;
-            }
-            else if(n==2 && cv.y>1000 && cv.x>=-1000 && cv.x<=1000) {
-              color.x = cells[n].x;
-              color.y = cells[n].y - 1000u;
-              alive = 1u;
-            }
-            else if(n==5 && cv.y<-1000 && cv.x<-1000) {
-              color.x = cells[n].x + 1000u;
-              color.y = cells[n].y + 1000u;
-              alive = 1u;
-            }
-            else if(n==7 && cv.y<-1000 && cv.x>1000) {
-              color.x = cells[n].x - 1000u;
-              color.y = cells[n].y + 1000u;
-              alive = 1u;
-            }
-            else if(n==6 && cv.y<-1000 && cv.x>=-1000 && cv.x<=1000) {
-              color.x = cells[n].x;
-              color.y = cells[n].y + 1000u;
-              alive = 1u;
-            }
-            else if(n==4 && cv.x<-1000 && cv.y>=-1000 && cv.y<=1000) {
-              color.x = cells[n].x + 1000u;
-              color.y = cells[n].y;
-              alive = 1u;
-            }
-            else if(n==8 && cv.x>1000 && cv.y>=-1000 && cv.y<=1000) {
-              color.x = cells[n].x - 1000u;
-              color.y = cells[n].y;
-              alive = 1u;
+          }
+          else {  // looking for something to accept
+            for(int n=1; n<`+RC+`; n++) {
+              if(cells[n].b==0u || cells[n].b>10000u) continue;
+              
+              uint atrend = antitrends[n];
+              
+              if(cells[n].b!=atrend) continue;
+              
+              color = XY4Trended(n, cells[n]);  // last of trending nearby cells wins
             }
           }
         }

@@ -316,8 +316,9 @@ function Stats(force=false) {
       if(!qq[z][qx]) qq[z][qx] = [];
       for(var y=0; y<FH; y++) {
         var cell = GetCell(x, y, z);
-        if(cell.a==0) continue;  // dead cell
-        var v = cell.a;  // cell's value
+        
+        var v = pixelBits<32 ? cell.a : cell.a >> 16;  // cell's value
+        if(v==0) continue;  // dead cell
         
         graphnums[graphstep][z][v] ++;
         
