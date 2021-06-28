@@ -195,28 +195,28 @@ else if(Mode=='MVM') {
     }
     
     uint CalcTrend(ivec4 cv) {
-           if(cv.x<-1000 && cv.y<-1000) return 1u;
-      else if(cv.x> 1000 && cv.y<-1000) return 3u;
-      else if(              cv.y<-1000) return 2u;
-      else if(cv.x<-1000 && cv.y> 1000) return 7u;
-      else if(cv.x> 1000 && cv.y> 1000) return 5u;
-      else if(              cv.y> 1000) return 6u;
-      else if(cv.x<-1000              ) return 8u;
-      else if(cv.x> 1000              ) return 4u;
-      else                              return 0u;
+           if(cv.x<=-`+mL+` && cv.y<=-`+mL+`) return 1u;
+      else if(cv.x>= `+mL+` && cv.y<=-`+mL+`) return 3u;
+      else if(                 cv.y<=-`+mL+`) return 2u;
+      else if(cv.x<=-`+mL+` && cv.y>= `+mL+`) return 7u;
+      else if(cv.x>= `+mL+` && cv.y>= `+mL+`) return 5u;
+      else if(                 cv.y>= `+mL+`) return 6u;
+      else if(cv.x<=-`+mL+`                 ) return 8u;
+      else if(cv.x>= `+mL+`                 ) return 4u;
+      else                                    return 0u;
     }
     
     uint antitrends[9] = uint[9](0u, 5u, 6u, 7u, 8u, 1u, 2u, 3u, 4u);
     
     uvec4 XY4Trended(int n, uvec4 cell) {
-           if(n==1) return uvec4(cell.x - 2000u, cell.y - 2000u, 5u, 0u);
-      else if(n==3) return uvec4(cell.x + 2000u, cell.y - 2000u, 7u, 0u);
-      else if(n==2) return uvec4(cell.x        , cell.y - 2000u, 6u, 0u);
-      else if(n==7) return uvec4(cell.x - 2000u, cell.y + 2000u, 3u, 0u);
-      else if(n==5) return uvec4(cell.x + 2000u, cell.y + 2000u, 1u, 0u);
-      else if(n==6) return uvec4(cell.x        , cell.y + 2000u, 2u, 0u);
-      else if(n==8) return uvec4(cell.x - 2000u, cell.y        , 4u, 0u);
-      else if(n==4) return uvec4(cell.x + 2000u, cell.y        , 8u, 0u);
+           if(n==1) return uvec4(cell.x - `+mL2+`u, cell.y - `+mL2+`u, 5u, 0u);
+      else if(n==3) return uvec4(cell.x + `+mL2+`u, cell.y - `+mL2+`u, 7u, 0u);
+      else if(n==2) return uvec4(cell.x           , cell.y - `+mL2+`u, 6u, 0u);
+      else if(n==7) return uvec4(cell.x - `+mL2+`u, cell.y + `+mL2+`u, 3u, 0u);
+      else if(n==5) return uvec4(cell.x + `+mL2+`u, cell.y + `+mL2+`u, 1u, 0u);
+      else if(n==6) return uvec4(cell.x           , cell.y + `+mL2+`u, 2u, 0u);
+      else if(n==8) return uvec4(cell.x - `+mL2+`u, cell.y           , 4u, 0u);
+      else if(n==4) return uvec4(cell.x + `+mL2+`u, cell.y           , 8u, 0u);
     }
     
     ivec2 NthDirection(int n) {  // @ =Rgeom
@@ -250,24 +250,6 @@ else if(Mode=='MVM') {
           
           uint v = self.a >> 16u;  // cell's value
           
-          alive = v;  // stay same by default
-          
-          if(self.b!=0u) {  // was trending at previous turn
-            uvec4 acceptor = cells[self.b];
-            if(acceptor.a<=65535u && acceptor.b==self.b) {  // neighbour empty cell accepted transfer from self to it
-              alive = 0u;
-            }
-            else {
-              color.b = CalcTrend(cv);
-              
-              // stuck-preventing collisions
-              if(cv.x<-5000 && cv.z<0 || cv.x>5000 && cv.z>0) { cv.z = -cv.z; }
-              if(cv.y<-5000 && cv.w<0 || cv.y>5000 && cv.w>0) { cv.w = -cv.w; }
-            }
-          }
-          else {
-            color.b = CalcTrend(cv);  // wanted transfer marker
-          }
           
           // forces
           int ax = 0, ay = 0;
@@ -278,17 +260,20 @@ else if(Mode=='MVM') {
             ivec4 ncv = ExtractCV(self);  // neib's coords and velocity
             ivec2 ndir = NthDirection(n);  // points from current cell to neib
             
-            ivec2 dl = 2000 * ndir + ncv.xy - cv.xy;  // points from current atom coords to neib atom coords
-            int dist = abs(dl.x) + abs(dl.y);  // distance between atoms
+            ivec2 dl = `+mL2+` * ndir + ncv.xy - cv.xy;  // points from current atom coords to neib atom coords
+            //float dist = float(abs(dl.x) + abs(dl.y));  // distance between atoms
+            float dist = sqrt(float(dl.x*dl.x + dl.y*dl.y));
             
-            if(dist>4000) continue;
+            if(dist>8.*`+fmL+`) continue;
             
-            ivec2 da = 10000 * dl / dist / dist * 10000 / dist;
+            float nmass = nv==3u ? 40. : (nv==2u ? 10. : 1.);
+            
+            vec2 da = nmass * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;
             
             //if(nv==v) da = -da;
             
-            ax += da.x;
-            ay += da.y;
+            ax += int(round(da.x));
+            ay += int(round(da.y));
           }
           
           // acceleration
@@ -298,6 +283,27 @@ else if(Mode=='MVM') {
           // movement
           cv.x += cv.z;
           cv.y += cv.w;
+          
+          
+          alive = v;  // stay same by default
+          
+          if(self.b!=0u) {  // was trending at previous turn
+            uvec4 acceptor = cells[self.b];
+            if(acceptor.a<=65535u && acceptor.b==self.b) {  // neighbour empty cell accepted transfer from self to it
+              alive = 0u;
+            }
+            else {
+              color.b = CalcTrend(cv);
+              
+              // stuck-preventing hard collisions
+              if(cv.x<-30000 && cv.z<0 || cv.x>30000 && cv.z>0) { cv.z = -cv.z; }
+              if(cv.y<-30000 && cv.w<0 || cv.y>30000 && cv.w>0) { cv.w = -cv.w; }
+            }
+          }
+          else {
+            color.b = CalcTrend(cv);  // wanted transfer marker
+          }
+          
           
           // packing back 2*16bit to 1*32bit
           uvec2 packcv = PackCV(cv);
@@ -309,7 +315,8 @@ else if(Mode=='MVM') {
             uint atrend = antitrends[self.b];
             uvec4 trender = cells[atrend];
             if(trender.a>65535u && trender.b==self.b) {
-              color = self;  // @ motion skips a beat here
+              //color = self;  // @ motion skips a beat here
+              color = XY4Trended(int(atrend), trender);
               color.b = 0u;
               alive = trender.a >> 16u;
             }

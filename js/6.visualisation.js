@@ -142,8 +142,8 @@ var ShowFragmentShaderSource = `
         ivec4 cv = ExtractCV(cell);
         
         int yll = 0;
-        int px = (cv.x + 1000) * `+zoom+` / 2000;  if(px>=`+zoom+`) { px = `+zoom+`-1;  yll = 1; }  if(px<0) { px = 0;  yll = 1; }
-        int py = (cv.y + 1000) * `+zoom+` / 2000;  if(py>=`+zoom+`) { py = `+zoom+`-1;  yll = 1; }  if(py<0) { py = 0;  yll = 1; }
+        int px = (cv.x + `+mL+`) * `+zoom+` / `+mL2+`;  //if(px>=`+zoom+`) { px = `+zoom+`-1;  yll = 1; }  if(px<0) { px = 0;  yll = 1; }
+        int py = (cv.y + `+mL+`) * `+zoom+` / `+mL2+`;  //if(py>=`+zoom+`) { py = `+zoom+`-1;  yll = 1; }  if(py<0) { py = 0;  yll = 1; }
         
         ivec2 cnv_coord = ivec2(gl_FragCoord.xy);
         

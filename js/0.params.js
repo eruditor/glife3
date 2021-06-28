@@ -63,6 +63,12 @@ if(Mutaset===undefined) var Mutaset = GetStrParam('mutaset');  // encoded mutati
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 
+// MVM PARAMS ////////////////////////////////////////////////////////////////
+
+const mL = 5000;
+const mL2 = 2 * mL;
+const fmL = mL + `.`;
+
 // RERUN MODE ////////////////////////////////////////////////////////////////
 
 rerun_n = 0;  rerun_gr_id = 0;
@@ -115,7 +121,7 @@ if(cfg.repair) {
 
 if(cfg.debug) {
   cfg.paused = 1;
-  cfg.maxfps = 1;
+  //cfg.maxfps = 1;
   cfg.turn4stats = 1;
 }
 

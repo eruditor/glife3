@@ -13,7 +13,7 @@ function PauseStat() {
 }
 
 function Speed(val=1) {
-  var speeds = [1, 10, 60, 300, 1001];
+  var speeds = [1, 2, 10, 60, 300, 1001];
   
   var prevfps = cfg.maxfps || 60;
   
