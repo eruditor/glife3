@@ -97,6 +97,8 @@ var ShowFragmentShaderSource = `
   
   ` + fs_Color4Cell + `
   
+  ` + fs_ExtractCV + `
+  
   void main() {
     ivec3 fieldSize = textureSize(u_fieldtexture, 0);
     ivec2 xy = ivec2(gl_FragCoord.xy / u_canvas * vec2(fieldSize.xy) * 2.);  // current coords, [0..2F]
@@ -110,12 +112,14 @@ var ShowFragmentShaderSource = `
       if((xy.y % 2) == 1) layer += 2;
     ` : ``) + `
     
+    uvec4 cell;
+    
     ivec2 tex2coord = ivec2(v_texcoord / u_surface.z - u_surface.xy);
     if(tex2coord.x<0 || tex2coord.y<0 || tex2coord.x>=fieldSize.x || tex2coord.y>=fieldSize.y) {
       color = vec4(0.5, 0.5, 0.5, 1.);
     }
     else {
-      uvec4 cell = texelFetch(u_fieldtexture, ivec3(tex2coord, layer), 0);
+      cell = texelFetch(u_fieldtexture, ivec3(tex2coord, layer), 0);
       color = Color4Cell(cell, layer);
     }
     
@@ -129,6 +133,24 @@ var ShowFragmentShaderSource = `
         color = vec4(0.2, 0.2, 0.2, 1.);
         if(dx3==0 && cnv_coord.x % `+zoom+` == 0 || dy3==0 && cnv_coord.y % `+zoom+` == 0) {
           color = vec4(0., 0.7, 0., 1.);
+        }
+      }
+    ` : ``) + `
+    
+    ` + (Mode=='MVM' && zoom>=10 ? `
+      if(cell.a>65535u || cell.b>0u) {
+        ivec4 cv = ExtractCV(cell);
+        
+        int yll = 0;
+        int px = (cv.x + 1000) * `+zoom+` / 2000;  if(px>=`+zoom+`) { px = `+zoom+`-1;  yll = 1; }  if(px<0) { px = 0;  yll = 1; }
+        int py = (cv.y + 1000) * `+zoom+` / 2000;  if(py>=`+zoom+`) { py = `+zoom+`-1;  yll = 1; }  if(py<0) { py = 0;  yll = 1; }
+        
+        ivec2 cnv_coord = ivec2(gl_FragCoord.xy);
+        
+        if(cnv_coord.x % `+zoom+` == px && cnv_coord.y % `+zoom+` == py) {
+          color = cell.a>65535u
+            ? (yll>0 ? vec4(1., 1., 0., 1.) : vec4(0., 1., 0., 1.))
+            : vec4(0.6, 0.6, 0.6, 1.);
         }
       }
     ` : ``) + `

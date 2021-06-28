@@ -63,6 +63,8 @@ function fs_Prepare2Return(varname='color') {
   return ret;
 }
 
+var fs_ExtractCV = ``;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(Mode=='PRT') {
   var CalcFragmentShaderSource = `
@@ -150,6 +152,19 @@ if(Mode=='PRT') {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else if(Mode=='MVM') {
+  var fs_ExtractCV = `
+    ivec4 ExtractCV(uvec4 cell) {
+      return ivec4(
+        // atom coords
+        int(cell.x & 65535u) - 32768,
+        int(cell.y & 65535u) - 32768,
+        // atom velocity
+        int(cell.x >> 16u) - 32768,
+        int(cell.y >> 16u) - 32768
+      );
+    }
+  `;
+  
   var CalcFragmentShaderSource = `
     precision mediump float;
     precision highp int;
@@ -170,16 +185,7 @@ else if(Mode=='MVM') {
     
     ` + fs_GetTexel2D + `
     
-    ivec4 ExtractCV(uvec4 cell) {
-      return ivec4(
-        // atom coords
-        int(cell.x & 65535u) - 32768,
-        int(cell.y & 65535u) - 32768,
-        // atom velocity
-        int(cell.x >> 16u) - 32768,
-        int(cell.y >> 16u) - 32768
-      );
-    }
+    ` + fs_ExtractCV + `
     
     uvec2 PackCV(ivec4 cv) {
       return uvec2(
@@ -213,6 +219,17 @@ else if(Mode=='MVM') {
       else if(n==4) return uvec4(cell.x + 2000u, cell.y        , 8u, 0u);
     }
     
+    ivec2 NthDirection(int n) {  // @ =Rgeom
+           if(n==1) return ivec2(-1, -1);
+      else if(n==2) return ivec2( 0, -1);
+      else if(n==3) return ivec2( 1, -1);
+      else if(n==4) return ivec2( 1,  0);
+      else if(n==5) return ivec2( 1,  1);
+      else if(n==6) return ivec2( 0,  1);
+      else if(n==7) return ivec2(-1,  1);
+      else if(n==8) return ivec2(-1,  0);
+    }
+    
     void main() {
       fieldSize = textureSize(u_fieldtexture, 0);
       
@@ -228,16 +245,12 @@ else if(Mode=='MVM') {
         uvec4 color = uvec4(0);
         uint alive = 0u;  // aliveness = living cell type, to be put to color.a
         
-        if(self.a>65535u) {  // alive cell  // 32bit-packing only!
+        if(self.a>65535u) {  // alive cell  // @ 32bit-packing only!
           ivec4 cv = ExtractCV(self);
-          int xx = cv.x, yy = cv.y;  // atom coords
-          int vx = cv.z, vy = cv.w;  // atom velocity
           
-          // movement
-          cv.x += cv.z;
-          cv.y += cv.w;
+          uint v = self.a >> 16u;  // cell's value
           
-          alive = self.a >> 16u;  // stay same by default
+          alive = v;  // stay same by default
           
           if(self.b!=0u) {  // was trending at previous turn
             uvec4 acceptor = cells[self.b];
@@ -246,13 +259,45 @@ else if(Mode=='MVM') {
             }
             else {
               color.b = CalcTrend(cv);
-              if(cv.x<-2000 && cv.z<0 || cv.x>2000 && cv.z>0) { cv.z = -cv.z; }
-              if(cv.y<-2000 && cv.w<0 || cv.y>2000 && cv.w>0) { cv.w = -cv.w; }
+              
+              // stuck-preventing collisions
+              if(cv.x<-5000 && cv.z<0 || cv.x>5000 && cv.z>0) { cv.z = -cv.z; }
+              if(cv.y<-5000 && cv.w<0 || cv.y>5000 && cv.w>0) { cv.w = -cv.w; }
             }
           }
           else {
             color.b = CalcTrend(cv);  // wanted transfer marker
           }
+          
+          // forces
+          int ax = 0, ay = 0;
+          for(int n=1; n<`+RC+`; n++) {
+            if(cells[n].a<=65535u) continue;
+            
+            uint nv = cells[n].a >> 16u;  // neib's value
+            ivec4 ncv = ExtractCV(self);  // neib's coords and velocity
+            ivec2 ndir = NthDirection(n);  // points from current cell to neib
+            
+            ivec2 dl = 2000 * ndir + ncv.xy - cv.xy;  // points from current atom coords to neib atom coords
+            int dist = abs(dl.x) + abs(dl.y);  // distance between atoms
+            
+            if(dist>4000) continue;
+            
+            ivec2 da = 10000 * dl / dist / dist * 10000 / dist;
+            
+            //if(nv==v) da = -da;
+            
+            ax += da.x;
+            ay += da.y;
+          }
+          
+          // acceleration
+          cv.z += ax;
+          cv.w += ay;
+          
+          // movement
+          cv.x += cv.z;
+          cv.y += cv.w;
           
           // packing back 2*16bit to 1*32bit
           uvec2 packcv = PackCV(cv);
@@ -264,14 +309,14 @@ else if(Mode=='MVM') {
             uint atrend = antitrends[self.b];
             uvec4 trender = cells[atrend];
             if(trender.a>65535u && trender.b==self.b) {
-              color = self;  // motion skips a beat here
+              color = self;  // @ motion skips a beat here
               color.b = 0u;
               alive = trender.a >> 16u;
             }
           }
           else {  // looking for something to accept
             for(int n=1; n<`+RC+`; n++) {
-              if(cells[n].b==0u || cells[n].b>10000u) continue;
+              if(cells[n].a<=65535u || cells[n].b==0u) continue;
               
               uint atrend = antitrends[n];
               
@@ -334,7 +379,7 @@ else {
         uint rulecoord = 0u;
         for(int n=0; n<`+RC+`; n++) {
           rulecoord *= `+RB+`u;
-          rulecoord += cells[n].a;  // 8bit-packing only!
+          rulecoord += cells[n].a;  // @ 8bit-packing only!
         }
         ivec2 t = ivec2(rulecoord, 0);
         if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }

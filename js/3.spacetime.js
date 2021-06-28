@@ -73,20 +73,26 @@ function InitialFill() {
     }
   }
   else if(Mode=='MVM') {
-    for(var z=0; z<FD; z++) {
-      for(var x=round(FW/2-FW*LF/2); x<round(FW/2+FW*LF/2); x++) {
-        for(var y=round(FH/2-FH*LF/2); y<round(FH/2+FH*LF/2); y++) {
-          if(y<0 || y>=FH) continue;
-          if(z>=1 && x>FW/2) continue;
-          if(z>=2 && y<FH/2) continue;
-          var density = round((1 - Math.abs(2*y/FH-1)/LF) * Lstep * LD);
-          if(rndF(0,Lstep)<density) {
-            var v = RB>2 ? rndF(1, RB) : 1;
-            var xx = rndF(-1000, 1000) + 32768;
-            var yy = rndF(-1000, 1000) + 32768;
-            var vx = rndF( -100,  100) + 32768;
-            var vy = rndF( -100,  100) + 32768;
-            SetCell(x, y, z, xx + vx * 65536, yy + vy * 65536, 0, v << 16);
+    if(cfg.debug) {
+      SetCell(10, 5, 0, (0 + 32768) + (  0 + 32768) * 65536, (0 + 32768) + (0 + 32768) * 65536, 0, 1 << 16);
+      SetCell( 5, 4, 0, (0 + 32768) + (100 + 32768) * 65536, (0 + 32768) + (0 + 32768) * 65536, 0, 2 << 16);
+    }
+    else {
+      for(var z=0; z<FD; z++) {
+        for(var x=round(FW/2-FW*LF/2); x<round(FW/2+FW*LF/2); x++) {
+          for(var y=round(FH/2-FH*LF/2); y<round(FH/2+FH*LF/2); y++) {
+            if(y<0 || y>=FH) continue;
+            if(z>=1 && x>FW/2) continue;
+            if(z>=2 && y<FH/2) continue;
+            var density = round((1 - Math.abs(2*y/FH-1)/LF) * Lstep * LD);
+            if(rndF(0,Lstep)<density) {
+              var v = RB>2 ? rndF(1, RB) : 1;
+              var xx = rndF(-1000, 1000) + 32768;
+              var yy = rndF(-1000, 1000) + 32768;
+              var vx = rndF( -100,  100) + 32768;
+              var vy = rndF( -100,  100) + 32768;
+              SetCell(x, y, z, xx + vx * 65536, yy + vy * 65536, 0, v << 16);
+            }
           }
         }
       }
