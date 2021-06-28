@@ -266,7 +266,7 @@ else if(Mode=='MVM') {
             if(trender.a>65535u && trender.b==self.b) {
               color = self;  // motion skips a beat here
               color.b = 0u;
-              alive = 1u;
+              alive = trender.a >> 16u;
             }
           }
           else {  // looking for something to accept

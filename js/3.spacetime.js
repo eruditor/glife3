@@ -86,7 +86,7 @@ function InitialFill() {
             var yy = rndF(-1000, 1000) + 32768;
             var vx = rndF( -100,  100) + 32768;
             var vy = rndF( -100,  100) + 32768;
-            SetCell(x, y, z, xx + vx * 65536, yy + vy * 65536, 0, 65535+v);
+            SetCell(x, y, z, xx + vx * 65536, yy + vy * 65536, 0, v << 16);
           }
         }
       }
