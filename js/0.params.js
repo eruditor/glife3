@@ -17,7 +17,7 @@ function GetBoolParam(nm)        { return      (SLF.get(nm)>0 || URL.get(nm)>0) 
 
 class Cfg {
   constructor() {
-    this.debug     = GetBoolParam('debug');
+    this.debug     = GetIntParam('debug');
     this.autore    = GetBoolParam('autore');
     this.rerun     = GetBoolParam('rerun');
     this.anyrand   = GetBoolParam('anyrand');
@@ -65,9 +65,7 @@ var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 
 // MVM PARAMS ////////////////////////////////////////////////////////////////
 
-const mL = 5000;
-const mL2 = 2 * mL;
-const fmL = mL + `.`;
+const mL = 5000,  mL2 = 2 * mL,  mL3 = 3 * mL,  fmL = mL + `.`;
 
 // RERUN MODE ////////////////////////////////////////////////////////////////
 

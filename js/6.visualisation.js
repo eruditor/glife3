@@ -97,7 +97,7 @@ var ShowFragmentShaderSource = `
   
   ` + fs_Color4Cell + `
   
-  ` + fs_ExtractCV + `
+  ` + fs_ExtractXY + `
   
   void main() {
     ivec3 fieldSize = textureSize(u_fieldtexture, 0);
@@ -139,17 +139,17 @@ var ShowFragmentShaderSource = `
     
     ` + (Mode=='MVM' && zoom>=10 ? `
       if(cell.a>65535u || cell.b>0u) {
-        ivec4 cv = ExtractCV(cell);
+        ivec4 xy = ExtractXY(cell);
         
         int yll = 0;
-        int px = (cv.x + `+mL+`) * `+zoom+` / `+mL2+`;  //if(px>=`+zoom+`) { px = `+zoom+`-1;  yll = 1; }  if(px<0) { px = 0;  yll = 1; }
-        int py = (cv.y + `+mL+`) * `+zoom+` / `+mL2+`;  //if(py>=`+zoom+`) { py = `+zoom+`-1;  yll = 1; }  if(py<0) { py = 0;  yll = 1; }
+        int px = (xy.x + `+mL+`) * `+zoom+` / `+mL2+`;  //if(px>=`+zoom+`) { px = `+zoom+`-1;  yll = 1; }  if(px<0) { px = 0;  yll = 1; }
+        int py = (xy.y + `+mL+`) * `+zoom+` / `+mL2+`;  //if(py>=`+zoom+`) { py = `+zoom+`-1;  yll = 1; }  if(py<0) { py = 0;  yll = 1; }
         
         ivec2 cnv_coord = ivec2(gl_FragCoord.xy);
         
         if(cnv_coord.x % `+zoom+` == px && cnv_coord.y % `+zoom+` == py) {
           color = cell.a>65535u
-            ? (yll>0 ? vec4(1., 1., 0., 1.) : vec4(0., 1., 0., 1.))
+            ? (yll>0 ? vec4(1., 1., 0., 1.) : vec4(1., 1., 1., 1.))
             : vec4(0.6, 0.6, 0.6, 1.);
         }
       }

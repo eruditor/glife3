@@ -3,9 +3,9 @@
 var fs_ModuloTorus = `
   ivec3 ModuloTorus(ivec3 a, ivec3 b) {  // make the field torus-shaped (can use simple fract() for float vec3)
     ivec3 ret = a;
-    if(a.x<0) ret.x = b.x + a.x;
-    if(a.y<0) ret.y = b.y + a.y;
-    if(a.z<0) ret.z = b.z + a.z;
+    if(a.x<0)    ret.x = b.x + a.x;
+    if(a.y<0)    ret.y = b.y + a.y;
+    if(a.z<0)    ret.z = b.z + a.z;
     if(a.x>=b.x) ret.x = a.x - b.x;
     if(a.y>=b.y) ret.y = a.y - b.y;
     if(a.z>=b.z) ret.z = a.z - b.z;
@@ -37,23 +37,22 @@ for(var z=0; z<FD; z++) {
 fs_GetTexel2D += `  }`;
 
 function fs_PackAliveness(alive='alive') {
-  return pixelBits>=32
+  return pixelBits<32
   ? `
-        // highest 16bit = alive cell's color; lowest = decay and color of died cell
-             if(`+alive+`>0u)  color.a = `+alive+` << 16u;        // alive cell
-        else if(self.a>65535u) color.a = (self.a >> 16u) + 100u;  // dying cell
-        else if(self.a>30u)    color.a = self.a - 10u;            // color decay for died cell
-        else                   color.a = 0u;                      // empty cell
-  `
-  : `
         // color.b = color decay value (optional); color.a must be set already!
              if(color.a>0u) color.b = 200u;           // alive cell
         else if(self.a>0u)  color.b = 100u + self.a;  // dying cell
         else if(self.b>30u) color.b = self.b - 10u;   // color decay for died cell
         else                color.b = 0u;             // empty cell
+  `
+  : `
+        // highest 16bit = alive cell's color; lowest = decay and color of died cell
+             if(`+alive+`>0u)  color.a = `+alive+` << 16u;        // alive cell
+        else if(self.a>65535u) color.a = (self.a >> 16u) + 100u;  // dying cell
+        else if(self.a>30u)    color.a = self.a - 10u;            // color decay for died cell
+        else                   color.a = 0u;                      // empty cell
   `;
 }
-
 
 function fs_Prepare2Return(varname='color') {
   var ret = '';
@@ -63,7 +62,7 @@ function fs_Prepare2Return(varname='color') {
   return ret;
 }
 
-var fs_ExtractCV = ``;
+var fs_ExtractXY = ``;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(Mode=='PRT') {
@@ -152,8 +151,8 @@ if(Mode=='PRT') {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else if(Mode=='MVM') {
-  var fs_ExtractCV = `
-    ivec4 ExtractCV(uvec4 cell) {
+  var fs_ExtractXY = `
+    ivec4 ExtractXY(uvec4 cell) {
       return ivec4(
         // atom coords
         int(cell.x & 65535u) - 32768,
@@ -162,6 +161,51 @@ else if(Mode=='MVM') {
         int(cell.x >> 16u) - 32768,
         int(cell.y >> 16u) - 32768
       );
+    }
+    
+    uvec2 PackXY(ivec4 xy) {
+      return uvec2(
+        (xy.x + 32768) | ((xy.z + 32768) << 16),
+        (xy.y + 32768) | ((xy.w + 32768) << 16)
+      );
+    }
+  `;
+  
+  // b[0] = trending = moving particle transfer to another cell:
+  // request for moving away alive cell or acceptance for nearby empty cell
+  var fs_ExtractB = `
+    uint[8] ExtractB(uvec4 cell) {
+      return uint[8](
+        (cell.b << 28u) >> 28u,  // lowest 4 bit
+        (cell.b << 24u) >> 28u,
+        (cell.b << 20u) >> 28u,
+        (cell.b << 16u) >> 28u,
+        (cell.b << 12u) >> 28u,
+        (cell.b <<  8u) >> 28u,
+        (cell.b <<  4u) >> 28u,
+        (cell.b <<  0u) >> 28u
+      );
+    }
+    
+    uint ExtractB0(uint cell_b) {
+      return cell_b % 16u;  // lowest 4 bit
+    }
+    
+    uint PackB(uint[8] b) {
+      return (b[0] <<  0u) | 
+             (b[1] <<  4u) | 
+             (b[2] <<  8u) | 
+             (b[3] << 12u) | 
+             (b[4] << 16u) |
+             (b[5] << 20u) |
+             (b[6] << 24u) |
+             (b[7] << 28u);
+    }
+  `;
+  
+  var fs_ExtractA0 = `
+    uint ExtractA0(uint cell_a) {
+      return cell_a >> 16u;
     }
   `;
   
@@ -185,38 +229,35 @@ else if(Mode=='MVM') {
     
     ` + fs_GetTexel2D + `
     
-    ` + fs_ExtractCV + `
+    ` + fs_ExtractXY + `
     
-    uvec2 PackCV(ivec4 cv) {
-      return uvec2(
-        (cv.x + 32768) | ((cv.z + 32768) << 16),
-        (cv.y + 32768) | ((cv.w + 32768) << 16)
-      );
-    }
+    ` + fs_ExtractB + `
     
-    uint CalcTrend(ivec4 cv) {
-           if(cv.x<=-`+mL+` && cv.y<=-`+mL+`) return 1u;
-      else if(cv.x>= `+mL+` && cv.y<=-`+mL+`) return 3u;
-      else if(                 cv.y<=-`+mL+`) return 2u;
-      else if(cv.x<=-`+mL+` && cv.y>= `+mL+`) return 7u;
-      else if(cv.x>= `+mL+` && cv.y>= `+mL+`) return 5u;
-      else if(                 cv.y>= `+mL+`) return 6u;
-      else if(cv.x<=-`+mL+`                 ) return 8u;
-      else if(cv.x>= `+mL+`                 ) return 4u;
+    ` + fs_ExtractA0 + `
+    
+    uint CalcTrend(ivec4 xy) {
+           if(xy.x<=-`+mL+` && xy.y<=-`+mL+`) return 1u;
+      else if(xy.x>= `+mL+` && xy.y<=-`+mL+`) return 3u;
+      else if(                 xy.y<=-`+mL+`) return 2u;
+      else if(xy.x<=-`+mL+` && xy.y>= `+mL+`) return 7u;
+      else if(xy.x>= `+mL+` && xy.y>= `+mL+`) return 5u;
+      else if(                 xy.y>= `+mL+`) return 6u;
+      else if(xy.x<=-`+mL+`                 ) return 8u;
+      else if(xy.x>= `+mL+`                 ) return 4u;
       else                                    return 0u;
     }
     
     uint antitrends[9] = uint[9](0u, 5u, 6u, 7u, 8u, 1u, 2u, 3u, 4u);
     
-    uvec4 XY4Trended(int n, uvec4 cell) {
-           if(n==1) return uvec4(cell.x - `+mL2+`u, cell.y - `+mL2+`u, 5u, 0u);
-      else if(n==3) return uvec4(cell.x + `+mL2+`u, cell.y - `+mL2+`u, 7u, 0u);
-      else if(n==2) return uvec4(cell.x           , cell.y - `+mL2+`u, 6u, 0u);
-      else if(n==7) return uvec4(cell.x - `+mL2+`u, cell.y + `+mL2+`u, 3u, 0u);
-      else if(n==5) return uvec4(cell.x + `+mL2+`u, cell.y + `+mL2+`u, 1u, 0u);
-      else if(n==6) return uvec4(cell.x           , cell.y + `+mL2+`u, 2u, 0u);
-      else if(n==8) return uvec4(cell.x - `+mL2+`u, cell.y           , 4u, 0u);
-      else if(n==4) return uvec4(cell.x + `+mL2+`u, cell.y           , 8u, 0u);
+    uvec2 XY4Trended(int n, uvec4 cell) {
+           if(n==1) return uvec2(cell.x - `+mL2+`u, cell.y - `+mL2+`u);
+      else if(n==3) return uvec2(cell.x + `+mL2+`u, cell.y - `+mL2+`u);
+      else if(n==2) return uvec2(cell.x           , cell.y - `+mL2+`u);
+      else if(n==7) return uvec2(cell.x - `+mL2+`u, cell.y + `+mL2+`u);
+      else if(n==5) return uvec2(cell.x + `+mL2+`u, cell.y + `+mL2+`u);
+      else if(n==6) return uvec2(cell.x           , cell.y + `+mL2+`u);
+      else if(n==8) return uvec2(cell.x - `+mL2+`u, cell.y           );
+      else if(n==4) return uvec2(cell.x + `+mL2+`u, cell.y           );
     }
     
     ivec2 NthDirection(int n) {  // @ =Rgeom
@@ -228,6 +269,11 @@ else if(Mode=='MVM') {
       else if(n==6) return ivec2( 0,  1);
       else if(n==7) return ivec2(-1,  1);
       else if(n==8) return ivec2(-1,  0);
+    }
+    
+    float AtomMass(uint v) {
+      return v==3u ? 16. : (v==2u ? 8. : 1.);
+      // nv==3u ? 40. : (nv==2u ? 8. : 1.);
     }
     
     void main() {
@@ -245,94 +291,107 @@ else if(Mode=='MVM') {
         uvec4 color = uvec4(0);
         uint alive = 0u;  // aliveness = living cell type, to be put to color.a
         
-        if(self.a>65535u) {  // alive cell  // @ 32bit-packing only!
-          ivec4 cv = ExtractCV(self);
+        uint[8] b = ExtractB(self);
+        
+        uint dbg = 0u;
+        
+        // alive cell ////////////////////////////////////////////////////////////////
+        if(self.a>65535u) {  // @ 32bit-packing only!
+          ivec4 xy = ExtractXY(self);
           
-          uint v = self.a >> 16u;  // cell's value
+          uint v = ExtractA0(self.a);  // cell's value
           
           
           // forces
-          int ax = 0, ay = 0;
+          vec2 d2xy = vec2(0);
           for(int n=1; n<`+RC+`; n++) {
             if(cells[n].a<=65535u) continue;
             
             uint nv = cells[n].a >> 16u;  // neib's value
-            ivec4 ncv = ExtractCV(self);  // neib's coords and velocity
+            ivec4 nxy = ExtractXY(cells[n]);  // neib's coords and velocity
             ivec2 ndir = NthDirection(n);  // points from current cell to neib
             
-            ivec2 dl = `+mL2+` * ndir + ncv.xy - cv.xy;  // points from current atom coords to neib atom coords
-            //float dist = float(abs(dl.x) + abs(dl.y));  // distance between atoms
-            float dist = sqrt(float(dl.x*dl.x + dl.y*dl.y));
+            ivec2 dl = `+mL2+` * ndir + nxy.xy - xy.xy;  // points from current atom coords to neib atom coords
+            
+            float dist = sqrt(float(dl.x*dl.x + dl.y*dl.y));  // distance between atoms
+            //float dist = float(abs(dl.x) + abs(dl.y));
             
             if(dist>8.*`+fmL+`) continue;
             
-            float nmass = nv==3u ? 40. : (nv==2u ? 10. : 1.);
+            float charge = 1.;
+            //if(nv!=v) charge = -1.;
             
-            vec2 da = nmass * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;
+            //d2xy += charge * AtomMass(nv) * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
             
-            //if(nv==v) da = -da;
-            
-            ax += int(round(da.x));
-            ay += int(round(da.y));
+            d2xy += 0.1 / AtomMass(v) * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
           }
           
           // acceleration
-          cv.z += ax;
-          cv.w += ay;
+          xy.z += int(round(d2xy.x)); //dbg = uint(d2xy.x + 100000.);
+          xy.w += int(round(d2xy.y));
+          
+          if(xy.z<-`+mL+`) xy.z = -`+mL+`;
+          if(xy.w<-`+mL+`) xy.w = -`+mL+`;
+          if(xy.z> `+mL+`) xy.z =  `+mL+`;
+          if(xy.w> `+mL+`) xy.w =  `+mL+`;
           
           // movement
-          cv.x += cv.z;
-          cv.y += cv.w;
+          xy.x += xy.z;
+          xy.y += xy.w;
           
+          if(xy.x<-`+mL2+`) { xy.x = -`+mL2+`;  if(xy.z<0) xy.z = -xy.z; }
+          if(xy.y<-`+mL2+`) { xy.y = -`+mL2+`;  if(xy.w<0) xy.w = -xy.w; }
+          if(xy.x> `+mL2+`) { xy.x =  `+mL2+`;  if(xy.z>0) xy.z = -xy.z; }
+          if(xy.y> `+mL2+`) { xy.y =  `+mL2+`;  if(xy.w>0) xy.w = -xy.w; }
           
           alive = v;  // stay same by default
           
-          if(self.b!=0u) {  // was trending at previous turn
-            uvec4 acceptor = cells[self.b];
-            if(acceptor.a<=65535u && acceptor.b==self.b) {  // neighbour empty cell accepted transfer from self to it
+          if(b[0]!=0u) {  // was trending at previous turn
+            uvec4 acceptor = cells[b[0]];
+            if(acceptor.a<=65535u && ExtractB0(acceptor.b)==b[0]) {  // neighbour empty cell accepted transfer from self to it
+              b = uint[8](0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
               alive = 0u;
             }
             else {
-              color.b = CalcTrend(cv);
-              
-              // stuck-preventing hard collisions
-              if(cv.x<-30000 && cv.z<0 || cv.x>30000 && cv.z>0) { cv.z = -cv.z; }
-              if(cv.y<-30000 && cv.w<0 || cv.y>30000 && cv.w>0) { cv.w = -cv.w; }
+              b[0] = CalcTrend(xy);
             }
           }
           else {
-            color.b = CalcTrend(cv);  // wanted transfer marker
+            b[0] = CalcTrend(xy);  // wanted transfer marker
           }
           
           
           // packing back 2*16bit to 1*32bit
-          uvec2 packcv = PackCV(cv);
-          color.x = packcv.x;
-          color.y = packcv.y;
+          uvec2 PackXY = PackXY(xy);
+          color.x = PackXY.x;
+          color.y = PackXY.y;
         }
-        else {  // empty cell
-          if(self.b>0u) {  // accepting cell
-            uint atrend = antitrends[self.b];
+        // empty cell ////////////////////////////////////////////////////////////////
+        else {
+          if(b[0]>0u) {  // accepting cell
+            uint atrend = antitrends[b[0]];
             uvec4 trender = cells[atrend];
-            if(trender.a>65535u && trender.b==self.b) {
-              //color = self;  // @ motion skips a beat here
-              color = XY4Trended(int(atrend), trender);
-              color.b = 0u;
+            if(trender.a>65535u && ExtractB0(trender.b)==b[0]) {
+              color.xy = XY4Trended(int(atrend), trender);  // @ motion skips a beat here
               alive = trender.a >> 16u;
             }
+            b[0] = 0u;
           }
           else {  // looking for something to accept
             for(int n=1; n<`+RC+`; n++) {
-              if(cells[n].a<=65535u || cells[n].b==0u) continue;
-              
+              if(cells[n].a<=65535u || ExtractB0(cells[n].b)==0u) continue;
               uint atrend = antitrends[n];
-              
-              if(cells[n].b!=atrend) continue;
-              
-              color = XY4Trended(n, cells[n]);  // last of trending nearby cells wins
+              if(ExtractB0(cells[n].b)!=atrend) continue;
+              color.xy = XY4Trended(n, cells[n]);  // not required: just to show grey predicted position of atom outside current cell
+              b[0] = atrend;
+              break;  // first of trending nearby cells wins the space
             }
           }
         }
+        //  ////////////////////////////////////////////////////////////////
+        
+        color.b = PackB(b);
+        color.b |= dbg << 4u;
         
         ` + fs_PackAliveness('alive') + `
         

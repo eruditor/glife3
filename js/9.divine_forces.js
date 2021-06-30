@@ -26,7 +26,8 @@ gl.canvas.onmousedown = function(e) {
         var y = cell.g & 65535;  if(y<0)  y  += 65536;  y -= 32768;
         var vx = cell.r >> 16;   if(vx<0) vx += 65536;  vx -= 32768;
         var vy = cell.g >> 16;   if(vy<0) vy += 65536;  vy -= 32768;
-        console.log(x, y, vx, vy);
+        var dbg = cell.b >> 4;
+        console.log(x, y, vx, vy, dbg);
       }
       if(!cell.a) {
         continue;

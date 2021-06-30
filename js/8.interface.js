@@ -50,8 +50,8 @@ function CreateNavButtons() {
   </style>
   
   <table cellspacing=0 class='navTB'><tr>
-  <td><input type=button class='mediabtn' id='pausebtn'     value='` + (cfg.paused    ? `\u25B6\uFE0F` : `\u23F8\uFE0F`) + `' onclick='Pause();' autofocus title='Start/Stop Calculation'>
-  <td><input type=button class='mediabtn' value='\u23ED\uFE0F' onclick='Calc(1); Show(1); Stats(1);' title='One step'>
+  <td><input type=button class='mediabtn' id='pausebtn'     value='` + (cfg.paused    ? `\u25B6\uFE0F` : `\u23F8\uFE0F`) + `' onclick='Pause();' autofocus title='Start/Stop Calculation (P)'>
+  <td><input type=button class='mediabtn' value='\u23ED\uFE0F' onclick='Calc(1); Show(1); Stats(1);' title='One step (O)'>
   <td><input type=button class='mediabtn' id='pausestatbtn' value='` + (cfg.pausestat ? `\u23FA\uFE0F` : `\u23F9\uFE0F`) + `' onclick='PauseStat();' title='Start/Stop Analysis'>
   <td><input type=button class='mediabtn' value='\u23EA\uFE0F' onclick='Speed(-1);' title='Speed Down'>
   <td><input type=button class='mediabtn' value='\u23E9\uFE0F' onclick='Speed( 1);' title='Speed Up'>
@@ -80,6 +80,12 @@ function CreateNavButtons() {
   <td><input type=button value='DT&rarr;-DT' onclick="DT=-DT; console.log(DT);"></td>
   </tr></table>
   `;
+  
+  function htk_keyUp(e) {  //e.ctrlKey
+         if(e.key=='p') { Pause(); }
+    else if(e.key=='o') { Calc(1);  Show(1);  Stats(1); }
+  }
+  document.addEventListener('keydown', htk_keyUp);
   
   return ret;
 }
