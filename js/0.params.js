@@ -65,7 +65,9 @@ var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 
 // MVM PARAMS ////////////////////////////////////////////////////////////////
 
-const mL = 5000,  mL2 = 2 * mL,  mL3 = 3 * mL,  fmL = mL + `.`;
+const mL = 5000,  mL2 = 2 * mL,  mL3 = 3 * mL,  fmL = mL + `.`;  // mL = half-radius of the cell
+const mR = 2 * mL;  // maximum range atom's coords can be from the center of it's cell
+const mV = mL / 2;  // maximum atom's speed (per coord)
 
 // RERUN MODE ////////////////////////////////////////////////////////////////
 

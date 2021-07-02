@@ -58,20 +58,22 @@ var fs_Color4Cell = `
   vec4 Color4Cell(uvec4 cell, int layer) {
     vec4 ret = vec4(0., 0., 0., 1.);
     
-    if(cell.a==0u` + (pixelBits<32 ? ` && cell.b==0u` : ``) + `) return ret;
+    uint aliv = ` + (pixelBits<32 ? `cell.a` : `cell.a << 16u >> 16u`) + `;
+    
+    if(aliv==0u` + (pixelBits<32 ? ` && cell.b==0u` : ``) + `) return ret;
     
     ` + (
       pixelBits<32
-      ? `uint v = cell.a>0u ? cell.a : cell.b % 10u;`
-      : `uint v = cell.a>65535u ? cell.a >> 16u : cell.a % 10u;`
+      ? `uint v = aliv>0u ? aliv : cell.b % 10u;`
+      : `uint v = aliv>255u ? aliv >> 8u : aliv % 10u;`
     ) + `
     
     ` + fs_colors + `
     
     ` + (
       pixelBits<32
-      ? `float sat = cell.a>0u ? 1. : float(cell.b - v) / 255.;`
-      : `float sat = cell.a>65535u ? 1. : float(cell.a - v) / 255.;`
+      ? `float sat = aliv>0u ? 1. : float(cell.b - v) / 255.;`
+      : `float sat = aliv>255u ? 1. : float(aliv - v) / 255.;`
     ) + `
     
     ret.r *= sat;
@@ -99,8 +101,14 @@ var ShowFragmentShaderSource = `
   
   ` + fs_ExtractXY + `
   
+  ivec3 tex3coord;
+  ivec3 fieldSize;
+  ` + fs_ModuloTorus + `
+  ` + fs_GetCell() + `
+  ` + fs_Trends + `
+  
   void main() {
-    ivec3 fieldSize = textureSize(u_fieldtexture, 0);
+    fieldSize = textureSize(u_fieldtexture, 0);
     ivec2 xy = ivec2(gl_FragCoord.xy / u_canvas * vec2(fieldSize.xy) * 2.);  // current coords, [0..2F]
     
     // display 3rd dimension (layers 0,1,2,3) as 4 pixels in 2*2 square:
@@ -138,24 +146,39 @@ var ShowFragmentShaderSource = `
     ` : ``) + `
     
     ` + (Mode=='MVM' && zoom>=10 ? `
-      if(cell.a>65535u || cell.b>0u) {
-        ivec4 xy = ExtractXY(cell);
+      ivec2 cnv_coord = ivec2(gl_FragCoord.xy);
+          
+      tex3coord = ivec3(v_texcoord, layer);
+      
+      uvec4 cells[`+RC+`];
+      ` + fs_GetNeibs + `
+      
+      for(uint n=0u; n<`+RC+`u; n++) {
+        uint aliv = cells[n].a << 16u >> 16u;
+        if(aliv<=255u) continue;
         
-        int yll = 0;
-        int px = (xy.x + `+mL+`) * `+zoom+` / `+mL2+`;  //if(px>=`+zoom+`) { px = `+zoom+`-1;  yll = 1; }  if(px<0) { px = 0;  yll = 1; }
-        int py = (xy.y + `+mL+`) * `+zoom+` / `+mL2+`;  //if(py>=`+zoom+`) { py = `+zoom+`-1;  yll = 1; }  if(py<0) { py = 0;  yll = 1; }
+        ivec4 xy = ExtractXY(cells[n]);
         
-        ivec2 cnv_coord = ivec2(gl_FragCoord.xy);
+        uint trend = CalcTrend(xy);
+        uint atrend = antitrends[trend];
+        if(atrend!=n) continue;
+        
+        xy = ExtractXY(uvec4(XY4Trended(n, cells[n]), 0, 0));  // @ optimize it
+        
+        int px = (xy.x + `+mL+`) * `+zoom+` / `+mL2+`;
+        int py = (xy.y + `+mL+`) * `+zoom+` / `+mL2+`;
         
         if(cnv_coord.x % `+zoom+` == px && cnv_coord.y % `+zoom+` == py) {
-          color = cell.a>65535u
-            ? (yll>0 ? vec4(1., 1., 0., 1.) : vec4(1., 1., 1., 1.))
-            : vec4(0.6, 0.6, 0.6, 1.);
+          color =
+            n==0u
+            ? vec4(1., 1., 1., 1.)
+            : vec4(0., 1., 0., 1.)
+          ;
         }
       }
     ` : ``) + `
   }
-`;
+`;//console.log(ShowFragmentShaderSource);
 var ShowProgram = createProgram4Frag(gl, ShowFragmentShaderSource, ["a_position", "u_fieldtexture", "u_canvas", "u_surface", "u_ps"]);
 
 // SHOW MAIN ////////////////////////////////////////////////////////////////

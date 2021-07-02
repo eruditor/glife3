@@ -22,12 +22,28 @@ gl.canvas.onmousedown = function(e) {
       var cell = GetCell(mouseX, mouseY, 0);
       console.log('z='+z+', rgba=', cell);
       if(pixelBits>=32) {
+        var s = '';
+        
         var x = cell.r & 65535;  if(x<0)  x  += 65536;  x -= 32768;
         var y = cell.g & 65535;  if(y<0)  y  += 65536;  y -= 32768;
         var vx = cell.r >> 16;   if(vx<0) vx += 65536;  vx -= 32768;
         var vy = cell.g >> 16;   if(vy<0) vy += 65536;  vy -= 32768;
-        var dbg = cell.b >> 4;
-        console.log(x, y, vx, vy, dbg);
+        
+        s += '(' + x + ',' + y + ') (' + vx + ',' + vy + ') ';
+        s += '[' +
+        ((cell.b << 28) >>> 28) + ' ' +
+        ((cell.b << 24) >>> 28) + ' ' +
+        ((cell.b << 20) >>> 28) + ' ' +
+        ((cell.b << 16) >>> 28) + ' ' +
+        ((cell.b << 12) >>> 28) + ' ' +
+        ((cell.b <<  8) >>> 28) + ' ' +
+        ((cell.b <<  4) >>> 28) + ' ' +
+        ((cell.b <<  0) >>> 28) + ' ' +
+        '] ';
+        
+        s += '{' + (cell.a >>> 16) + '} ';
+        
+        console.log(s);
       }
       if(!cell.a) {
         continue;
