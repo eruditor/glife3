@@ -292,7 +292,7 @@ else if(Mode=='MVM') {
     
     ` + fs_Trends + `
     
-    float atom_masses[4]   = float[4](0., 1., 1., 16.);
+    float atom_masses[4]   = float[4](0., 1., 2., 3.);
     uint atom_bondnums[4]   = uint[4](0u, 1u, 1u, 4u);  // number of covalent bonds
     int atom_bondenergies[4] = int[4]( 0, 1 , 1 , 3 );
     
@@ -345,13 +345,16 @@ else if(Mode=='MVM') {
             float charge = 1.;  //if(nv!=v) charge = -1.;
             
             //d2xy += charge * atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
-            d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
+            //d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
             
             if(b0[1]==n || b0[2]==n || b0[3]==n || b0[4]==n || b0[5]==n || b0[6]==n || b0[7]==n) {  // this cell has a bond to n-th neib
               uint[8] nb = ExtractB(cells[n]);  // neib's bonds
               uint an = antitrends[n];
               if(nb[1]==an || nb[2]==an || nb[3]==an || nb[4]==an || nb[5]==an || nb[6]==an || nb[7]==an) {  // neib also has a bond to this cell
-                d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
+                //d2xy += charge * atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
+                //d2xy += 100. / atom_masses[v] * vec2(dl) / dist * (`+mL2+`./dist - `+mL2+`./dist*`+mL2+`./dist);  // EM
+                //d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
+                d2xy += 0.3 * atom_masses[nv] / (atom_masses[v] + atom_masses[nv]) * vec2(nxy.zw - xy.zw);  // inelastic collisions
               }
             }
             
@@ -405,8 +408,8 @@ else if(Mode=='MVM') {
               b[0] = CalcTrend(xy);
               
               // stuck-preventing hard collisions
-              if(xy.x<=-`+mR+` && xy.z<0 || xy.x>=`+mR+` && xy.z>0) { xy.z = -xy.z; }
-              if(xy.y<=-`+mR+` && xy.w<0 || xy.y>=`+mR+` && xy.w>0) { xy.w = -xy.w; }
+              //if(xy.x<=-`+mR+` && xy.z<0 || xy.x>=`+mR+` && xy.z>0) { xy.z = -xy.z; }
+              //if(xy.y<=-`+mR+` && xy.w<0 || xy.y>=`+mR+` && xy.w>0) { xy.w = -xy.w; }
             }
           }
           else {

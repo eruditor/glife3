@@ -145,13 +145,15 @@ var ShowFragmentShaderSource = `
       }
     ` : ``) + `
     
-    ` + (Mode=='MVM' && zoom>=10 ? `
-      ivec2 cnv_coord = ivec2(gl_FragCoord.xy);
-          
-      tex3coord = ivec3(v_texcoord, layer);
+    ` + (Mode=='MVM'? `
+    int cnv_zoom = int(`+zoom+`. * u_surface.z);
+    if(cnv_zoom>=8) {
+      tex3coord = ivec3(tex2coord, layer);
       
       uvec4 cells[`+RC+`];
       ` + fs_GetNeibs + `
+      
+      ivec2 cnv_coord = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy) * `+zoom+`. * u_surface.z );
       
       for(uint n=0u; n<`+RC+`u; n++) {
         uint aliv = cells[n].a << 16u >> 16u;
@@ -165,10 +167,10 @@ var ShowFragmentShaderSource = `
         
         xy = ExtractXY(uvec4(XY4Trended(n, cells[n]), 0, 0));  // @ optimize it
         
-        int px = (xy.x + `+mL+`) * `+zoom+` / `+mL2+`;
-        int py = (xy.y + `+mL+`) * `+zoom+` / `+mL2+`;
+        int px = (xy.x + `+mL+`) * cnv_zoom / `+mL2+`;
+        int py = (xy.y + `+mL+`) * cnv_zoom / `+mL2+`;
         
-        if(cnv_coord.x % `+zoom+` == px && cnv_coord.y % `+zoom+` == py) {
+        if(cnv_coord.x % cnv_zoom == px && cnv_coord.y % cnv_zoom == py) {
           color =
             n==0u
             ? vec4(1., 1., 1., 1.)
@@ -176,6 +178,7 @@ var ShowFragmentShaderSource = `
           ;
         }
       }
+    }
     ` : ``) + `
   }
 `;//console.log(ShowFragmentShaderSource);
