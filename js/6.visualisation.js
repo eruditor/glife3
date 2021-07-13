@@ -101,6 +101,8 @@ var ShowFragmentShaderSource = `
   
   ` + fs_ExtractXY + `
   
+  ` + fs_ExtractA + `
+  
   ivec3 tex3coord;
   ivec3 fieldSize;
   ` + fs_ModuloTorus + `
@@ -156,8 +158,8 @@ var ShowFragmentShaderSource = `
       ivec2 cnv_coord = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy) * `+zoom+`. * u_surface.z );
       
       for(uint n=0u; n<`+RC+`u; n++) {
-        uint aliv = cells[n].a << 16u >> 16u;
-        if(aliv<=255u) continue;
+        uint aliv = ExtractA0(cells[n].a);
+        if(aliv==0u) continue;
         
         ivec4 xy = ExtractXY(cells[n]);
         

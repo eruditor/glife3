@@ -65,7 +65,7 @@ function fs_Prepare2Return(varname='color') {
   return ret;
 }
 
-var fs_ExtractXY = fs_Trends = ``;
+var fs_ExtractXY = fs_ExtractA = fs_Trends = ``;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(Mode=='PRT') {
@@ -292,8 +292,20 @@ else if(Mode=='MVM') {
     
     ` + fs_Trends + `
     
+    uint CountArray17(uint[8] b) {
+      uint ret = 0u;
+      for(uint i=1u; i<=7u; i++) {
+        if(b[i]>0u) ret ++; 
+      }
+      return ret;
+    }
+    
+    bool ScanArray17(uint[8] b, uint n) {
+      return (b[1]==n || b[2]==n || b[3]==n || b[4]==n || b[5]==n || b[6]==n || b[7]==n) ? true : false;
+    }
+    
     float atom_masses[4]   = float[4](0., 1., 2., 3.);
-    uint atom_bondnums[4]   = uint[4](0u, 1u, 1u, 4u);  // number of covalent bonds
+    uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
     int atom_bondenergies[4] = int[4]( 0, 1 , 1 , 3 );
     
     void main() {
@@ -323,6 +335,7 @@ else if(Mode=='MVM') {
           ivec4 xy = ExtractXY(self);
           uint v = ExtractA0(self.a);  // cell's value
           uint bn = atom_bondnums[v];
+          uint b0count = CountArray17(b0);
           
           // forces
           vec2 d2xy = vec2(0);
@@ -342,20 +355,27 @@ else if(Mode=='MVM') {
             
             if(dist>8.*`+fmL+`) continue;
             
-            float charge = 1.;  //if(nv!=v) charge = -1.;
+            uint[8] nb = ExtractB(cells[n]);  // neib's bonds
             
+            float charge = 1.;  //if(nv!=v) charge = -1.;
             //d2xy += charge * atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
             //d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
             
-            if(b0[1]==n || b0[2]==n || b0[3]==n || b0[4]==n || b0[5]==n || b0[6]==n || b0[7]==n) {  // this cell has a bond to n-th neib
-              uint[8] nb = ExtractB(cells[n]);  // neib's bonds
+            bool bonded = false;
+            if(ScanArray17(b0, n)) {  // this cell has a bond to n-th neib
               uint an = antitrends[n];
-              if(nb[1]==an || nb[2]==an || nb[3]==an || nb[4]==an || nb[5]==an || nb[6]==an || nb[7]==an) {  // neib also has a bond to this cell
+              if(ScanArray17(nb, an)) {  // neib also has a bond to this cell
+                bonded = true;
                 //d2xy += charge * atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
                 //d2xy += 100. / atom_masses[v] * vec2(dl) / dist * (`+mL2+`./dist - `+mL2+`./dist*`+mL2+`./dist);  // EM
                 //d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
+                
                 d2xy += 0.3 * atom_masses[nv] / (atom_masses[v] + atom_masses[nv]) * vec2(nxy.zw - xy.zw);  // inelastic collisions
               }
+            }
+            
+            if(!bonded && b0count>=bn && CountArray17(nb)>=atom_bondnums[nv]) {
+              d2xy += -10. / atom_masses[v] * vec2(dl) / dist * (`+mL+`./(`+mL+`. + dist));  // repulsion
             }
             
             // setting new bonds
@@ -406,10 +426,6 @@ else if(Mode=='MVM') {
             }
             else {
               b[0] = CalcTrend(xy);
-              
-              // stuck-preventing hard collisions
-              //if(xy.x<=-`+mR+` && xy.z<0 || xy.x>=`+mR+` && xy.z>0) { xy.z = -xy.z; }
-              //if(xy.y<=-`+mR+` && xy.w<0 || xy.y>=`+mR+` && xy.w>0) { xy.w = -xy.w; }
             }
           }
           else {
