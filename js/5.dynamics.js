@@ -190,10 +190,6 @@ else if(Mode=='MVM') {
       );
     }
     
-    uint ExtractB0(uint cell_b) {
-      return cell_b % 16u;  // lowest 4 bit
-    }
-    
     uint PackB(uint[8] b) {
       return (b[0] <<  0u) | 
              (b[1] <<  4u) | 
@@ -206,20 +202,56 @@ else if(Mode=='MVM') {
     }
   `;
   
-  // highest 16bit = debug info;  next 8 bit = alive cell's color;  lowest 8bit = decay and color of died cell
+  // -- highest 16bit = debug info;  next 8 bit = alive cell's color;  lowest 8bit = decay and color of died cell
   var fs_ExtractA = `
-    uint ExtractA0(uint cell_a) {
-      return cell_a << 16u >> 24u;
+    #define A_alive 0
+    #define A_v     1
+    #define A_decay 2
+    #define A_trend 3
+    #define A_aux   4
+    #define A_dbg   5
+    
+    uint[6] ExtractA(uint cell_a) {
+      uint[6] ret;
+      ret[A_alive] = cell_a & 1u;           //  1 bit = is the cell alive
+      ret[A_v]     = cell_a << 27u >> 28u;  //  4 bit = cell's value
+      ret[A_decay] = cell_a << 24u >> 29u;  //  3 bit = color decay for died cell
+      ret[A_trend] = cell_a << 20u >> 28u;  //  4 bit = trending/accepting flags
+      ret[A_aux]   = cell_a << 16u >> 28u;  //  4 bit = aux = ...
+      ret[A_dbg]   = cell_a >> 16u;         // 16 bit = debug info
+      return ret;
     }
     
-    uint PackA(uint alive, uint self_a, uint dbg) {
-      uint a16;
-      self_a = self_a << 16u >> 16u;
-            if(alive>0u)   a16 = alive << 8u;            // alive cell
-      else if(self_a>255u) a16 = (self_a >> 8u) + 100u;  // dying cell
-      else if(self_a>30u)  a16 = self_a - 10u;           // color decay for died cell
-      else                 a16 = 0u;                     // empty cell
-      return (dbg << 16u) | a16;
+    uint ExtractAl(uint cell_a) {
+      return cell_a & 1u;
+    }
+    
+    uint ExtractAv(uint cell_a) {
+      return (cell_a & 1u)>0u ? cell_a << 27u >> 28u : 0u;
+    }
+    
+    uint ExtractAt(uint cell_a) {
+      return cell_a << 20u >> 28u;
+    }
+    
+    uint PackA(uint al, uint v, uint trend, uint aux, uint self_a, uint dbg) {
+      uint decay = 0u;
+      if(al==0u) {
+        v = 0u;  // paranoic
+        uint[6] exa = ExtractA(self_a);  // @ optimize it
+             if(exa[A_alive]>0u) decay = 7u;
+        else if(exa[A_decay]>0u) decay = exa[A_decay] - 1u;
+      }
+      else {
+        al = 1u;  // paranoic
+      }
+      
+      return (al    <<  0u) |
+             (v     <<  1u) |
+             (decay <<  5u) |
+             (trend <<  8u) |
+             (aux   << 12u) |
+             (dbg   << 16u);
     }
   `;
   
@@ -305,8 +337,8 @@ else if(Mode=='MVM') {
     }
     
     float atom_masses[4]   = float[4](0., 1., 2., 3.);
-    uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
-    int atom_bondenergies[4] = int[4]( 0, 1 , 1 , 3 );
+    uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 3u);  // number of covalent bonds
+    int atom_bondenergies[4] = int[4]( 0, 1 , 2 , 3 );
     
     void main() {
       fieldSize = textureSize(u_fieldtexture, 0);
@@ -321,29 +353,37 @@ else if(Mode=='MVM') {
         uvec4 self = cells[0];  // previous self cell state
         
         uvec4 color = uvec4(0);
-        uint alive = 0u;  // aliveness = living cell type, to be put to color.a
         
-        uint[8] b0 = ExtractB(self);
         uint[8] b = uint[8](0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);  // new b
         
-        uint a0 = ExtractA0(self.a);
+        uint al0 = ExtractAl(self.a);
+        uint al = 0u;
+        
+        uint v = 0u;
+        
+        uint trend0 = ExtractAt(self.a);
+        uint trend = 0u;
         
         uint dbg = 0u;
         
         // alive cell ////////////////////////////////////////////////////////////////
-        if(a0>0u) {  // @ 32bit-packing only!
+        if(al0>0u) {
           ivec4 xy = ExtractXY(self);
-          uint v = ExtractA0(self.a);  // cell's value
+          
+          v = ExtractAv(self.a);  // cell's value
+          
+          uint[8] b0 = ExtractB(self);
           uint bn = atom_bondnums[v];
           uint b0count = CountArray17(b0);
           
           // forces
+          
           vec2 d2xy = vec2(0);
           uint freebonds = bn;
           int bondenergy[8] = int[8](0,0,0,0,0,0,0,0);
           
           for(uint n=1u; n<`+RC+`u; n++) {
-            uint nv = ExtractA0(cells[n].a);  // neib's value
+            uint nv = ExtractAv(cells[n].a);  // @ optimize it
             if(nv==0u) continue;
             
             ivec4 nxy = ExtractXY(cells[n]);  // neib's coords and velocity
@@ -368,8 +408,8 @@ else if(Mode=='MVM') {
                 bonded = true;
                 //d2xy += charge * atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
                 //d2xy += 100. / atom_masses[v] * vec2(dl) / dist * (`+mL2+`./dist - `+mL2+`./dist*`+mL2+`./dist);  // EM
-                //d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
-                
+                //float dist2 = dist + 3000.;  d2xy += 20. / atom_masses[v] * vec2(dl) / dist * (`+mL2+`./dist2 - `+mL2+`./dist2*`+mL2+`./dist2);  // EM-shifted
+                d2xy += 0.001 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
                 d2xy += 0.3 * atom_masses[nv] / (atom_masses[v] + atom_masses[nv]) * vec2(nxy.zw - xy.zw);  // inelastic collisions
               }
             }
@@ -417,21 +457,20 @@ else if(Mode=='MVM') {
           if(xy.x> `+mR+`) xy.x =  `+mR+`;
           if(xy.y> `+mR+`) xy.y =  `+mR+`;
           
-          alive = v;  // stay same by default
+          al = 1u;  // stay same by default
           
-          if(b0[0]!=0u) {  // was trending at previous turn
-            uvec4 acceptor = cells[b0[0]];
-            if(ExtractA0(acceptor.a)==0u && ExtractB0(acceptor.b)==b0[0]) {  // neighbour empty cell accepted transfer from self to it
-              alive = 0u;
+          if(trend0!=0u) {  // was trending at previous turn
+            uvec4 acceptor = cells[trend0];
+            if(ExtractAl(acceptor.a)==0u && ExtractAt(acceptor.a)==trend0) {  // neighbour empty cell accepted transfer from self to it
+              al = 0u;
             }
             else {
-              b[0] = CalcTrend(xy);
+              trend = CalcTrend(xy);
             }
           }
           else {
-            b[0] = CalcTrend(xy);  // wanted transfer marker
+            trend = CalcTrend(xy);  // wanted transfer marker
           }
-          
           
           // packing back 2*16bit to 1*32bit
           uvec2 PackXY = PackXY(xy);
@@ -440,24 +479,22 @@ else if(Mode=='MVM') {
         }
         // empty cell ////////////////////////////////////////////////////////////////
         else {
-          if(b0[0]>0u) {  // accepting cell
-            uint atrend = antitrends[b0[0]];
+          if(trend0>0u) {  // accepting cell
+            uint atrend = antitrends[trend0];
             uvec4 trender = cells[atrend];
-            if(ExtractA0(trender.a)>0u && ExtractB0(trender.b)==b0[0]) {
+            if(ExtractAl(trender.a)>0u && ExtractAt(trender.a)==trend0) {
               color.xy = XY4Trended(atrend, trender);  // @ motion skips a beat here
-              alive = ExtractA0(trender.a);
+              al = 1u;
+              v = ExtractAv(trender.a);
             }
-            b0[0] = 0u;
           }
           else {  // looking for something to accept
             for(uint n=1u; n<`+RC+`u; n++) {
-              if(ExtractA0(cells[n].a)==0u || ExtractB0(cells[n].b)==0u) continue;
+              if(ExtractAl(cells[n].a)==0u || ExtractAt(cells[n].a)==0u) continue;
               uint atrend = antitrends[n];
-              if(ExtractB0(cells[n].b)!=atrend) continue;
-              //color.xy = XY4Trended(n, cells[n]);  // not required: just to show grey predicted position of atom outside current cell
-              b[0] = atrend;
-              break;  // first of trending nearby cells wins the space
-              // @ need to choose most far-went-away cell by distance
+              if(ExtractAt(cells[n].a)!=atrend) continue;
+              trend = atrend;
+              break;  // first of trending nearby cells wins the space  // @ need to choose most far-went-away cell by distance
             }
           }
         }
@@ -465,7 +502,7 @@ else if(Mode=='MVM') {
         
         color.b = PackB(b);
         
-        color.a = PackA(alive, self.a, dbg);
+        color.a = PackA(al, v, trend, 0u, self.a, dbg);
         
         ` + fs_Prepare2Return('color') + `
       }

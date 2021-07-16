@@ -1,9 +1,10 @@
 // CANVAS SIZE ////////////////////////////////////////////////////////////////
 
 var IW = round100(canvas.parentNode.clientWidth);  // container (interface) width
+var IH = round100(window.innerHeight);  // window height
 
 //if(document.body.clientWidth < document.body.clientHeight) [FW, FH] = [FH, FW];
-var zoom = Math.floor(IW / FW);
+var zoom = Math.floor(Math.min(IW / FW, IH / FH));
 if(zoom<1) zoom = 1;
 if(FD>1 && zoom<2) zoom = 2;  // for displaying 3D case we need at least 2*2 pixels for each cell
 
@@ -58,14 +59,16 @@ var fs_Color4Cell = `
   vec4 Color4Cell(uvec4 cell, int layer) {
     vec4 ret = vec4(0., 0., 0., 1.);
     
-    uint aliv = ` + (pixelBits<32 ? `cell.a` : `cell.a << 16u >> 16u`) + `;
+    ` + (pixelBits>=32 ? `uint[6] exa = ExtractA(cell.a);` : ``) + `
+    
+    uint aliv = ` + (pixelBits<32 ? `cell.a` : `exa[A_alive]`) + `;
     
     if(aliv==0u` + (pixelBits<32 ? ` && cell.b==0u` : ``) + `) return ret;
     
     ` + (
       pixelBits<32
       ? `uint v = aliv>0u ? aliv : cell.b % 10u;`
-      : `uint v = aliv>255u ? aliv >> 8u : aliv % 10u;`
+      : `uint v = exa[A_v];`  // aliv>255u ? aliv >> 8u : aliv % 10u
     ) + `
     
     ` + fs_colors + `
@@ -73,7 +76,7 @@ var fs_Color4Cell = `
     ` + (
       pixelBits<32
       ? `float sat = aliv>0u ? 1. : float(cell.b - v) / 255.;`
-      : `float sat = aliv>255u ? 1. : float(aliv - v) / 255.;`
+      : `float sat = aliv>0u ? 1. : float(exa[A_decay] * 15u) / 255.;`
     ) + `
     
     ret.r *= sat;
@@ -97,11 +100,11 @@ var ShowFragmentShaderSource = `
   
   out vec4 color;
   
+  ` + fs_ExtractA + `
+  
   ` + fs_Color4Cell + `
   
   ` + fs_ExtractXY + `
-  
-  ` + fs_ExtractA + `
   
   ivec3 tex3coord;
   ivec3 fieldSize;
@@ -133,6 +136,7 @@ var ShowFragmentShaderSource = `
       color = Color4Cell(cell, layer);
     }
     
+    
     ` + (Mode=='PRT' && zoom>=10 ? `
       ivec3 cur3coord = ivec3(tex2coord, layer);
       int dx3 = (3 + cur3coord.x + u_ps[0]) % 3;
@@ -147,6 +151,7 @@ var ShowFragmentShaderSource = `
       }
     ` : ``) + `
     
+    
     ` + (Mode=='MVM'? `
     int cnv_zoom = int(`+zoom+`. * u_surface.z);
     if(cnv_zoom>=8) {
@@ -158,8 +163,7 @@ var ShowFragmentShaderSource = `
       ivec2 cnv_coord = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy) * `+zoom+`. * u_surface.z );
       
       for(uint n=0u; n<`+RC+`u; n++) {
-        uint aliv = ExtractA0(cells[n].a);
-        if(aliv==0u) continue;
+        if(ExtractAl(cells[n].a)==0u) continue;
         
         ivec4 xy = ExtractXY(cells[n]);
         
@@ -182,6 +186,8 @@ var ShowFragmentShaderSource = `
       }
     }
     ` : ``) + `
+    
+    
   }
 `;//console.log(ShowFragmentShaderSource);
 var ShowProgram = createProgram4Frag(gl, ShowFragmentShaderSource, ["a_position", "u_fieldtexture", "u_canvas", "u_surface", "u_ps"]);
