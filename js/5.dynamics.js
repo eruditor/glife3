@@ -324,9 +324,9 @@ else if(Mode=='MVM') {
     
     ` + fs_Trends + `
     
-    uint CountArray17(uint[8] b) {
+    uint CountBonds(uint[8] b) {
       uint ret = 0u;
-      for(uint i=1u; i<=7u; i++) {
+      for(uint i=0u; i<=7u; i++) {
         if(b[i]>0u) ret ++; 
       }
       return ret;
@@ -337,8 +337,8 @@ else if(Mode=='MVM') {
     }
     
     float atom_masses[4]   = float[4](0., 1., 2., 3.);
-    uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 3u);  // number of covalent bonds
-    int atom_bondenergies[4] = int[4]( 0, 1 , 2 , 3 );
+    uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
+    int atom_bondenergies[4] = int[4]( 0, 20 , 25 , 15 );
     
     void main() {
       fieldSize = textureSize(u_fieldtexture, 0);
@@ -374,7 +374,7 @@ else if(Mode=='MVM') {
           
           uint[8] b0 = ExtractB(self);
           uint bn = atom_bondnums[v];
-          uint b0count = CountArray17(b0);
+          uint b0count = CountBonds(b0);
           
           // forces
           
@@ -393,8 +393,9 @@ else if(Mode=='MVM') {
             float dist = sqrt(float(dl.x*dl.x + dl.y*dl.y));  // distance between atoms
             //float dist = float(abs(dl.x) + abs(dl.y));
             
-            if(dist>8.*`+fmL+`) continue;
+            if(dist>8.*`+fmL+`) continue;  // @ careful here, with bond-breaking
             
+            uint bondidx = n - 1u;  // 0..7
             uint[8] nb = ExtractB(cells[n]);  // neib's bonds
             
             float charge = 1.;  //if(nv!=v) charge = -1.;
@@ -402,39 +403,41 @@ else if(Mode=='MVM') {
             //d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
             
             bool bonded = false;
-            if(ScanArray17(b0, n)) {  // this cell has a bond to n-th neib
-              uint an = antitrends[n];
-              if(ScanArray17(nb, an)) {  // neib also has a bond to this cell
+            if(b0[bondidx]>0u) {  // this cell has a bond to n-th neib
+              uint antibondidx = antitrends[n] - 1u;
+              if(nb[antibondidx]>0u) {  // neib also has a bond to this cell
                 bonded = true;
                 //d2xy += charge * atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
                 //d2xy += 100. / atom_masses[v] * vec2(dl) / dist * (`+mL2+`./dist - `+mL2+`./dist*`+mL2+`./dist);  // EM
                 //float dist2 = dist + 3000.;  d2xy += 20. / atom_masses[v] * vec2(dl) / dist * (`+mL2+`./dist2 - `+mL2+`./dist2*`+mL2+`./dist2);  // EM-shifted
-                d2xy += 0.001 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
+                d2xy += 10. / atom_masses[v] * vec2(dl) / dist * (dist/`+mL2+`. - 0.8);  // harmonic
                 d2xy += 0.3 * atom_masses[nv] / (atom_masses[v] + atom_masses[nv]) * vec2(nxy.zw - xy.zw);  // inelastic collisions
               }
             }
             
-            if(!bonded && b0count>=bn && CountArray17(nb)>=atom_bondnums[nv]) {
+            if(!bonded && b0count>=bn && CountBonds(nb)>=atom_bondnums[nv]) {
               d2xy += -10. / atom_masses[v] * vec2(dl) / dist * (`+mL+`./(`+mL+`. + dist));  // repulsion
             }
             
             // setting new bonds
+            
             if(freebonds>0u) {
-              b[freebonds] = n;
-              bondenergy[freebonds] = atom_bondenergies[nv];
+              b[bondidx] = 1u;
+              bondenergy[bondidx] = atom_bondenergies[nv] * (2*`+mL2+` - int(dist));
               freebonds --;
             }
             else {  // if all bonds are busy - choose most-energy-preferable bond
               uint min_o = 0u;  int min_e = 1000;
-              for(uint o=1u; o<=bn; o++) {  // looking for minimum energy in existing bonds
+              for(uint o=0u; o<bondidx; o++) {  // looking for minimum energy in existing bonds
+                if(b[o]==0u) continue;
                 if(bondenergy[o] < min_e) {
                   min_e = bondenergy[o];
                   min_o = o;
                 }
               }
               if(min_e<atom_bondenergies[nv]) {
-                b[min_o] = n;
-                bondenergy[min_o] = atom_bondenergies[nv];
+                b[min_o]   = 0u;  bondenergy[min_o] = 0;
+                b[bondidx] = 1u;  bondenergy[min_o] = atom_bondenergies[nv] * (2*`+mL2+` - int(dist));
               }
             }
           }

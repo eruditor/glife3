@@ -31,6 +31,13 @@ var surface = new Surface();
 // SHOW SHADER ////////////////////////////////////////////////////////////////
 
 function Color4Cell(layer=0, v=1, s=1, l=0.5) {
+  if(Family=='Movement4C') {
+         if(v==0) return {'r':0, 'g':0, 'b':0};
+    else if(v==1) return {'r':0, 'g':0, 'b':255};
+    else if(v==2) return {'r':255, 'g':0, 'b':0};
+    else if(v==3) return {'r':0, 'g':255, 'b':0};
+  }
+  
   var h = 0;
        if(layer==0) h = 300;
   else if(layer==1) h =  60;

@@ -317,7 +317,7 @@ function Stats(force=false) {
       for(var y=0; y<FH; y++) {
         var cell = GetCell(x, y, z);
         
-        var v = pixelBits<32 ? cell.a : cell.a >> 16;  // cell's value
+        var v = pixelBits<32 ? cell.a : (cell.a & 1 == 0 ? 0 : cell.a << 27 >>> 28);  // cell's value
         if(v==0) continue;  // dead cell
         
         graphnums[graphstep][z][v] ++;
