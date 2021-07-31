@@ -113,6 +113,7 @@ function InitialFill() {
               var rv = rndF(0, 1000);
               var v = (rv>=1000/2 ? 1 : (rv>=1000/4 ? 2 : (rv>=1000/8 ? 3 : 0)));
               if(v>=RB) v = RB - 1;
+              if(v==0) continue;
               var xx = rndF(-mL, mL) + 32768;
               var yy = rndF(-mL, mL) + 32768;
               var speedlimit = round(mL/20);

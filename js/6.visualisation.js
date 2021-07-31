@@ -34,8 +34,8 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
   if(Family=='Movement4C') {
          if(v==0) return {'r':0, 'g':0, 'b':0};
     else if(v==1) return {'r':0, 'g':0, 'b':255};
-    else if(v==2) return {'r':255, 'g':0, 'b':0};
-    else if(v==3) return {'r':0, 'g':255, 'b':0};
+    else if(v==2) return {'r':220, 'g':0, 'b':0};
+    else if(v==3) return {'r':0, 'g':200, 'b':0};
   }
   
   var h = 0;
@@ -183,11 +183,11 @@ var ShowFragmentShaderSource = `
         int px = (xy.x + `+mL+`) * cnv_zoom / `+mL2+`;
         int py = (xy.y + `+mL+`) * cnv_zoom / `+mL2+`;
         
-        if(cnv_coord.x % cnv_zoom == px && cnv_coord.y % cnv_zoom == py) {
+        if(cnv_coord.x==px && cnv_coord.y==py) {
           color =
             n==0u
             ? vec4(1., 1., 1., 1.)
-            : vec4(0., 1., 0., 1.)
+            : vec4(1., 1., 0., 1.)
           ;
         }
       }
