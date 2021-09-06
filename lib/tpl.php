@@ -50,6 +50,18 @@ function MakePage() {
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
+  if(!$page->canonical) {
+    $filter_get = ['maxfps', 'paused', 'pauseat'];
+    $get = '';  $setcanon = false;
+    foreach($_GET as $k=>$v) {
+      if(in_array($k, $filter_get)) { $setcanon = true;  continue; }
+      $get .= ($get ? "&" : "?") . urlencode($k) . "=" . urlencode($v);
+    }
+    if($setcanon) $page->canonical = "$get";
+  }
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   $rax = "<script type=\"text/javascript\">document.write('<img src=\"//counter.yadro.ru/hit?t14.1;r' + escape(document.referrer) + ((typeof(screen)=='undefined')?'':';s'+screen.width+'*'+screen.height+'*'+(screen.colorDepth?screen.colorDepth:screen.pixelDepth)) + ';u' + escape(document.URL) + ';' + Math.random() + '\" border=0 width=88 height=31 alt=\"\">')</script>";
   $yam = '
   <script type="text/javascript">
@@ -135,6 +147,7 @@ function MakePage() {
   <META name=\"Keywords\" content=\"$page->kws\">
   <META name=\"Description\" content=\"$page->descr\">
   $page->meta
+  " . ($page->canonical ? "<link rel='canonical' href='$page->canonical'>" : "") . "
   <LINK href=\"./style.css?v=$_ENV->ver\" rel=stylesheet>
   <script src=\"./js.js?v=$_ENV->ver\"></script>".($page->jquery?"
   <script src='//ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js'></script>":"").($page->scripts?"
