@@ -292,6 +292,7 @@ function Stats(force=false) {
   var qd = 10, qx, qy, qq = []; // grid of squares qd*qd with coordinates (qx,qy) is to measure how species spread
   var qw = floor(FW / qd), qh = floor(FH / qd);  // assuming FW%qd==0 && FH%qd==0
   var nqtotal = qw * qh;  // total number of squares
+  var tmp = [];
   
   rec[S1].zero();
   
@@ -310,18 +311,28 @@ function Stats(force=false) {
   graphnums[graphstep] = [];
   for(var z=0; z<FD; z++) {
     qq[z] = [];
-    graphnums[graphstep][z] = [];  for(v=1; v<RB; v++) graphnums[graphstep][z][v] = 0;
+    graphnums[graphstep][z] = [];  for(v=0; v<RB; v++) { graphnums[graphstep][z][v] = 0;  tmp[v] = 0; }
     for(var x=0; x<FW; x++) {
       qx = floor(x / qd);
       if(!qq[z][qx]) qq[z][qx] = [];
       for(var y=0; y<FH; y++) {
         var cell = GetCell(x, y, z);
         
-        var al = pixelBits<32 ? (cell.a > 0 ? 1 : 0) : (cell.a & 1);
-        var v = pixelBits<32 ? cell.a : (al ? cell.a << 27 >>> 28 : 0);  // cell's value
+        var al = DataFormat=='UI8' ? (cell.a > 0 ? 1 : 0) : (cell.a & 1);
+        var v = DataFormat=='UI8' ? cell.a : (al ? cell.a << 27 >>> 28 : 0);  // cell's value
         if(al==0) continue;  // dead cell
         
-        graphnums[graphstep][z][v] ++;
+        if(Mode=='MVM') {
+          var vx = ((cell.r >>> 16) - 32768) / 200;
+          var vy = ((cell.g >>> 16) - 32768) / 200;
+          var am = v; // @ sync with shader!
+          var KE = am * (vx*vx + vy*vy) / 2;
+          graphnums[graphstep][z][v] += 1000 * KE;
+          tmp[v] ++;
+        }
+        else {
+          graphnums[graphstep][z][v] ++;
+        }
         
         rec[S1].livecells[z] ++;
         
@@ -330,6 +341,13 @@ function Stats(force=false) {
         qq[z][qx][qy] ++;  // each element of qq stores number of living cells in this square
         
         rec[S1].icehsh[z] += (x + y);  // hash-like sum of living cells
+      }
+    }
+    if(Mode=='MVM') {
+      graphnums[graphstep][z][0] = 0;
+      for(var v=1; v<RB; v++) {
+        if(tmp[v]>0) graphnums[graphstep][z][v] /= tmp[v];
+        graphnums[graphstep][z][0] += graphnums[graphstep][z][v];
       }
     }
   }
@@ -341,7 +359,7 @@ function Stats(force=false) {
   graphpoints[graphstep] = [];
   for(z=0; z<FD; z++) {
     graphpoints[graphstep][z] = [];
-    for(v=1; v<RB; v++) {
+    for(v=0; v<RB; v++) {
       var yv = graphnums[graphstep][z][v] ? StatGraphFunc(graphnums[graphstep][z][v]) / StatGraphFuncFWFH : 0;  // [0..1]
       var yy = GraphY(yv);  // [scnv_height .. 0]
       var clr = Color4Cell(z, v);

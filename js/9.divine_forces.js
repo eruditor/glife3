@@ -21,7 +21,7 @@ gl.canvas.onmousedown = function(e) {
       gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F);
       var cell = GetCell(mouseX, mouseY, 0);
       console.log('z='+z+', rgba=', cell);
-      if(pixelBits>=32) {
+      if(DataFormat=='UI32') {
         var s = '';
         
         var x = cell.r & 65535;  if(x<0)  x  += 65536;  x -= 32768;
@@ -45,8 +45,7 @@ gl.canvas.onmousedown = function(e) {
         (cell.a & 1) + ' ' +
         ((cell.a << 27) >>> 28) + ' ' +
         ((cell.a << 24) >>> 29) + ' ' +
-        ((cell.a << 20) >>> 28) + ' ' +
-        ((cell.a << 16) >>> 28) + ' ' +
+        ((cell.a << 16) >>> 24) + ' ' +
         (cell.a >>> 16) +
         '} ';
         
@@ -91,6 +90,7 @@ var MousFragmentShaderSource = `
   
   ivec3 tex3coord;
   ivec3 fieldSize;
+  uint dbg;
   
   uvec4 GetCell() {
     return texelFetch(u_fieldtexture, tex3coord, 0);

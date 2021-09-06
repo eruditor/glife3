@@ -8,61 +8,157 @@ const RG =
       8 0 4
       7 6 5
   */
-  Rgeom==18  // Moore2D
+  Rgeom==18  // Moore2D 3*3 spiral
   ?
     [
       [ 0,  0,  0],  //  0 = self
       [-1, -1,  0],  //  1
-      [ 0, -1,  0],  //  2 = up
+      [ 0, -1,  0],  //  2 = down
       [ 1, -1,  0],  //  3
       [ 1,  0,  0],  //  4 = right
       [ 1,  1,  0],  //  5
-      [ 0,  1,  0],  //  6 = down
+      [ 0,  1,  0],  //  6 = up
       [-1,  1,  0],  //  7
       [-1,  0,  0],  //  8 = left
     ]
-  : (
-  Rgeom==182  // Moore2D + vonNeumann1D
+  :
+  Rgeom==9  // Moore2D 3*3 cartesian
+  ?
+    [
+      [-1, -1,  0],  //  0
+      [ 0, -1,  0],  //  1
+      [ 1, -1,  0],  //  2
+      [-1,  0,  0],  //  3
+      [ 0,  0,  0],  //  4
+      [ 1,  0,  0],  //  5
+      [-1,  1,  0],  //  6
+      [ 0,  1,  0],  //  7
+      [ 1,  1,  0],  //  8
+    ]
+  :
+  Rgeom==182  // Moore2D spiral + vonNeumann1D
   ?
     [
       [ 0,  0,  0],  //  0 = self
       [-1, -1,  0],  //  1
-      [ 0, -1,  0],  //  2 = up
+      [ 0, -1,  0],  //  2 = down
       [ 1, -1,  0],  //  3
       [ 1,  0,  0],  //  4 = right
       [ 1,  1,  0],  //  5
-      [ 0,  1,  0],  //  6 = down
+      [ 0,  1,  0],  //  6 = up
       [-1,  1,  0],  //  7
       [-1,  0,  0],  //  8 = left
       [ 0,  0,  1],  //  9 = upper
       [ 0,  0, -1],  // 10 = lower
     ]
-  : (
-  Rgeom==142  // vonNeumann2D + vonNeumann1D
+  :
+  Rgeom==14  // vonNeumann2D spiral
   ?
     [
       [ 0,  0,  0],  //  0 = self
-      [ 0, -1,  0],  //  1 = up
+      [ 0, -1,  0],  //  1 = down
       [ 1,  0,  0],  //  2 = right
-      [ 0,  1,  0],  //  3 = down
+      [ 0,  1,  0],  //  3 = up
+      [-1,  0,  0],  //  4 = left
+    ]
+  :
+  Rgeom==142  // vonNeumann2D spiral + vonNeumann1D
+  ?
+    [
+      [ 0,  0,  0],  //  0 = self
+      [ 0, -1,  0],  //  1 = down
+      [ 1,  0,  0],  //  2 = right
+      [ 0,  1,  0],  //  3 = up
       [-1,  0,  0],  //  4 = left
       [ 0,  0,  1],  //  5 = upper
       [ 0,  0, -1],  //  6 = lower
     ]
   :
+  Rgeom==1816  // Moore2D 5*5 spiral
+  ?
+    [
+      [ 0,  0,  0],  //  0 = self
+      [-1, -1,  0],  //  1
+      [ 0, -1,  0],  //  2 = down
+      [ 1, -1,  0],  //  3
+      [ 1,  0,  0],  //  4 = right
+      [ 1,  1,  0],  //  5
+      [ 0,  1,  0],  //  6 = up
+      [-1,  1,  0],  //  7
+      [-1,  0,  0],  //  8 = left
+      [-2, -2,  0],  //  9
+      [-1, -2,  0],  //  10
+      [ 0, -2,  0],  //  11 = down2
+      [ 1, -2,  0],  //  12
+      [ 2, -2,  0],  //  13
+      [ 2, -1,  0],  //  14
+      [ 2,  0,  0],  //  15 = right2
+      [ 2,  1,  0],  //  16
+      [ 2,  2,  0],  //  17
+      [ 1,  2,  0],  //  18
+      [ 0,  2,  0],  //  19 = up2
+      [-1,  2,  0],  //  20
+      [-2,  2,  0],  //  21
+      [-2,  1,  0],  //  22
+      [-2,  0,  0],  //  23 = left2
+      [-2, -1,  0],  //  24
+    ]
+  :
+  Rgeom==25  // Moore2D 5*5 cartesian
+  ?
+    [
+      [-2, -2,  0],  //  0
+      [-1, -2,  0],  //  1
+      [ 0, -2,  0],  //  2
+      [ 1, -2,  0],  //  3
+      [ 2, -2,  0],  //  4
+      [-2, -1,  0],  //  5
+      [-1, -1,  0],  //  6
+      [ 0, -1,  0],  //  7
+      [ 1, -1,  0],  //  8
+      [ 2, -1,  0],  //  9
+      [-2,  0,  0],  //  10
+      [-1,  0,  0],  //  11
+      [ 0,  0,  0],  //  12
+      [ 1,  0,  0],  //  13
+      [ 2,  0,  0],  //  14
+      [-2,  1,  0],  //  15
+      [-1,  1,  0],  //  16
+      [ 0,  1,  0],  //  17
+      [ 1,  1,  0],  //  18
+      [ 2,  1,  0],  //  19
+      [-2,  2,  0],  //  20
+      [-1,  2,  0],  //  21
+      [ 0,  2,  0],  //  22
+      [ 1,  2,  0],  //  23
+      [ 2,  2,  0],  //  24
+    ]
+  :
   []
-  ))
 ;
 
 const RC = RG.length;  // number of cells in neighborhood that affects current cell's state (length of neib encoding)
 
-const SNN = intval((''+Rgeom)[1]);  // number of cells in same-layer neighborhood (8 for Moore, 4 for vonNeumann)
+var snn = 0, rgr = 0, rg0 = 0;
+for(var i=0; i<RC; i++) {
+  if(rgr<RG[i][0]) rgr = RG[i][0];
+  if(RG[i][0]==0 && RG[i][1]==0) {
+    rg0 = i;
+  }
+  else {
+    if(RG[i][2]==0) snn ++;
+  }
+}
+const SNN = intval(snn);  // number of cells in same-layer neighborhood (8 for Moore, 4 for vonNeumann, 24 for Moore5x5)
+const RGR = rgr;  // radius of neighborhood (1 for 3*3, 2 for 5*5)
+const RGD = RGR * 2 + 1;  // diameter of neighborhood (3, 5)
+const RG0 = (RGD * RGD - 1) / 2;  // index of central cartesian cell = shift for RG cartesian indexing
 
 // NEIB VARS ////////////////////////////////////////////////////////////////
 // neib = configuration of cell states in neighborhood geometry
 
 // each cell in neighborhood geometry can take one of RB values
-const RL = Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
+const RL = Mode=='MVM' ? 1 : Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
 const RLv = RL * RB;  // length of rule encoding (rule space -> value)
 const RLv64 = Math.ceil(Math.log(RLv) / Math.log(64));  // number of base64-digits needed to encode rule
 
@@ -72,10 +168,10 @@ const RLv64 = Math.ceil(Math.log(RLv) / Math.log(64));  // number of base64-digi
 const RX = gl.getParameter(gl.MAX_TEXTURE_SIZE);  // max texture length (MAX_3D_TEXTURE_SIZE for 3D)
 var Rtx = RL, Rty = 1;
 if(RL>RX) { Rtx = RX;  Rty = Math.ceil(RL/RX); }
-if(Rty>RX) alert('max_texture_size is not sufficient to store rules ('+Rty+'>'+RX+')');
 
 var R = [];
-for(var z=0; z<FD; z++) R[z] = new jsdata_Array(4 * Rtx * Rty);
+if(Rty>RX) alert('max_texture_size is not sufficient to store rules ('+Rty+'>'+RX+')');
+else for(var z=0; z<FD; z++) R[z] = new jsdata_Array(4 * Rtx * Rty);
 
 function SetRule(z, b, v) {
   if(v<255) {

@@ -37,7 +37,7 @@ for(var z=0; z<FD; z++) {
 fs_GetTexel2D += `  }`;
 
 function fs_PackAliveness(alive='alive') {
-  return pixelBits<32
+  return DataFormat=='UI8'
   ? `
         // color.b = color decay value (optional); color.a must be set already!
              if(color.a>0u) color.b = 200u;           // alive cell
@@ -174,8 +174,7 @@ else if(Mode=='MVM') {
     }
   `;
   
-  // b[0] = trending = moving particle transfer to another cell:
-  // request for moving away alive cell or acceptance for nearby empty cell
+  // bonds
   var fs_ExtractB = `
     uint[8] ExtractB(uvec4 cell) {
       return uint[8](
@@ -202,22 +201,21 @@ else if(Mode=='MVM') {
     }
   `;
   
-  // -- highest 16bit = debug info;  next 8 bit = alive cell's color;  lowest 8bit = decay and color of died cell
+  // trending = moving particle transfer to another cell:
+  // : request for moving away alive cell or acceptance for nearby empty cell
   var fs_ExtractA = `
     #define A_alive 0
     #define A_v     1
     #define A_decay 2
     #define A_trend 3
-    #define A_aux   4
-    #define A_dbg   5
+    #define A_dbg   4
     
     uint[6] ExtractA(uint cell_a) {
       uint[6] ret;
       ret[A_alive] = cell_a & 1u;           //  1 bit = is the cell alive
       ret[A_v]     = cell_a << 27u >> 28u;  //  4 bit = cell's value
       ret[A_decay] = cell_a << 24u >> 29u;  //  3 bit = color decay for died cell
-      ret[A_trend] = cell_a << 20u >> 28u;  //  4 bit = trending/accepting flags
-      ret[A_aux]   = cell_a << 16u >> 28u;  //  4 bit = aux = ...
+      ret[A_trend] = cell_a << 16u >> 24u;  //  4 bit = trending/accepting flags
       ret[A_dbg]   = cell_a >> 16u;         // 16 bit = debug info
       return ret;
     }
@@ -231,10 +229,10 @@ else if(Mode=='MVM') {
     }
     
     uint ExtractAt(uint cell_a) {
-      return cell_a << 20u >> 28u;
+      return cell_a << 16u >> 24u;
     }
     
-    uint PackA(uint al, uint v, uint trend, uint aux, uint self_a, uint dbg) {
+    uint PackA(uint al, uint v, uint trend, uint self_a, uint dbg2) {
       uint decay = 0u;
       if(al==0u) {
         v = 0u;  // paranoic
@@ -250,49 +248,57 @@ else if(Mode=='MVM') {
              (v     <<  1u) |
              (decay <<  5u) |
              (trend <<  8u) |
-             (aux   << 12u) |
-             (dbg   << 16u);
+             (dbg2  << 16u);
     }
   `;
   
+  var fs_NthDirection = ``;
+  for(var k in RG) {
+    fs_NthDirection += `      if(n==`+k+`u) return ivec2(`+RG[k][0]+`, `+RG[k][1]+`);\n`;
+  }
+  fs_NthDirection = `
+      ivec2 NthDirection(uint n) {
+        ` + fs_NthDirection + `
+      }
+  `;
+  
+  var cartesian2spiral = [], spiral2cartesian = [], antitrends = [];
+  for(var i=0; i<RC; i++) {
+    var c = RG0 + RGD * RG[i][1] + RG[i][0];  // cartesian indexing
+    cartesian2spiral[c] = i;
+    spiral2cartesian[i] = c;
+  }
+  for(var i=0; i<RC; i++) {
+    var ac = RG0 - RGD * RG[i][1] - RG[i][0];  // cartesian antitrend for i-th spiral
+    antitrends[i] = cartesian2spiral[ac];
+  }
+  var c2s = '', s2c = '', atd = '';
+  for(var i=0; i<RC; i++) {
+    c2s += (c2s!='' ? ', ' : '') + cartesian2spiral[i] + 'u';
+    s2c += (s2c!='' ? ', ' : '') + spiral2cartesian[i] + 'u';
+    atd += (atd!='' ? ', ' : '') + antitrends[i] + 'u';
+  }
+  var fs_Cartesian = `
+    uint cartesian2spiral[`+RC+`] = uint[`+RC+`](`+c2s+`);
+    uint spiral2cartesian[`+RC+`] = uint[`+RC+`](`+s2c+`);
+    uint antitrends[`+RC+`]       = uint[`+RC+`](`+atd+`);
+  `;
+  
   var fs_Trends = `
+    
+    ` + fs_Cartesian + `
+    
     uint CalcTrend(ivec4 xy) {
-           if(xy.x<=-`+mL+` && xy.y<=-`+mL+`) return 1u;
-      else if(xy.x>= `+mL+` && xy.y<=-`+mL+`) return 3u;
-      else if(                 xy.y<=-`+mL+`) return 2u;
-      else if(xy.x<=-`+mL+` && xy.y>= `+mL+`) return 7u;
-      else if(xy.x>= `+mL+` && xy.y>= `+mL+`) return 5u;
-      else if(                 xy.y>= `+mL+`) return 6u;
-      else if(xy.x<=-`+mL+`                 ) return 8u;
-      else if(xy.x>= `+mL+`                 ) return 4u;
-      else                                    return 0u;
+      ivec2 c = xy.xy / `+mL+`;
+      if(c.x<-`+RGR+`) c.x = -`+RGR+`;  if(c.x>`+RGR+`) c.x = `+RGR+`;
+      if(c.y<-`+RGR+`) c.y = -`+RGR+`;  if(c.y>`+RGR+`) c.y = `+RGR+`;
+      return cartesian2spiral[`+RG0+` + `+RGD+` * c.y + c.x];
     }
     
-    //                           0   1   2   3   4   5   6   7   8
-    uint antitrends[9] = uint[9](0u, 5u, 6u, 7u, 8u, 1u, 2u, 3u, 4u);
+    ` + fs_NthDirection + `
     
     uvec2 XY4Trended(uint n, uvec4 cell) {
-           if(n==1u) return uvec2(cell.x - `+mL2+`u, cell.y - `+mL2+`u);
-      else if(n==3u) return uvec2(cell.x + `+mL2+`u, cell.y - `+mL2+`u);
-      else if(n==2u) return uvec2(cell.x           , cell.y - `+mL2+`u);
-      else if(n==7u) return uvec2(cell.x - `+mL2+`u, cell.y + `+mL2+`u);
-      else if(n==5u) return uvec2(cell.x + `+mL2+`u, cell.y + `+mL2+`u);
-      else if(n==6u) return uvec2(cell.x           , cell.y + `+mL2+`u);
-      else if(n==8u) return uvec2(cell.x - `+mL2+`u, cell.y           );
-      else if(n==4u) return uvec2(cell.x + `+mL2+`u, cell.y           );
-      else if(n==0u) return uvec2(cell.x           , cell.y           );
-    }
-    
-    ivec2 NthDirection(uint n) {  // @ =Rgeom
-           if(n==1u) return ivec2(-1, -1);
-      else if(n==2u) return ivec2( 0, -1);
-      else if(n==3u) return ivec2( 1, -1);
-      else if(n==4u) return ivec2( 1,  0);
-      else if(n==5u) return ivec2( 1,  1);
-      else if(n==6u) return ivec2( 0,  1);
-      else if(n==7u) return ivec2(-1,  1);
-      else if(n==8u) return ivec2(-1,  0);
-      else if(n==0u) return ivec2( 0,  0);
+      return uvec2(ivec2(cell.xy) + `+mL2+` * NthDirection(n));
     }
   `;
   
@@ -309,6 +315,7 @@ else if(Mode=='MVM') {
     
     ivec3 tex3coord;
     ivec3 fieldSize;
+    uint dbg;
     
     ` + fs_ModuloTorus + `
     
@@ -332,22 +339,26 @@ else if(Mode=='MVM') {
       return ret;
     }
     
-    bool ScanArray17(uint[8] b, uint n) {
-      return (b[1]==n || b[2]==n || b[3]==n || b[4]==n || b[5]==n || b[6]==n || b[7]==n) ? true : false;
-    }
-    
     float atom_masses[4]   = float[4](0., 1., 2., 3.);
     uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
-    int atom_bondenergies[4] = int[4]( 0, 20 , 25 , 15 );
+    int atom_bondenergies[4] = int[4]( 0, 20, 25, 15);
     
     void main() {
       fieldSize = textureSize(u_fieldtexture, 0);
+      
+      dbg = 0u;
       
       for(int layer=0; layer<`+FD+`; layer++) {
         tex3coord = ivec3(v_texcoord, layer);
         
         // getting cell's neighborhood
         uvec4 cells[`+RC+`];
+        /*
+        for(uint n=0u; n<`+RC+`u; n++) {
+          ivec2 ndir = NthDirection(n);
+          cells[n] = GetCell(ndir.x, ndir.y, 0);
+        }
+        */
         ` + fs_GetNeibs + `
         
         uvec4 self = cells[0];  // previous self cell state
@@ -364,11 +375,10 @@ else if(Mode=='MVM') {
         uint trend0 = ExtractAt(self.a);
         uint trend = 0u;
         
-        uint dbg = 0u;
-        
         // alive cell ////////////////////////////////////////////////////////////////
         if(al0>0u) {
           ivec4 xy = ExtractXY(self);
+          xy.xy += xy.zw / 2;
           
           v = ExtractAv(self.a);  // cell's value
           
@@ -382,11 +392,13 @@ else if(Mode=='MVM') {
           uint freebonds = bn;
           int bondenergy[8] = int[8](0,0,0,0,0,0,0,0);
           
-          for(uint n=1u; n<`+RC+`u; n++) {
+          for(uint n=1u; n<9u; n++) {
             uint nv = ExtractAv(cells[n].a);  // @ optimize it
             if(nv==0u) continue;
             
             ivec4 nxy = ExtractXY(cells[n]);  // neib's coords and velocity
+            nxy.xy += nxy.zw / 2;
+            
             ivec2 ndir = NthDirection(n);  // points from current cell to neib cell
             ivec2 dl = `+mL2+` * ndir + nxy.xy - xy.xy;  // points from current atom coords to neib atom coords
             
@@ -398,25 +410,39 @@ else if(Mode=='MVM') {
             uint bondidx = n - 1u;  // 0..7
             uint[8] nb = ExtractB(cells[n]);  // neib's bonds
             
-            float charge = 1.;  //if(nv!=v) charge = -1.;
-            //d2xy += charge * atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
+            //d2xy += atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
             //d2xy += 0.02 / atom_masses[v] * vec2(dl) / dist * (dist - `+mL2+`.);  // harmonic
+            //d2xy += 100. / atom_masses[v] * vec2(dl) / dist * (dist/`+mL2+`. - 0.8);  // harmonic
+            
             
             bool bonded = false;
             if(b0[bondidx]>0u) {  // this cell has a bond to n-th neib
               uint antibondidx = antitrends[n] - 1u;
               if(nb[antibondidx]>0u) {  // neib also has a bond to this cell
                 bonded = true;
-                //d2xy += charge * atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
+                //d2xy += atom_masses[nv] * `+fmL+` * vec2(dl) / dist / dist * `+fmL+` / dist;  // gravity
                 //d2xy += 100. / atom_masses[v] * vec2(dl) / dist * (`+mL2+`./dist - `+mL2+`./dist*`+mL2+`./dist);  // EM
                 //float dist2 = dist + 3000.;  d2xy += 20. / atom_masses[v] * vec2(dl) / dist * (`+mL2+`./dist2 - `+mL2+`./dist2*`+mL2+`./dist2);  // EM-shifted
-                d2xy += 10. / atom_masses[v] * vec2(dl) / dist * (dist/`+mL2+`. - 0.8);  // harmonic
-                d2xy += 0.3 * atom_masses[nv] / (atom_masses[v] + atom_masses[nv]) * vec2(nxy.zw - xy.zw);  // inelastic collisions
+                //d2xy += 100. / atom_masses[v] * vec2(dl) / dist * (dist/`+mL2+`. - 0.8);  // harmonic
+                //d2xy += 0.3 * atom_masses[nv] / (atom_masses[v] + atom_masses[nv]) * vec2(nxy.zw - xy.zw);  // inelastic collisions
+                
+                /*
+                float xx = 2. * dist / `+mL+`.;  if(xx<0.85) xx = 0.85;
+                float xx_2 = 1. / xx / xx;
+                float ff = xx_2 - xx_2 * xx_2;  // x^-2 - x^-4: max=25 f(0.8)=88, f(0.85)=53 f(0.9)=23
+                d2xy += 100. / atom_masses[v] * vec2(dl) / dist * ff;
+                */
+                
+                float a = 0.0002, re = `+mL+`., De = 200000.;
+                float e = exp(a * (re - dist));
+                float f = 2. * De * a * e * (1. - e);
+                if(f<-10.) f = -10.;
+                d2xy += 1. / atom_masses[v] * vec2(dl) / dist * f;
               }
             }
             
             if(!bonded && b0count>=bn && CountBonds(nb)>=atom_bondnums[nv]) {
-              d2xy += -10. / atom_masses[v] * vec2(dl) / dist * (`+mL+`./(`+mL+`. + dist));  // repulsion
+              //d2xy += -10. / atom_masses[v] * vec2(dl) / dist * (`+mL+`./(`+mL+`. + dist));  // repulsion
             }
             
             // setting new bonds
@@ -452,8 +478,7 @@ else if(Mode=='MVM') {
           if(xy.w> `+mV+`) xy.w =  `+mV+`;
           
           // movement
-          xy.x += xy.z;
-          xy.y += xy.w;
+          xy.xy += xy.zw / 2;
           
           if(xy.x<-`+mR+`) xy.x = -`+mR+`;
           if(xy.y<-`+mR+`) xy.y = -`+mR+`;
@@ -482,7 +507,7 @@ else if(Mode=='MVM') {
         }
         // empty cell ////////////////////////////////////////////////////////////////
         else {
-          if(trend0>0u) {  // accepting cell
+          if(trend0!=0u) {  // accepting cell
             uint atrend = antitrends[trend0];
             uvec4 trender = cells[atrend];
             if(ExtractAl(trender.a)>0u && ExtractAt(trender.a)==trend0) {
@@ -505,7 +530,7 @@ else if(Mode=='MVM') {
         
         color.b = PackB(b);
         
-        color.a = PackA(al, v, trend, 0u, self.a, dbg);
+        color.a = PackA(al, v, trend, self.a, dbg);
         
         ` + fs_Prepare2Return('color') + `
       }

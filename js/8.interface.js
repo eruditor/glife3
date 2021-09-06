@@ -84,6 +84,8 @@ function CreateNavButtons() {
   function htk_keyUp(e) {  //e.ctrlKey
          if(e.key=='p') { Pause(); }
     else if(e.key=='o') { Calc(1);  Show(1);  Stats(1); }
+    else if(e.key=='-') { Speed(-1); }
+    else if(e.key=='=') { Speed( 1); }
   }
   document.addEventListener('keydown', htk_keyUp);
   

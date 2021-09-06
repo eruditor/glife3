@@ -13,16 +13,25 @@ var gl_ext = gl.getExtension('EXT_color_buffer_float');  // for floating-point m
 // DATA FORMAT ////////////////////////////////////////////////////////////////
 
 // main: Field and Rules
-const pixelBits = Mode=='MVM' ? 32 : 8;  // 8 or 32
-const gldata_Format   = gl.RGBA_INTEGER;
-const gldata_Internal = pixelBits==32 ? gl.RGBA32UI     : gl.RGBA8UI;
-const gldata_Type     = pixelBits==32 ? gl.UNSIGNED_INT : gl.UNSIGNED_BYTE;
-const jsdata_Array    = pixelBits==32 ? Uint32Array     : Uint8Array;
+const DataFormat =
+    Mode=='MVM'  ? 'UI32'
+  : Mode=='MVM2' ? 'F32'
+  :                'UI8';
+
+var data_formats = {
+  'UI32': [gl.RGBA_INTEGER, gl.RGBA32UI, gl.UNSIGNED_INT,  Uint32Array ],
+  'F32' : [gl.RGBA,         gl.RGBA32F,  gl.FLOAT,         Float32Array],
+  'UI8' : [gl.RGBA_INTEGER, gl.RGBA8UI,  gl.UNSIGNED_BYTE, Uint8Array  ]
+};
+const gldata_Format   = data_formats[DataFormat][0];
+const gldata_Internal = data_formats[DataFormat][1];
+const gldata_Type     = data_formats[DataFormat][2];
+const jsdata_Array    = data_formats[DataFormat][3];
 
 // auxiliary: floating-point math for Analysis
-const glFl32_Format   = gl.RGBA;  //RGBA_INTEGER  // if EXT_color_buffer_float is not supported - use INT32
-const glFl32_Internal = gl.RGBA32F;  //RGBA32I
-const glFl32_Type     = gl.FLOAT;  //INT
+const glFl32_Format   = gl.RGBA;  // if EXT_color_buffer_float is not supported - use INT32
+const glFl32_Internal = gl.RGBA32F;
+const glFl32_Type     = gl.FLOAT;
 
 // auxiliary: high precision UInt32 math for Analysis
 const glUI32_Format   = gl.RGBA_INTEGER;

@@ -31,7 +31,7 @@ var surface = new Surface();
 // SHOW SHADER ////////////////////////////////////////////////////////////////
 
 function Color4Cell(layer=0, v=1, s=1, l=0.5) {
-  if(Family=='Movement4C') {
+  if(Mode=='MVM') {
          if(v==0) return {'r':0, 'g':0, 'b':0};
     else if(v==1) return {'r':0, 'g':0, 'b':255};
     else if(v==2) return {'r':220, 'g':0, 'b':0};
@@ -66,14 +66,14 @@ var fs_Color4Cell = `
   vec4 Color4Cell(uvec4 cell, int layer) {
     vec4 ret = vec4(0., 0., 0., 1.);
     
-    ` + (pixelBits>=32 ? `uint[6] exa = ExtractA(cell.a);` : ``) + `
+    ` + (DataFormat=='UI32' ? `uint[6] exa = ExtractA(cell.a);` : ``) + `
     
-    uint aliv = ` + (pixelBits<32 ? `cell.a` : `exa[A_alive]`) + `;
+    uint aliv = ` + (DataFormat=='UI8' ? `cell.a` : `exa[A_alive]`) + `;
     
-    if(aliv==0u` + (pixelBits<32 ? ` && cell.b==0u` : ``) + `) return ret;
+    if(aliv==0u` + (DataFormat=='UI8' ? ` && cell.b==0u` : ``) + `) return ret;
     
     ` + (
-      pixelBits<32
+      DataFormat=='UI8'
       ? `uint v = aliv>0u ? aliv : cell.b % 10u;`
       : `uint v = exa[A_v];`  // aliv>255u ? aliv >> 8u : aliv % 10u
     ) + `
@@ -81,7 +81,7 @@ var fs_Color4Cell = `
     ` + fs_colors + `
     
     ` + (
-      pixelBits<32
+      DataFormat=='UI8'
       ? `float sat = aliv>0u ? 1. : float(cell.b - v) / 255.;`
       : `float sat = aliv>0u ? 1. : float(exa[A_decay] * 15u) / 255.;`
     ) + `
@@ -115,6 +115,7 @@ var ShowFragmentShaderSource = `
   
   ivec3 tex3coord;
   ivec3 fieldSize;
+  uint dbg;
   ` + fs_ModuloTorus + `
   ` + fs_GetCell() + `
   ` + fs_Trends + `
