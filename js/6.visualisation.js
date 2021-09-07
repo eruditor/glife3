@@ -205,27 +205,22 @@ var ShowFragmentShaderSource = `
       ivec2 cnvc = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy) * `+zoom+`. * u_surface.z );  // canvas coords
       int x = cnvc.x, y = cnvc.y;
       int d2 = d / 2;
+      int d1 = d - 1;
       
       if(ExtractAl(cell)>0u) {
         uint speed = ExtractSpeed(cell);
              if(speed==0u) { if(isqr(d2 - x) + isqr(d2 - y) >= isqr(d2)) color = vec4(0., 0., 0., 1.); }
-        else if(speed==1u) { if(x + y     < d2 || d - x + y     <= d2)   color = vec4(0., 0., 0., 1.); }
-        else if(speed==2u) { if(y + d - x < d2 || d - y + d - x <= d2)   color = vec4(0., 0., 0., 1.); }
-        else if(speed==3u) { if(x + d - y < d2 || d - x + d - y <= d2)   color = vec4(0., 0., 0., 1.); }
-        else if(speed==4u) { if(x + y     < d2 || d - y + x     <= d2)   color = vec4(0., 0., 0., 1.); }
-        
-        uint trend = ExtractTrend(cell);
-             if(trend==1u) { if(y==1)   color = vec4(.5, 0., 0., 1.); }
-        else if(trend==2u) { if(x==d-1) color = vec4(.5, 0., 0., 1.); }
-        else if(trend==3u) { if(y==d-1) color = vec4(.5, 0., 0., 1.); }
-        else if(trend==4u) { if(x==1)   color = vec4(.5, 0., 0., 1.); }
+        else if(speed==1u) { if(x + y      < d2 || d1 - x + y      <= d2)   color = vec4(0., 0., 0., 1.); }
+        else if(speed==2u) { if(y + d1 - x < d2 || d1 - y + d1 - x <= d2)   color = vec4(0., 0., 0., 1.); }
+        else if(speed==3u) { if(x + d1 - y < d2 || d1 - x + d1 - y <= d2)   color = vec4(0., 0., 0., 1.); }
+        else if(speed==4u) { if(x + y      < d2 || d1 - y + x      <= d2)   color = vec4(0., 0., 0., 1.); }
       }
       
-      uint accept = ExtractAccept(cell);
-           if(accept==3u) { if(y==2)   color = vec4(0., 0.3, 0., 1.); }
-      else if(accept==4u) { if(x==d-2) color = vec4(0., 0.3, 0., 1.); }
-      else if(accept==1u) { if(y==d-2) color = vec4(0., 0.3, 0., 1.); }
-      else if(accept==2u) { if(x==2)   color = vec4(0., 0.3, 0., 1.); }
+      uint gate = ExtractGate(cell);
+           if(gate==1u) { if(y==0)   color = vec4(0., 0.3, 0., 1.); }
+      else if(gate==2u) { if(x==d-1) color = vec4(0., 0.3, 0., 1.); }
+      else if(gate==3u) { if(y==d-1) color = vec4(0., 0.3, 0., 1.); }
+      else if(gate==4u) { if(x==0)   color = vec4(0., 0.3, 0., 1.); }
     }
     ` : ``) + `
     

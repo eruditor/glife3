@@ -148,6 +148,10 @@ function InitialFill() {
       SetCell(2, 4, 0, 2, 0, 0, (1 << 1) + 1);
       SetCell(8, 4, 0, 4, 0, 0, (2 << 1) + 1);
     }
+    else if(cfg.debug==2) {
+      SetCell(4, 4, 0, 1, 0, 0, (1 << 1) + 1);
+      SetCell(2, 3, 0, 2, 0, 0, (2 << 1) + 1);
+    }
     else {
       var lstep = 1000;
       var speedlimit = round(mL/100);

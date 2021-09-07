@@ -610,17 +610,12 @@ else if(Mode=='BND') {
     
     ////////////////////////////////////////////////////////////////
         
-    uint ExtractTrend(uvec4 cell) {
+    uint ExtractGate(uvec4 cell) {
       return cell.g % 16u;
     }
     
-    uint ExtractAccept(uvec4 cell) {
-      return cell.g >> 4u;
-    }
-    
-    uint PackG(uint trend, uint accept) {
-      return (trend  <<  0u) |
-             (accept <<  4u);
+    uint PackG(uint gate) {
+      return (gate  <<  0u);
     }
     
     ////////////////////////////////////////////////////////////////
@@ -663,7 +658,7 @@ else if(Mode=='BND') {
     uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
     int atom_bondenergies[4] = int[4]( 0, 20, 25, 15);
     
-    uint antitrends[5] = uint[5](0u, 3u, 4u, 1u, 2u);
+    uint revers[5] = uint[5](0u, 3u, 4u, 1u, 2u);
     
     void main() {
       fieldSize = textureSize(u_fieldtexture, 0);
@@ -679,31 +674,44 @@ else if(Mode=='BND') {
         
         uint al0 = ExtractAl(cells[0]), al = al0;
         uint fl0 = ExtractFl(cells[0]), fl = fl0;
-        uint decay;
+        uint decay0 = ExtractDecay(cells[0]), decay = 0u;
+        uint gate0  = ExtractGate( cells[0]), gate  = 0u;
+        uint speed0 = ExtractSpeed(cells[0]), speed = speed0;
         uint[5] bonds;
-        uint trend0  = ExtractTrend( cells[0]), trend  = 0u;
-        uint accept0 = ExtractAccept(cells[0]), accept = 0u;
-        uint speed0  = ExtractSpeed( cells[0]), speed  = speed0;
         
         // alive cell ////////////////////////////////////////////////////////////////
         if(al0>0u) {
           al = 1u;
-          if(trend0!=0u) {  // was trending at previous turn
-            uvec4 acceptor = cells[trend0];
-            if(ExtractAccept(acceptor)==trend0) {  // neighbour cell accepted transfer from self to it
-              if(ExtractAl(acceptor)==0u) {  // accepting cell is empty => transfering whole cell
+          if(gate0>0u) {  // was open at previous turn
+            uvec4 mate = cells[gate0];
+            if(ExtractGate(mate)==revers[gate0]) {  // sluice open
+              if(ExtractAl(mate)==0u) {  // open cell is empty => transfering whole cell
                 al = 0u;
+                decay = 7u;
               }
-              else {  // accepting cell is alive => exchanging momentum
-                speed = ExtractSpeed(acceptor);
+              else {  // open cell is alive => exchanging momentum
+                speed = ExtractSpeed(mate);
               }
             }
           }
           
+          if(al>0u) gate = speed;
+          
+          if(speed==0u) {  // opening gate for standing cell
+            for(uint n=1u; n<`+RC+`u; n++) {
+              if(ExtractAl(cells[n])==0u) continue;
+              if(ExtractGate(cells[n])==revers[n]) {  // neib moves to us
+                gate = n;
+                break;
+              }
+            }
+          }
+          
+          /*
           if(accept0>0u) {  // accepting momentum exchange
-            uint atrend = antitrends[accept0];
+            uint atrend = revers[accept0];
             uvec4 trender = cells[atrend];
-            if(ExtractAl(trender)>0u && ExtractTrend(trender)==accept0) {
+            if(ExtractAl(trender)>0u && ExtractGate(trender)==accept0) {
               speed = ExtractSpeed(trender);
             }
           }
@@ -711,9 +719,10 @@ else if(Mode=='BND') {
             if(speed==0u) {  // momentum transfer from moving to standing cell
               for(uint n=1u; n<`+RC+`u; n++) {
                 if(ExtractAl(cells[n])==0u) continue;
-                uint ntrend = ExtractTrend(cells[n]);
-                if(ntrend==antitrends[n]) {  // neib moves to us
+                uint ntrend = ExtractGate(cells[n]);
+                if(ntrend==revers[n]) {  // neib moves to us
                   accept = ntrend;
+                  //notrend = 1u;
                   break;  // first of trending nearby cells wins
                 }
               }
@@ -721,35 +730,31 @@ else if(Mode=='BND') {
             else {  // momentum exchange in face-to-face collisions
               uint n = speed;
               if(ExtractAl(cells[n])>0u) {
-                uint ntrend = ExtractTrend(cells[n]);
-                if(ntrend==antitrends[n]) {  // neib moves to us
+                uint ntrend = ExtractGate(cells[n]);
+                if(ntrend==revers[n]) {  // neib moves to us
                   accept = ntrend;
                 }
               }
             }
           }
-          
-          if(al>0u) {
-            trend = speed;  // request transfer
-          }
+          */
         }
         // dead cell ////////////////////////////////////////////////////////////////
         else {
-          if(accept0!=0u) {
-            uint atrend = antitrends[accept0];
-            uvec4 trender = cells[atrend];
-            if(ExtractAl(trender)>0u && ExtractTrend(trender)==accept0) {
+          if(gate0>0u) {
+            uvec4 mate = cells[gate0];
+            if(ExtractAl(mate)>0u && ExtractGate(mate)==revers[gate0]) {
               al = 1u;
-              fl = ExtractFl(trender);
-              speed = ExtractSpeed(trender);
+              fl = ExtractFl(mate);
+              speed = ExtractSpeed(mate);
+              gate = speed;
             }
           }
           else {  // looking for something to accept
             for(uint n=1u; n<`+RC+`u; n++) {
               if(ExtractAl(cells[n])==0u) continue;
-              uint ntrend = ExtractTrend(cells[n]);
-              if(ntrend==antitrends[n]) {  // neib moves to us
-                accept = ntrend;
+              if(ExtractGate(cells[n])==revers[n]) {  // neib moves to us
+                gate = n;
                 break;  // first of trending nearby cells wins
               }
             }
@@ -757,10 +762,13 @@ else if(Mode=='BND') {
         }
         //  ////////////////////////////////////////////////////////////////
         
+        if(al>0u) decay = 0u;
+        else if(decay0>0u) decay = decay0 - 1u;
+        
         uvec4 color = uvec4(0);
         color.a = PackA(al, fl, decay);
         color.b = PackB(bonds);
-        color.g = PackG(trend, accept);
+        color.g = PackG(gate);
         color.r = PackR(speed);
         ` + fs_Prepare2Return('color') + `
       }
