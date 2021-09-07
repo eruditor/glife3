@@ -53,8 +53,8 @@ function CreateNavButtons() {
   <td><input type=button class='mediabtn' id='pausebtn'     value='` + (cfg.paused    ? `\u25B6\uFE0F` : `\u23F8\uFE0F`) + `' onclick='Pause();' autofocus title='Start/Stop Calculation (P)'>
   <td><input type=button class='mediabtn' value='\u23ED\uFE0F' onclick='Calc(1); Show(1); Stats(1);' title='One step (O)'>
   <td><input type=button class='mediabtn' id='pausestatbtn' value='` + (cfg.pausestat ? `\u23FA\uFE0F` : `\u23F9\uFE0F`) + `' onclick='PauseStat();' title='Start/Stop Analysis'>
-  <td><input type=button class='mediabtn' value='\u23EA\uFE0F' onclick='Speed(-1);' title='Speed Down'>
-  <td><input type=button class='mediabtn' value='\u23E9\uFE0F' onclick='Speed( 1);' title='Speed Up'>
+  <td><input type=button class='mediabtn' value='\u23EA\uFE0F' onclick='Speed(-1);' title='Speed Down (-)'>
+  <td><input type=button class='mediabtn' value='\u23E9\uFE0F' onclick='Speed( 1);' title='Speed Up (=)'>
   <td><input type=button class='mediabtn' value='&#x1F500;'    onclick='if(confirm("ReField?")) { ReInitSeeds(true); Init(); Pause(-1); }' title='ReField'>
   <td><input type=button class='mediabtn' value='&#x1F504;'    onclick='if(confirm("Restart?")) { ReInitSeeds();     Init(); Pause(-1); }' title='ReStart'>
   <td><input type=button class='mediabtn' value='\u2139\uFE0F' onclick='alert("Enable WebGL2 in your browser settings (usually it is in Experimental Features).\\nTo speed up GPU calculations google for --disable-frame-rate-limit (Chrome setting).");' title='Info'>

@@ -32,10 +32,16 @@ var surface = new Surface();
 
 function Color4Cell(layer=0, v=1, s=1, l=0.5) {
   if(Mode=='MVM') {
-         if(v==0) return {'r':0, 'g':0, 'b':0};
-    else if(v==1) return {'r':0, 'g':0, 'b':255};
-    else if(v==2) return {'r':220, 'g':0, 'b':0};
-    else if(v==3) return {'r':0, 'g':200, 'b':0};
+         if(v==0) return {'r':  0, 'g':  0, 'b':  0};
+    else if(v==1) return {'r':  0, 'g':  0, 'b':255};
+    else if(v==2) return {'r':220, 'g':  0, 'b':  0};
+    else if(v==3) return {'r':  0, 'g':200, 'b':  0};
+  }
+  else if(Mode=='BND') {
+         if(v==0) return {'r':  0, 'g':  0, 'b':  0};
+    else if(v==1) return {'r':200, 'g':  0, 'b':200};
+    else if(v==2) return {'r':200, 'g':200, 'b':  0};
+    else if(v==3) return {'r':  0, 'g':200, 'b':200};
   }
   
   var h = 0;
@@ -66,25 +72,16 @@ var fs_Color4Cell = `
   vec4 Color4Cell(uvec4 cell, int layer) {
     vec4 ret = vec4(0., 0., 0., 1.);
     
-    ` + (DataFormat=='UI32' ? `uint[6] exa = ExtractA(cell.a);` : ``) + `
+    uint aliv = ExtractAl(cell);
+    uint decay = ExtractDecay(cell);
     
-    uint aliv = ` + (DataFormat=='UI8' ? `cell.a` : `exa[A_alive]`) + `;
+    if(aliv==0u && decay==0u) return ret;
     
-    if(aliv==0u` + (DataFormat=='UI8' ? ` && cell.b==0u` : ``) + `) return ret;
-    
-    ` + (
-      DataFormat=='UI8'
-      ? `uint v = aliv>0u ? aliv : cell.b % 10u;`
-      : `uint v = exa[A_v];`  // aliv>255u ? aliv >> 8u : aliv % 10u
-    ) + `
+    uint v = ExtractFl(cell);
     
     ` + fs_colors + `
     
-    ` + (
-      DataFormat=='UI8'
-      ? `float sat = aliv>0u ? 1. : float(cell.b - v) / 255.;`
-      : `float sat = aliv>0u ? 1. : float(exa[A_decay] * 15u) / 255.;`
-    ) + `
+    float sat = aliv>0u ? 1. : float(decay * 15u) / 255.;
     
     ret.r *= sat;
     ret.g *= sat;
@@ -107,6 +104,8 @@ var ShowFragmentShaderSource = `
   
   out vec4 color;
   
+  ` + fs_ExtractRGBA + `
+  
   ` + fs_ExtractA + `
   
   ` + fs_Color4Cell + `
@@ -119,6 +118,8 @@ var ShowFragmentShaderSource = `
   ` + fs_ModuloTorus + `
   ` + fs_GetCell() + `
   ` + fs_Trends + `
+  
+  int isqr(int v) { return v * v; }
   
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
@@ -171,7 +172,7 @@ var ShowFragmentShaderSource = `
       ivec2 cnv_coord = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy) * `+zoom+`. * u_surface.z );
       
       for(uint n=0u; n<`+RC+`u; n++) {
-        if(ExtractAl(cells[n].a)==0u) continue;
+        if(ExtractAl(cells[n])==0u) continue;
         
         ivec4 xy = ExtractXY(cells[n]);
         
@@ -195,6 +196,38 @@ var ShowFragmentShaderSource = `
     }
     ` : ``) + `
     
+    
+    ` + (Mode=='BND'? `
+    int d = int(`+zoom+`. * u_surface.z);  // canvas zoom
+    if(d>=8) {
+      tex3coord = ivec3(tex2coord, layer);
+      
+      ivec2 cnvc = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy) * `+zoom+`. * u_surface.z );  // canvas coords
+      int x = cnvc.x, y = cnvc.y;
+      int d2 = d / 2;
+      
+      if(ExtractAl(cell)>0u) {
+        uint speed = ExtractSpeed(cell);
+             if(speed==0u) { if(isqr(d2 - x) + isqr(d2 - y) >= isqr(d2)) color = vec4(0., 0., 0., 1.); }
+        else if(speed==1u) { if(x + y     < d2 || d - x + y     <= d2)   color = vec4(0., 0., 0., 1.); }
+        else if(speed==2u) { if(y + d - x < d2 || d - y + d - x <= d2)   color = vec4(0., 0., 0., 1.); }
+        else if(speed==3u) { if(x + d - y < d2 || d - x + d - y <= d2)   color = vec4(0., 0., 0., 1.); }
+        else if(speed==4u) { if(x + y     < d2 || d - y + x     <= d2)   color = vec4(0., 0., 0., 1.); }
+        
+        uint trend = ExtractTrend(cell);
+             if(trend==1u) { if(y==1)   color = vec4(.5, 0., 0., 1.); }
+        else if(trend==2u) { if(x==d-1) color = vec4(.5, 0., 0., 1.); }
+        else if(trend==3u) { if(y==d-1) color = vec4(.5, 0., 0., 1.); }
+        else if(trend==4u) { if(x==1)   color = vec4(.5, 0., 0., 1.); }
+      }
+      
+      uint accept = ExtractAccept(cell);
+           if(accept==3u) { if(y==2)   color = vec4(0., 0.3, 0., 1.); }
+      else if(accept==4u) { if(x==d-2) color = vec4(0., 0.3, 0., 1.); }
+      else if(accept==1u) { if(y==d-2) color = vec4(0., 0.3, 0., 1.); }
+      else if(accept==2u) { if(x==2)   color = vec4(0., 0.3, 0., 1.); }
+    }
+    ` : ``) + `
     
   }
 `;//console.log(ShowFragmentShaderSource);

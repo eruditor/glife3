@@ -141,6 +141,33 @@ function InitialFill() {
       }
     }
   }
+  else if(Mode=='BND') {
+    if(cfg.debug==1) {
+      SetCell(2, 2, 0, 2, 0, 0, (1 << 1) + 1);
+      SetCell(7, 2, 0, 4, 0, 0, (2 << 1) + 1);
+      SetCell(2, 4, 0, 2, 0, 0, (1 << 1) + 1);
+      SetCell(8, 4, 0, 4, 0, 0, (2 << 1) + 1);
+    }
+    else {
+      var lstep = 1000;
+      var speedlimit = round(mL/100);
+      for(var z=0; z<FD; z++) {
+        for(var x=round(FW/2-FW*LF/2); x<round(FW/2+FW*LF/2); x++) {
+          for(var y=round(FH/2-FH*LF/2); y<round(FH/2+FH*LF/2); y++) {
+            if(y<0 || y>=FH) continue;
+            if(rndF(0,lstep)<100*LD) {
+              var rv = rndF(0, 1000);
+              var v = (rv>=1000/2 ? 1 : (rv>=1000/4 ? 2 : (rv>=1000/8 ? 3 : 0)));
+              if(v>=RB) v = RB - 1;
+              if(v==0) continue;
+              var speed = rndF(0, 5);
+              SetCell(x, y, z, speed, 0, 0, (v << 1) + 1);
+            }
+          }
+        }
+      }
+    }
+  }
   else {
     for(var z=0; z<FD; z++) {
       for(var x=round(FW/2-FW*LF/2); x<round(FW/2+FW*LF/2); x++) {

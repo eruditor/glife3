@@ -36,6 +36,22 @@ for(var z=0; z<FD; z++) {
 }
 fs_GetTexel2D += `  }`;
 
+// DATA PACKING ////////////////////////////////////////////////////////////////
+
+var fs_ExtractRGBA = `
+    uint ExtractAl(uvec4 cell) {  // aliveness
+      return cell.a > 0u ? 1u : 0u;
+    }
+    
+    uint ExtractFl(uvec4 cell) {  // flavor
+      return cell.a>0u ? cell.a : cell.b % 10u;
+    }
+    
+    uint ExtractDecay(uvec4 cell) {  // decay
+      return cell.b<30u ? 0u : cell.b / 10u - 3u;
+    }
+`;
+
 function fs_PackAliveness(alive='alive') {
   return DataFormat=='UI8'
   ? `
@@ -154,6 +170,20 @@ if(Mode=='PRT') {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else if(Mode=='MVM') {
+  var fs_ExtractRGBA = `
+    uint ExtractAl(uvec4 cell) {  // aliveness
+      return cell.a & 1u;
+    }
+    
+    uint ExtractFl(uvec4 cell) {  // flavor
+      return cell.a << 27u >> 28u;
+    }
+    
+    uint ExtractDecay(uvec4 cell) {  // decay
+      return cell.a << 24u >> 29u;
+    }
+  `;
+  
   var fs_ExtractXY = `
     ivec4 ExtractXY(uvec4 cell) {
       return ivec4(
@@ -218,10 +248,6 @@ else if(Mode=='MVM') {
       ret[A_trend] = cell_a << 16u >> 24u;  //  4 bit = trending/accepting flags
       ret[A_dbg]   = cell_a >> 16u;         // 16 bit = debug info
       return ret;
-    }
-    
-    uint ExtractAl(uint cell_a) {
-      return cell_a & 1u;
     }
     
     uint ExtractAv(uint cell_a) {
@@ -323,6 +349,8 @@ else if(Mode=='MVM') {
     
     ` + fs_GetTexel2D + `
     
+    ` + fs_ExtractRGBA + `
+    
     ` + fs_ExtractXY + `
     
     ` + fs_ExtractB + `
@@ -367,7 +395,7 @@ else if(Mode=='MVM') {
         
         uint[8] b = uint[8](0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);  // new b
         
-        uint al0 = ExtractAl(self.a);
+        uint al0 = ExtractAl(self);
         uint al = 0u;
         
         uint v = 0u;
@@ -489,7 +517,7 @@ else if(Mode=='MVM') {
           
           if(trend0!=0u) {  // was trending at previous turn
             uvec4 acceptor = cells[trend0];
-            if(ExtractAl(acceptor.a)==0u && ExtractAt(acceptor.a)==trend0) {  // neighbour empty cell accepted transfer from self to it
+            if(ExtractAl(acceptor)==0u && ExtractAt(acceptor.a)==trend0) {  // neighbour empty cell accepted transfer from self to it
               al = 0u;
             }
             else {
@@ -510,7 +538,7 @@ else if(Mode=='MVM') {
           if(trend0!=0u) {  // accepting cell
             uint atrend = antitrends[trend0];
             uvec4 trender = cells[atrend];
-            if(ExtractAl(trender.a)>0u && ExtractAt(trender.a)==trend0) {
+            if(ExtractAl(trender)>0u && ExtractAt(trender.a)==trend0) {
               color.xy = XY4Trended(atrend, trender);  // @ motion skips a beat here
               al = 1u;
               v = ExtractAv(trender.a);
@@ -518,7 +546,7 @@ else if(Mode=='MVM') {
           }
           else {  // looking for something to accept
             for(uint n=1u; n<`+RC+`u; n++) {
-              if(ExtractAl(cells[n].a)==0u || ExtractAt(cells[n].a)==0u) continue;
+              if(ExtractAl(cells[n])==0u || ExtractAt(cells[n].a)==0u) continue;
               uint atrend = antitrends[n];
               if(ExtractAt(cells[n].a)!=atrend) continue;
               trend = atrend;
@@ -536,7 +564,209 @@ else if(Mode=='MVM') {
       }
     }
   `;//console.log(CalcFragmentShaderSource);
-  var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_ps"]);
+  var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture"]);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+else if(Mode=='BND') {
+  var fs_ExtractRGBA = `
+    ////////////////////////////////////////////////////////////////
+    
+    uint ExtractAl(uvec4 cell) {  // aliveness = 1 bit
+      return cell.a & 1u;
+    }
+    
+    uint ExtractFl(uvec4 cell) {  // flavor = 4 bit
+      return (cell.a >> 1u) % 16u;
+    }
+    
+    uint ExtractDecay(uvec4 cell) {  // decay = 3 bit
+      return cell.a >> 5u;
+    }
+    
+    uint PackA(uint al, uint fl, uint decay) {
+      return (al    <<  0u) |
+             (fl    <<  1u) |
+             (decay <<  5u);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+    
+    uint[5] ExtractBonds(uvec4 cell) {
+      return uint[5](
+        0u,
+        cell.b << 6u >> 6u,
+        cell.b << 4u >> 6u,
+        cell.b << 2u >> 6u,
+        cell.b << 0u >> 6u
+      );
+    }
+    
+    uint PackB(uint[5] bonds) {
+      return (bonds[1] << 0u) |
+             (bonds[2] << 2u) |
+             (bonds[3] << 4u) |
+             (bonds[4] << 6u);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+        
+    uint ExtractTrend(uvec4 cell) {
+      return cell.g % 16u;
+    }
+    
+    uint ExtractAccept(uvec4 cell) {
+      return cell.g >> 4u;
+    }
+    
+    uint PackG(uint trend, uint accept) {
+      return (trend  <<  0u) |
+             (accept <<  4u);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+    
+    uint ExtractSpeed(uvec4 cell) {
+      return cell.r;
+    }
+    
+    uint PackR(uint speed) {
+      return speed;
+    }
+    
+    ////////////////////////////////////////////////////////////////
+  `;
+  
+  var CalcFragmentShaderSource = `
+    precision mediump float;
+    precision highp int;
+    
+    uniform highp usampler3D u_fieldtexture;  // Field texture
+    uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
+    
+    in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
+    
+    out uvec4 glFragColor[`+FD+`];
+    
+    ivec3 tex3coord;
+    ivec3 fieldSize;
+    uint dbg;
+    
+    ` + fs_ModuloTorus + `
+    
+    ` + fs_GetCell() + `
+    
+    ` + fs_GetTexel2D + `
+    
+    ` + fs_ExtractRGBA + `
+    
+    float atom_masses[4]   = float[4](0., 1., 2., 3.);
+    uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
+    int atom_bondenergies[4] = int[4]( 0, 20, 25, 15);
+    
+    uint antitrends[5] = uint[5](0u, 3u, 4u, 1u, 2u);
+    
+    void main() {
+      fieldSize = textureSize(u_fieldtexture, 0);
+      
+      dbg = 0u;
+      
+      for(int layer=0; layer<`+FD+`; layer++) {
+        tex3coord = ivec3(v_texcoord, layer);
+        
+        // getting cell's neighborhood
+        uvec4 cells[`+RC+`];
+        ` + fs_GetNeibs + `
+        
+        uint al0 = ExtractAl(cells[0]), al = al0;
+        uint fl0 = ExtractFl(cells[0]), fl = fl0;
+        uint decay;
+        uint[5] bonds;
+        uint trend0  = ExtractTrend( cells[0]), trend  = 0u;
+        uint accept0 = ExtractAccept(cells[0]), accept = 0u;
+        uint speed0  = ExtractSpeed( cells[0]), speed  = speed0;
+        
+        // alive cell ////////////////////////////////////////////////////////////////
+        if(al0>0u) {
+          al = 1u;
+          if(trend0!=0u) {  // was trending at previous turn
+            uvec4 acceptor = cells[trend0];
+            if(ExtractAccept(acceptor)==trend0) {  // neighbour cell accepted transfer from self to it
+              if(ExtractAl(acceptor)==0u) {  // accepting cell is empty => transfering whole cell
+                al = 0u;
+              }
+              else {  // accepting cell is alive => exchanging momentum
+                speed = ExtractSpeed(acceptor);
+              }
+            }
+          }
+          
+          if(accept0>0u) {  // accepting momentum exchange
+            uint atrend = antitrends[accept0];
+            uvec4 trender = cells[atrend];
+            if(ExtractAl(trender)>0u && ExtractTrend(trender)==accept0) {
+              speed = ExtractSpeed(trender);
+            }
+          }
+          else {  // looking for something to accept
+            if(speed==0u) {  // momentum transfer from moving to standing cell
+              for(uint n=1u; n<`+RC+`u; n++) {
+                if(ExtractAl(cells[n])==0u) continue;
+                uint ntrend = ExtractTrend(cells[n]);
+                if(ntrend==antitrends[n]) {  // neib moves to us
+                  accept = ntrend;
+                  break;  // first of trending nearby cells wins
+                }
+              }
+            }
+            else {  // momentum exchange in face-to-face collisions
+              uint n = speed;
+              if(ExtractAl(cells[n])>0u) {
+                uint ntrend = ExtractTrend(cells[n]);
+                if(ntrend==antitrends[n]) {  // neib moves to us
+                  accept = ntrend;
+                }
+              }
+            }
+          }
+          
+          if(al>0u) {
+            trend = speed;  // request transfer
+          }
+        }
+        // dead cell ////////////////////////////////////////////////////////////////
+        else {
+          if(accept0!=0u) {
+            uint atrend = antitrends[accept0];
+            uvec4 trender = cells[atrend];
+            if(ExtractAl(trender)>0u && ExtractTrend(trender)==accept0) {
+              al = 1u;
+              fl = ExtractFl(trender);
+              speed = ExtractSpeed(trender);
+            }
+          }
+          else {  // looking for something to accept
+            for(uint n=1u; n<`+RC+`u; n++) {
+              if(ExtractAl(cells[n])==0u) continue;
+              uint ntrend = ExtractTrend(cells[n]);
+              if(ntrend==antitrends[n]) {  // neib moves to us
+                accept = ntrend;
+                break;  // first of trending nearby cells wins
+              }
+            }
+          }
+        }
+        //  ////////////////////////////////////////////////////////////////
+        
+        uvec4 color = uvec4(0);
+        color.a = PackA(al, fl, decay);
+        color.b = PackB(bonds);
+        color.g = PackG(trend, accept);
+        color.r = PackR(speed);
+        ` + fs_Prepare2Return('color') + `
+      }
+    }
+  `;//console.log(CalcFragmentShaderSource);
+  var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture"]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else {

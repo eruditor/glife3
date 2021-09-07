@@ -21,7 +21,8 @@ gl.canvas.onmousedown = function(e) {
       gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F);
       var cell = GetCell(mouseX, mouseY, 0);
       console.log('z='+z+', rgba=', cell);
-      if(DataFormat=='UI32') {
+      
+      if(Mode=='MVM') {
         var s = '';
         
         var x = cell.r & 65535;  if(x<0)  x  += 65536;  x -= 32768;
@@ -51,6 +52,21 @@ gl.canvas.onmousedown = function(e) {
         
         console.log(s);
       }
+      else if(Mode=='BND') {
+        var s = '';
+        
+        var al = cell.a & 1;
+        var fl = (cell.a >> 1) % 16;
+        var decay = cell.a >> 5;
+        s += '(' + al + ', ' + fl + ', ' + decay + ') ';
+        
+        var trend = cell.g % 16;
+        var accept = cell.g >> 4;
+        s += '[' + trend + ', ' + accept + '] ';
+        
+        console.log(s);
+      }
+      
       if(!cell.a) {
         continue;
       }
