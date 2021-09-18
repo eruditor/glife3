@@ -69,6 +69,10 @@ const mL = 10000,  mL2 = 2 * mL,  mL3 = 3 * mL,  fmL = mL + `.`;  // mL = half-r
 const mR = 3 * mL - 1;  // maximum range atom's coords can be from the center of it's cell
 const mV = mL / 2;  // maximum atom's speed (per coord)
 
+// BND PARAMS ////////////////////////////////////////////////////////////////
+
+const Tmprtr = GetIntParam('tmprtr', 30);  // temperature
+
 // RERUN MODE ////////////////////////////////////////////////////////////////
 
 rerun_n = 0;  rerun_gr_id = 0;

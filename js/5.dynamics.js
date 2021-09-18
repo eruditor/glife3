@@ -834,7 +834,7 @@ else if(Mode=='BND') {
         }
         else if(passive) {
           for(uint n=1u; n<`+RC+`u; n++) {
-            if(n==gone) continue;  // not opening gate to previous me myself
+            if(n==gone && ExtractAl(cells[n])==0u) continue;  // not opening gate to previous me myself
             if(ExtractAl(cells[n])==0u) continue;
             if(ExtractGate(cells[n])==revers[n]) {  // neib moves to us
               gate = n;

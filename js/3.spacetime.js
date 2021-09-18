@@ -152,9 +152,14 @@ function InitialFill() {
       SetCell(4, 4, 0, 1, 0, 0, (1 << 1) + 1);
       SetCell(2, 3, 0, 2, 0, 0, (2 << 1) + 1);
     }
+    else if(cfg.debug==3) {
+      SetCell(3, 4, 0, 0, 0, 0, (1 << 1) + 1);
+      SetCell(3, 3, 0, 0, 0, 0, (2 << 1) + 1);
+      SetCell(3, 2, 0, 0, 0, 0, (1 << 1) + 1);
+      SetCell(5, 2, 0, 4, 0, 0, (1 << 1) + 1);
+    }
     else {
       var lstep = 1000;
-      var speedlimit = round(mL/100);
       for(var z=0; z<FD; z++) {
         for(var x=round(FW/2-FW*LF/2); x<round(FW/2+FW*LF/2); x++) {
           for(var y=round(FH/2-FH*LF/2); y<round(FH/2+FH*LF/2); y++) {
@@ -164,7 +169,7 @@ function InitialFill() {
               var v = (rv>=1000/2 ? 1 : (rv>=1000/4 ? 2 : (rv>=1000/8 ? 3 : 0)));
               if(v>=RB) v = RB - 1;
               if(v==0) continue;
-              var speed = rndF(0, 5);
+              var speed = rndF(0,100)<Tmprtr ? rndF(1, 5) : 0;
               SetCell(x, y, z, speed, 0, 0, (v << 1) + 1);
             }
           }
