@@ -686,10 +686,11 @@ else if(Mode=='BND') {
         uint    gate0  = ExtractGate( cells[0]),  gate  = 0u;
         uint    gone0  = ExtractGone( cells[0]),  gone  = gone0;
         uint    speed0 = ExtractSpeed(cells[0]),  speed = speed0;
-        uint    strid0 = ExtractStrid(cells[0]),  strid = strid0;
+        uint    strid0 = ExtractStrid(cells[0]),  strid = strid0;  // @ strids are broken!
         uint[5] bonds0 = ExtractBonds(cells[0]),  bonds = uint[5](0u, 0u, 0u, 0u, 0u);
         
         uint paired = 0u;  // number of paired bonds of this cell
+        uint backed = 0u;  // number of paired bonds of this cell, excluding forward one
         uint moveto = 99u;  // forces moving (opening gate) to this direction; 99 = null
         uint freebonds = atom_bondnums[fl];
         int[5] bondenergy = int[5](0, 0, 0, 0, 0);
@@ -708,11 +709,12 @@ else if(Mode=='BND') {
           else if(bonds0[n]>0u && nb>0u) {  // paired bond
             bonds0[n] = 2u;
             paired ++;
+            if(n!=gate0) backed ++;
           }
           else if(bonds0[n]>0u) {
             bonds0[n] = al0>0u ? 1u : 0u;
           }
-                        
+          
           if(al0>0u) {
             if(nb==3u) {  // stretched bond forces us to stand
               uint nstrid = ExtractStrid(cells[n]);
@@ -747,10 +749,10 @@ else if(Mode=='BND') {
                 gone = gate0;
                 speed = speed0;
                 bonds = bonds0;  // keeping bonds for elastic bonding
-                if(paired>0u) {
+                if(backed>0u) {
                   bonds[gate0] = 3u;
                   for(uint n=1u; n<`+RC+`u; n++) {
-                    if(ExtractAl(cells[n])==0u) continue;
+                    if(ExtractDecay(cells[n])==0u) continue;
                     uint nspeed = ExtractSpeed(cells[n]);
                     if(nspeed==0u) continue;
                     if(nspeed!=speed && nspeed!=gone) strid = nspeed;
@@ -812,29 +814,12 @@ else if(Mode=='BND') {
         bool passive = false;
         if(al0==0u && al==0u || speed0==0u && speed==0u) passive = true;
         
-        //  ??  // to avoid this kind of clinches we need a special rule
-        //  ??  //
-        /*
-        if(!passive && (speed==1u || speed==3u)) {
-          uvec4 forw = cells[speed];
-          if(ExtractAl(forw)>0u) {
-            uint forw_speed = ExtractSpeed(forw);
-            if(forw_speed>0u && forw_speed!=speed && forw_speed!=revers[speed]) {  // forw's speed is perpendicular to ours
-              uvec4 side = cells[forw_speed];
-              if(ExtractAl(side)>0u && ExtractSpeed(side)==revers[forw_speed]) {
-                passive = true;
-              }
-            }
-          }
-        }
-        */
-        
         if(moveto!=99u && al>0u) {
           gate = moveto;
         }
         else if(passive) {
           for(uint n=1u; n<`+RC+`u; n++) {
-            if(n==gone && ExtractAl(cells[n])==0u) continue;  // not opening gate to previous me myself
+            if(n==gone && bonds0[n]==3u) continue;  // not opening gate to previous me myself; @ need to allow normal hits from gone side
             if(ExtractAl(cells[n])==0u) continue;
             if(ExtractGate(cells[n])==revers[n]) {  // neib moves to us
               gate = n;
@@ -844,13 +829,15 @@ else if(Mode=='BND') {
         }
         else if(al0>0u && al>0u) {
           gate = speed;
-          if(ExtractAl(cells[speed])>0u) {  // cell in direction of speed is busy
+          if(ExtractAl(cells[speed])>0u) {  // if cell in direction of speed is busy - move where we are pushed to
             for(uint n=1u; n<`+RC+`u; n++) {
+              if(n==speed) continue;  // face-to-face collision is ok
+              if(ExtractAl(cells[n])==0u) continue;
               uint ngate = ExtractGate(cells[n]);
-              if(ngate==0u) continue;
-              if(ngate==revers[speed]) break;  // face-to-face collision is ok
-              gate = ngate;  // moving in direction of pushing cell
-              break;
+              if(ngate==revers[n]) {  // neib is pushing us
+                gate = ngate;  // moving in direction of pushing cell
+                break;
+              }
             }
           }
         }
