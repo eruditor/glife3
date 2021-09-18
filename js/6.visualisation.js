@@ -206,21 +206,38 @@ var ShowFragmentShaderSource = `
       int x = cnvc.x, y = cnvc.y;
       int d2 = d / 2;
       int d1 = d - 1;
+      vec4 clr;
       
-      if(ExtractAl(cell)>0u) {
+      clr = vec4(0., 0., 0., 1.);
+      //if(ExtractAl(cell)>0u) {
         uint speed = ExtractSpeed(cell);
-             if(speed==0u) { if(isqr(d2 - x) + isqr(d2 - y) >= isqr(d2)) color = vec4(0., 0., 0., 1.); }
-        else if(speed==1u) { if(x + y      < d2 || d1 - x + y      <= d2)   color = vec4(0., 0., 0., 1.); }
-        else if(speed==2u) { if(y + d1 - x < d2 || d1 - y + d1 - x <= d2)   color = vec4(0., 0., 0., 1.); }
-        else if(speed==3u) { if(x + d1 - y < d2 || d1 - x + d1 - y <= d2)   color = vec4(0., 0., 0., 1.); }
-        else if(speed==4u) { if(x + y      < d2 || d1 - y + x      <= d2)   color = vec4(0., 0., 0., 1.); }
-      }
+             if(speed==0u) { if(isqr(d2 - x) + isqr(d2 - y) >= isqr(d2)) color = clr; }
+        else if(speed==1u) { if(x + y      < d2 || d  - x + y     <= d2) color = clr; }
+        else if(speed==2u) { if(y + d1 - x < d2 || d1 - y + d - x <= d2) color = clr; }
+        else if(speed==3u) { if(x + d1 - y < d2 || d1 - x + d - y <= d2) color = clr; }
+        else if(speed==4u) { if(x + y      < d2 || d  - y + x     <= d2) color = clr; }
+      //}
       
+      clr = vec4(0., 0.3, 0., 1.);
       uint gate = ExtractGate(cell);
-           if(gate==1u) { if(y==0)   color = vec4(0., 0.3, 0., 1.); }
-      else if(gate==2u) { if(x==d-1) color = vec4(0., 0.3, 0., 1.); }
-      else if(gate==3u) { if(y==d-1) color = vec4(0., 0.3, 0., 1.); }
-      else if(gate==4u) { if(x==0)   color = vec4(0., 0.3, 0., 1.); }
+           if(gate==1u) { if(y==0  ) color = clr; }
+      else if(gate==2u) { if(x==d-1) color = clr; }
+      else if(gate==3u) { if(y==d-1) color = clr; }
+      else if(gate==4u) { if(x==0  ) color = clr; }
+      
+      uint[5] bonds = ExtractBonds(cell);
+      for(uint n=1u; n<`+RC+`u; n++) {
+        if(bonds[n]==0u) continue;
+        clr =
+           bonds[n]==1u ? vec4(1., 1., 1., 1.) :
+          (bonds[n]==2u ? vec4(0., 1., 0., 1.) :
+                          vec4(1., 0., 0., 1.)
+          );
+             if(n==1u) { if(y==0   && (x==d2 || x==d2-1)) color = clr; }
+        else if(n==2u) { if(x==d-1 && (y==d2 || y==d2-1)) color = clr; }
+        else if(n==3u) { if(y==d-1 && (x==d2 || x==d2-1)) color = clr; }
+        else if(n==4u) { if(x==0   && (y==d2 || y==d2-1)) color = clr; }
+      }
     }
     ` : ``) + `
     

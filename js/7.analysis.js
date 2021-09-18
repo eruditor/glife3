@@ -495,50 +495,52 @@ function Stats(force=false) {
     </table>
   `;
   
-  if(cfg.autore || cfg.rerun) {
-    if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
+  if(Mode!='MVM' && Mode!='BND') {
+    if(cfg.autore || cfg.rerun) {
+      if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
+        Pause(1);
+        var stopit = false;
+        SaveGlifetri({'stopped_at':failed_at});
+        nGen ++;
+        if(nGen>300) {
+          ReloadPage();  // reloading page sometimes to refresh seeds and avoid potential locks
+        }
+        else if(cfg.rerun) {
+          rerun_continue = GetRerun();
+          if(!rerun_continue) ReloadPage();
+          Frand32(Fseed);  document.getElementById('fseedinp').value = Fseed;
+          Init();
+        }
+        else if(cfg.anyrand) {
+          anyrand_continue = GetAnyrand();
+          if(!anyrand_continue) ReloadPage();
+          ReInitSeeds();
+          Init();
+        }
+        //else if(Family=='Tricolor' && rec[S1].livecells.reduce((a, b) => a + b, 0)>50000) { stopit = true; }
+        else {
+          ReInitSeeds();
+          Init();
+        }
+        if(!reloading && !stopit) Pause(-1);
+      }
+    }
+    else if(nturn>=10000 && !saved) {  // saving all long-runned cases
+      SaveGlifetri({'stopped_at':'x'});
+    }
+    
+    if(cfg.repair) {
       Pause(1);
-      var stopit = false;
-      SaveGlifetri({'stopped_at':failed_at});
-      nGen ++;
-      if(nGen>300) {
-        ReloadPage();  // reloading page sometimes to refresh seeds and avoid potential locks
+      SaveGlifetri({'noorga':true});
+      repair_continue = GetRepair();
+      if(!repair_continue) {
+        //ReloadPage();
       }
-      else if(cfg.rerun) {
-        rerun_continue = GetRerun();
-        if(!rerun_continue) ReloadPage();
-        Frand32(Fseed);  document.getElementById('fseedinp').value = Fseed;
-        Init();
-      }
-      else if(cfg.anyrand) {
-        anyrand_continue = GetAnyrand();
-        if(!anyrand_continue) ReloadPage();
-        ReInitSeeds();
-        Init();
-      }
-      //else if(Family=='Tricolor' && rec[S1].livecells.reduce((a, b) => a + b, 0)>50000) { stopit = true; }
       else {
-        ReInitSeeds();
-        Init();
+        Rrand32(Rseed);  document.getElementById('rseedinp').value = Rseed;
+        InitRules();
+        Stats(true);
       }
-      if(!reloading && !stopit) Pause(-1);
-    }
-  }
-  else if(nturn>=10000 && !saved) {  // saving all long-runned cases
-    SaveGlifetri({'stopped_at':'x'});
-  }
-  
-  if(cfg.repair) {
-    Pause(1);
-    SaveGlifetri({'noorga':true});
-    repair_continue = GetRepair();
-    if(!repair_continue) {
-      //ReloadPage();
-    }
-    else {
-      Rrand32(Rseed);  document.getElementById('rseedinp').value = Rseed;
-      InitRules();
-      Stats(true);
     }
   }
   

@@ -55,14 +55,25 @@ gl.canvas.onmousedown = function(e) {
       else if(Mode=='BND') {
         var s = '';
         
-        var al = cell.a & 1;
-        var fl = (cell.a >> 1) % 16;
-        var decay = cell.a >> 5;
+        var al    = (cell.a & 1);
+        var fl    = (cell.a >>> 1) % 16;
+        var decay = (cell.a >>> 5);
         s += '(' + al + ', ' + fl + ', ' + decay + ') ';
         
-        var trend = cell.g % 16;
-        var accept = cell.g >> 4;
-        s += '[' + trend + ', ' + accept + '] ';
+        var gate  = (cell.g >>> 0) % 8;
+        var gone  = (cell.g >>> 3) % 8;
+        s += '{' + gate + ', ' + gone + '} ';
+        
+        s += '[' +
+          ((cell.b >>> 0) % 4) + ' ' +
+          ((cell.b >>> 2) % 4) + ' ' +
+          ((cell.b >>> 4) % 4) + ' ' +
+          ((cell.b >>> 6) % 4) +
+        '] ';
+        
+        var speed = (cell.r >>> 0) % 8;
+        var strid = (cell.r >>> 3) % 8;
+        s += '(' + speed + ', ' + strid + ') ';
         
         console.log(s);
       }
