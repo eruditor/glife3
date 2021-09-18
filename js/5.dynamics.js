@@ -696,35 +696,40 @@ else if(Mode=='BND') {
         
         // paired bonds ////////////////////////////////////////////////////////////////
         
-        if(al0>0u || true) {
-          for(uint n=1u; n<`+RC+`u; n++) {
-            uint nb = ExtractBonds(cells[n])[revers[n]];  // neib's bond to this cell
-            if(bonds0[n]==3u) {
-              //
-            }
-            else if(nb==3u) {
-              bonds0[n] = 2u;
-            }
-            else if(bonds0[n]>0u && nb>0u) {  // paired bond
-              bonds0[n] = 2u;
-              paired ++;
-            }
-            else if(bonds0[n]>0u) {
-              bonds0[n] = al0>0u ? 1u : 0u;
-            }
-                          
-            if(al0>0u) {
-              if(nb==3u) {  // stretched bond forces us to stand
+        for(uint n=1u; n<`+RC+`u; n++) {
+          uint nb = ExtractBonds(cells[n])[revers[n]];  // neib's bond to this cell
+          
+          if(bonds0[n]==3u) {
+            //
+          }
+          else if(nb==3u) {
+            bonds0[n] = 2u;
+          }
+          else if(bonds0[n]>0u && nb>0u) {  // paired bond
+            bonds0[n] = 2u;
+            paired ++;
+          }
+          else if(bonds0[n]>0u) {
+            bonds0[n] = al0>0u ? 1u : 0u;
+          }
+                        
+          if(al0>0u) {
+            if(nb==3u) {  // stretched bond forces us to stand
+              uint nstrid = ExtractStrid(cells[n]);
+              if(nstrid>0u) {
+                moveto = nstrid;
+              }
+              else {
                 moveto = 0u;
               }
-              else if(bonds0[n]==2u && ExtractAl(cells[n])==0u) {  // moving to direction of stretched bond
-                if(speed0==n) {
-                  moveto = n;
-                }
-                else {
-                  moveto = ExtractGone(cells[n]);
-                  if(ExtractAl(cells[moveto])>0u) moveto = n;
-                }
+            }
+            else if(bonds0[n]==2u && ExtractAl(cells[n])==0u) {  // moving to direction of stretched bond
+              if(speed0==n) {
+                moveto = n;
+              }
+              else {
+                moveto = ExtractGone(cells[n]);
+                if(ExtractAl(cells[moveto])>0u) moveto = n;
               }
             }
           }
@@ -742,7 +747,15 @@ else if(Mode=='BND') {
                 gone = gate0;
                 speed = speed0;
                 bonds = bonds0;  // keeping bonds for elastic bonding
-                if(paired>0u) bonds[gate0] = 3u;
+                if(paired>0u) {
+                  bonds[gate0] = 3u;
+                  for(uint n=1u; n<`+RC+`u; n++) {
+                    if(ExtractAl(cells[n])==0u) continue;
+                    uint nspeed = ExtractSpeed(cells[n]);
+                    if(nspeed==0u) continue;
+                    if(nspeed!=speed && nspeed!=gone) strid = nspeed;
+                  }
+                }
               }
               else {  // mate is alive => exchanging momentum
                 speed = ExtractSpeed(mate);
@@ -816,7 +829,10 @@ else if(Mode=='BND') {
         }
         */
         
-        if(passive) {
+        if(moveto!=99u && al>0u) {
+          gate = moveto;
+        }
+        else if(passive) {
           for(uint n=1u; n<`+RC+`u; n++) {
             if(n==gone) continue;  // not opening gate to previous me myself
             if(ExtractAl(cells[n])==0u) continue;
@@ -828,9 +844,16 @@ else if(Mode=='BND') {
         }
         else if(al0>0u && al>0u) {
           gate = speed;
+          if(ExtractAl(cells[speed])>0u) {  // cell in direction of speed is busy
+            for(uint n=1u; n<`+RC+`u; n++) {
+              uint ngate = ExtractGate(cells[n]);
+              if(ngate==0u) continue;
+              if(ngate==revers[speed]) break;  // face-to-face collision is ok
+              gate = ngate;  // moving in direction of pushing cell
+              break;
+            }
+          }
         }
-        
-        if(moveto!=99u && al>0u) gate = moveto;
         
         // decay ////////////////////////////////////////////////////////////////
         
