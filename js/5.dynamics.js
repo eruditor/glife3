@@ -170,6 +170,37 @@ if(Mode=='PRT') {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 else if(Mode=='MVM') {
+  function ExtractRGBA(cell) {
+    var s = '';
+        
+    var x = cell.r & 65535;  if(x<0)  x  += 65536;  x -= 32768;
+    var y = cell.g & 65535;  if(y<0)  y  += 65536;  y -= 32768;
+    var vx = cell.r >> 16;   if(vx<0) vx += 65536;  vx -= 32768;
+    var vy = cell.g >> 16;   if(vy<0) vy += 65536;  vy -= 32768;
+    s += '(' + x + ',' + y + ') (' + vx + ',' + vy + ') ';
+    
+    s += '[' +
+    ((cell.b << 28) >>> 28) + ' ' +
+    ((cell.b << 24) >>> 28) + ' ' +
+    ((cell.b << 20) >>> 28) + ' ' +
+    ((cell.b << 16) >>> 28) + ' ' +
+    ((cell.b << 12) >>> 28) + ' ' +
+    ((cell.b <<  8) >>> 28) + ' ' +
+    ((cell.b <<  4) >>> 28) + ' ' +
+    ((cell.b <<  0) >>> 28) +
+    '] ';
+    
+    s += '{' +
+    (cell.a & 1) + ' ' +
+    ((cell.a << 27) >>> 28) + ' ' +
+    ((cell.a << 24) >>> 29) + ' ' +
+    ((cell.a << 16) >>> 24) + ' ' +
+    (cell.a >>> 16) +
+    '} ';
+    
+    return s;
+  }
+  
   var fs_ExtractRGBA = `
     uint ExtractAl(uvec4 cell) {  // aliveness
       return cell.a & 1u;
@@ -567,7 +598,33 @@ else if(Mode=='MVM') {
   var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture"]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-else if(Mode=='BND') {
+else if(Named=='Bond4C') {
+  function ExtractRGBA(cell) {
+    var s = '';
+    
+    var al    = (cell.a & 1);
+    var fl    = (cell.a >>> 1) % 16;
+    var decay = (cell.a >>> 5);
+    s += '(' + al + ', ' + fl + ', ' + decay + ') ';
+    
+    var gate  = (cell.g >>> 0) % 8;
+    var gone  = (cell.g >>> 3) % 8;
+    s += '{' + gate + ', ' + gone + '} ';
+    
+    s += '[' +
+      ((cell.b >>> 0) % 4) + ' ' +
+      ((cell.b >>> 2) % 4) + ' ' +
+      ((cell.b >>> 4) % 4) + ' ' +
+      ((cell.b >>> 6) % 4) +
+    '] ';
+    
+    var speed = (cell.r >>> 0) % 8;
+    var strid = (cell.r >>> 3) % 8;
+    s += '(' + speed + ', ' + strid + ') ';
+    
+    return s;
+  }
+  
   var fs_ExtractRGBA = `
     ////////////////////////////////////////////////////////////////
     
@@ -846,6 +903,395 @@ else if(Mode=='BND') {
         
              if(al>0u)     decay = 7u;
         else if(al0>0u)    decay = 3u;
+        else if(decay0>0u) decay = decay0 - 1u;
+        
+        if(decay==0u) {  // clearing decayed cell
+          fl = 0u;
+          gone = 0u;
+          speed = 0u;
+          strid = 0u;
+          bonds = uint[5](0u, 0u, 0u, 0u, 0u);
+        }
+        
+        // rgba packing ////////////////////////////////////////////////////////////////
+        
+        uvec4 color = uvec4(0);
+        color.a = PackA(al, fl, decay);
+        color.b = PackB(bonds);
+        color.g = PackG(gate, gone);
+        color.r = PackR(speed, strid);
+        
+        ` + fs_Prepare2Return('color') + `
+      }
+    }
+  `;//console.log(CalcFragmentShaderSource);
+  var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_nturn"]);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+else if(Named=='Bond4C2') {
+  function ExtractRGBA(cell) {
+    var s = '';
+    
+    var al    = (cell.a & 1);
+    var fl    = (cell.a >>> 1) % 16;
+    var decay = (cell.a >>> 5);
+    s += '(' + al + ', ' + fl + ', ' + decay + ') ';
+    
+    var gate  = (cell.g >>> 0) % 8;
+    var gone  = (cell.g >>> 3) % 8;
+    s += '{' + gate + ', ' + gone + '} ';
+    
+    s += '[' +
+      ((cell.b >>> 0) % 4) + ' ' +
+      ((cell.b >>> 2) % 4) + ' ' +
+      ((cell.b >>> 4) % 4) + ' ' +
+      ((cell.b >>> 6) % 4) +
+    '] ';
+    
+    var speed = (cell.r >>> 0) % 8;
+    var strid = (cell.r >>> 3) % 8;
+    s += '(' + speed + ', ' + strid + ') ';
+    
+    return s;
+  }
+  
+  var fs_ExtractRGBA = `
+    ////////////////////////////////////////////////////////////////
+    
+    uint ExtractAl(uvec4 cell) {  // aliveness = 1 bit
+      return cell.a & 1u;
+    }
+    
+    uint ExtractFl(uvec4 cell) {  // flavor = 4 bit
+      return (cell.a >> 1u) % 16u;
+    }
+    
+    uint ExtractDecay(uvec4 cell) {  // decay = 3 bit
+      return cell.a >> 5u;
+    }
+    
+    uint PackA(uint al, uint fl, uint decay) {
+      return (al    <<  0u) |
+             (fl    <<  1u) |
+             (decay <<  5u);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+    
+    uint[5] ExtractBonds(uvec4 cell) {
+      return uint[5](
+        0u,
+        (cell.b >> 0u) % 4u,
+        (cell.b >> 2u) % 4u,
+        (cell.b >> 4u) % 4u,
+        (cell.b >> 6u) % 4u
+      );
+    }
+    
+    uint PackB(uint[5] bonds) {
+      return (bonds[1] << 0u) |
+             (bonds[2] << 2u) |
+             (bonds[3] << 4u) |
+             (bonds[4] << 6u);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+        
+    uint ExtractGate(uvec4 cell) {
+      return (cell.g >> 0u) % 8u;
+    }
+    
+    uint ExtractGone(uvec4 cell) {  // direction of actual previous movement; may differ from speed when forced by stretched bond
+      return (cell.g >> 3u) % 8u;
+    }
+    
+    uint PackG(uint gate, uint gone) {
+      return (gate << 0u) |
+             (gone << 3u);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+    
+    uint ExtractSpeed(uvec4 cell) {  // default movement direction
+      return (cell.r >> 0u) % 8u;
+    }
+    
+    uint ExtractStrid(uvec4 cell) {  // strid(e) = @ unused atm
+      return (cell.r >> 3u) % 8u;
+    }
+    
+    uint PackR(uint speed, uint strid) {
+      return (speed << 0u) |
+             (strid << 3u);
+    }
+    
+    ////////////////////////////////////////////////////////////////
+  `;
+  
+  var CalcFragmentShaderSource = `
+    precision mediump float;
+    precision highp int;
+    
+    uniform highp usampler3D u_fieldtexture;  // Field texture
+    uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
+    uniform highp uint u_nturn;  // nturn
+    
+    in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
+    
+    out uvec4 glFragColor[`+FD+`];
+    
+    ivec3 tex3coord;
+    ivec3 fieldSize;
+    
+    ` + fs_ModuloTorus + `
+    ` + fs_GetCell() + `
+    ` + fs_GetTexel2D + `
+    ` + fs_ExtractRGBA + `
+    
+    float atom_masses[4]   = float[4](0., 1., 2., 3.);
+    uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
+    int atom_bondenergies[4] = int[4]( 0, 20, 25, 15);
+    
+    uint revers[5] = uint[5](0u, 3u, 4u, 1u, 2u);
+    
+    void main() {
+      fieldSize = textureSize(u_fieldtexture, 0);
+      
+      for(int layer=0; layer<`+FD+`; layer++) {
+        tex3coord = ivec3(v_texcoord, layer);
+        
+        // getting cell's neighborhood
+        
+        uvec4 cells[`+RC+`];
+        ` + fs_GetNeibs + `
+        
+        // extracting self-cell info
+        
+        uint    al0    = ExtractAl(   cells[0]),  al    = al0;
+        uint    fl0    = ExtractFl(   cells[0]),  fl    = fl0;
+        uint    decay0 = ExtractDecay(cells[0]),  decay = 0u;
+        uint    gate0  = ExtractGate( cells[0]),  gate  = 0u;
+        uint    gone0  = ExtractGone( cells[0]),  gone  = gone0;
+        uint    speed0 = ExtractSpeed(cells[0]),  speed = speed0;
+        uint    strid0 = ExtractStrid(cells[0]),  strid = strid0;  // @ strids are broken!
+        uint[5] bonds0 = ExtractBonds(cells[0]),  bonds = bonds0;
+        
+        uint freebonds = atom_bondnums[fl];
+        int[5] bondenergy = int[5](0, 0, 0, 0, 0);
+        
+        uint stage = u_nturn % 4u;  // 0 = bonds, 1 = gate opening, 2 = gate accepting, 3 = movement
+        
+        // bonds opening ////////////////////////////////////////////////////////////////
+        if(stage==0u) {
+          // opening new bond windows
+          if(al0>0u) {
+            bonds = uint[5](0u, 0u, 0u, 0u, 0u);
+            for(uint n=1u; n<`+RC+`u; n++) {
+              if(ExtractAl(cells[n])==0u) {
+                if(bonds0[n]>=2u && ExtractBonds(cells[n])[revers[n]]==3u) {
+                  bonds[n] = 3u;
+                  bondenergy[n] = atom_bondenergies[ExtractFl(cells[n])];
+                  freebonds --;
+                }
+              }
+              else {
+                int e = atom_bondenergies[ExtractFl(cells[n])];
+                
+                if(freebonds>0u) {
+                  bonds[n] = bonds0[n]>=2u ? 2u : 1u;
+                  bondenergy[n] = e;
+                  freebonds --;
+                }
+                else {  // if all bonds are busy - choose most-energy-preferable bond
+                  uint min_n = 0u;  int min_e = 1000;
+                  for(uint nn=1u; nn<n; nn++) {  // looking for minimum energy in existing bonds
+                    if(bonds[nn]==0u) continue;
+                    if(bondenergy[nn] < min_e) {
+                      min_e = bondenergy[nn];
+                      min_n = nn;
+                    }
+                  }
+                  if(min_e < e) {
+                    bonds[min_n] = 0u;  bondenergy[min_n] = 0;
+                    bonds[n] = bonds0[n]>=2u ? 2u : 1u;  bondenergy[n] = e;
+                  }
+                }
+              }
+            }
+          }
+          else {
+            for(uint n=1u; n<`+RC+`u; n++) {
+              if(ExtractDecay(cells[n])==0u) bonds[n] = 0u;
+            }
+          }
+        }
+        // gate opening ////////////////////////////////////////////////////////////////
+        else if(stage==1u) {
+          if(al0>0u) {
+            uint maxprio = 0u, curprio = 0u, curgate = 0u;
+            
+            for(uint n=1u; n<`+RC+`u; n++) {
+              uint nb = ExtractBonds(cells[n])[revers[n]];  // neib's bond to this cell
+              
+              // bond pairing status
+              if(bonds0[n]==3u && nb==3u) {
+              }
+              else if(bonds0[n]>0u && nb>0u) {  // paired bond
+                bonds[n] = 2u;
+              }
+              else if(bonds0[n]>0u) {
+                bonds[n] = al0>0u ? 1u : 0u;
+              }
+              
+              // bonded gates
+              if(bonds[n]==3u) {  // stretched bond forces
+                if(gone0==revers[n]) {  // backwards
+                  curprio = 40u;  curgate = 0u;
+                }
+                else if(speed0==n) {
+                  curprio = 30u;  curgate = n;
+                }
+                else {
+                  uint ngone = ExtractGone(cells[n]);
+                  if(ngone>0u) {
+                    curprio = 20u;  curgate = ngone;
+                  }
+                  else {
+                    curprio = 10u;  curgate = n;
+                  }
+                }
+              }
+              
+              if(curprio>maxprio) {
+                maxprio = curprio;  gate = curgate;
+              }
+            }
+            
+            
+            if(maxprio>0u) {
+              // gate is defined by bonds
+            }
+            else if(speed0>0u) {
+              gate = speed0;
+              if(ExtractAl(cells[speed])>0u) {  // if cell in direction of speed is busy - move where we are pushed to
+                for(uint n=1u; n<`+RC+`u; n++) {
+                  if(n==speed0) continue;  // face-to-face collision is ok
+                  if(ExtractAl(cells[n])==0u) continue;
+                  uint ngate = ExtractGate(cells[n]);
+                  if(ngate==revers[n]) {  // neib is pushing us
+                    gate = ngate;  // moving in direction of pushing cell
+                    break;
+                  }
+                }
+              }
+            }
+            else {
+              for(uint n=1u; n<`+RC+`u; n++) {
+                if(ExtractAl(cells[n])==0u) continue;
+                if(ExtractSpeed(cells[n])==revers[n]) {  // neib moves to us
+                  gate = n;
+                  break;  // @ todo: accept not first but most priority
+                }
+              }
+            }
+          }
+        }
+        // gate accepting ////////////////////////////////////////////////////////////////
+        else if(stage==2u) {
+          if(al0==0u) {
+            int maxprio = 0, curprio = 0;
+            for(uint n=1u; n<`+RC+`u; n++) {
+              if(ExtractAl(cells[n])==0u) continue;
+              if(ExtractGate(cells[n])==revers[n]) {  // neib gate to us
+                uint nspeed = ExtractSpeed(cells[n]);
+                if(nspeed==revers[n]) {  // neib speed to us
+                  curprio = 40;
+                }
+                else if(nspeed==n) {  // neib speed away from us
+                  curprio =  0;
+                }
+                else if(nspeed!=0u) {  // neib moves perpendicular
+                  curprio = 20;
+                }
+                else {  // neib stands
+                  uint ngone = ExtractGone(cells[n]);
+                  if(ngone==revers[n]) {
+                    curprio = 31;
+                  }
+                  else if(ngone==n) {
+                    curprio =  0;
+                  }
+                  else {
+                    curprio = 30;
+                  }
+                }
+                
+                if(curprio>maxprio) {
+                  maxprio = curprio;  gate = n;
+                }
+              }
+            }
+          }
+          else {
+            gate = gate0;
+          }
+        }
+        // movement, sluice transfer ////////////////////////////////////////////////////////////////
+        else if(stage==3u) {
+          if(gate0>0u) {  // was open at previous turn
+            if(al0>0u) {  // alive cell
+              uvec4 mate = cells[gate0];
+              if(ExtractGate(mate)==revers[gate0]) {  // sluice open
+                if(ExtractAl(mate)==0u) {  // mate is empty => transfering whole cell
+                  al = 0u;
+                  gone = gate0;
+                  speed = speed0;
+                  
+                  uint behind = 0u;  // bonds left behind
+                  for(uint n=1u; n<`+RC+`u; n++) {
+                    if(n==gate0) continue;
+                    if(bonds0[n]==2u) {
+                      bonds[n] = 3u;
+                      behind ++;
+                    }
+                    else {
+                      bonds[n] = 0u;
+                    }
+                  }
+                  if(behind>0u) bonds[gate0] = 3u;
+                }
+                else {  // mate is alive => exchanging momentum
+                  speed = ExtractSpeed(mate);
+                }
+              }
+            }
+            else {  // dead cell
+              uvec4 mate = cells[gate0];
+              if(ExtractGate(mate)==revers[gate0]) {
+                if(ExtractAl(mate)>0u) {
+                  al = 1u;
+                  fl = ExtractFl(mate);
+                  gone = revers[gate0];
+                  speed = ExtractSpeed(mate);
+                  
+                  uint[5] nbonds = ExtractBonds(mate);
+                  uint behind = 0u;  // bonds mate left behind
+                  for(uint n=1u; n<`+RC+`u; n++) {
+                    if(n!=revers[gate0] && nbonds[n]==2u) behind ++;
+                  }
+                  bonds[gate0] = behind>0u ? 3u : 0u;
+                }
+              }
+            }
+          }
+        }
+        // --- ////////////////////////////////////////////////////////////////
+        
+        
+        // decay ////////////////////////////////////////////////////////////////
+        
+             if(al>0u)     decay = 7u;
+        else if(al0>0u)    decay = 4u;
         else if(decay0>0u) decay = decay0 - 1u;
         
         if(decay==0u) {  // clearing decayed cell

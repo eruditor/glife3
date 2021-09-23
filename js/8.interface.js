@@ -40,6 +40,8 @@ topbar.style.width = IW + 'px';
 topbar.innerHTML += CreateNavButtons();
 glcont.prepend(topbar);
 
+var surstep = round((FW + FH) / 40);  if(surstep<1) surstep = 1;
+
 function CreateNavButtons() {
   var ret = '';
   
@@ -64,10 +66,10 @@ function CreateNavButtons() {
   <table cellspacing=0 class='navTB'><tr>
   <td><input type=button class='mediabtn' value='\u2934\uFE0F' onclick="surface.left+=0.1*(FW/surface.zoom/2); surface.top +=0.1*(FH/surface.zoom/2); surface.zoom/=1.1; Show(1);" title='Zoom in'>
   <td><input type=button class='mediabtn' value='\u2935\uFE0F' onclick="surface.zoom*=1.1; surface.left-=0.1*(FW/surface.zoom/2); surface.top -=0.1*(FH/surface.zoom/2); Show(1);" title='Zoom out'>
-  <td><input type=button class='mediabtn' value='\u2B05\uFE0F' onclick="surface.left+=10; Show(1);" title='Move left'>
-  <td><input type=button class='mediabtn' value='\u27A1\uFE0F' onclick="surface.left-=10; Show(1);" title='Move right'>
-  <td><input type=button class='mediabtn' value='\u2B06\uFE0F' onclick="surface.top -=10; Show(1);" title='Move up'>
-  <td><input type=button class='mediabtn' value='\u2B07\uFE0F' onclick="surface.top +=10; Show(1);" title='Move down'>
+  <td><input type=button class='mediabtn' value='\u2B05\uFE0F' onclick="surface.left+=surstep; Show(1);" title='Move left'>
+  <td><input type=button class='mediabtn' value='\u27A1\uFE0F' onclick="surface.left-=surstep; Show(1);" title='Move right'>
+  <td><input type=button class='mediabtn' value='\u2B06\uFE0F' onclick="surface.top -=surstep; Show(1);" title='Move up'>
+  <td><input type=button class='mediabtn' value='\u2B07\uFE0F' onclick="surface.top +=surstep; Show(1);" title='Move down'>
   <td><input type=button class='mediabtn' value='&#x1F191'     onclick="surface.left=0; surface.top=0; surface.zoom=1; Show(1);" title='Reset view'>
   </tr></table>
   

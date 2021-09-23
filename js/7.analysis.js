@@ -495,7 +495,7 @@ function Stats(force=false) {
     </table>
   `;
   
-  if(Mode!='MVM' && Mode!='BND') {
+  if(Mode=='' || Mode=='PRT') {
     if(cfg.autore || cfg.rerun) {
       if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
         Pause(1);

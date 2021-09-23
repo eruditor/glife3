@@ -225,6 +225,7 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
     $fm = glDicts::GetFamily($gl->family_id);
     $prms['FD'] = glDicts::GetFD($gl);
     $prms['notaset'] = $gl->notaset;
+    if($gl->named && !$gl->mutaset) $prms['named'] = $gl->named;
     //$prms['mutaset'] = $gl->mutaset;
     $send2js .= "Mutaset = '".str_replace("\n", "\\n", $gl->mutaset)."';\n";
   }

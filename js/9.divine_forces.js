@@ -22,70 +22,12 @@ gl.canvas.onmousedown = function(e) {
       var cell = GetCell(mouseX, mouseY, 0);
       console.log('z='+z+', rgba=', cell);
       
-      if(Mode=='MVM') {
-        var s = '';
-        
-        var x = cell.r & 65535;  if(x<0)  x  += 65536;  x -= 32768;
-        var y = cell.g & 65535;  if(y<0)  y  += 65536;  y -= 32768;
-        var vx = cell.r >> 16;   if(vx<0) vx += 65536;  vx -= 32768;
-        var vy = cell.g >> 16;   if(vy<0) vy += 65536;  vy -= 32768;
-        s += '(' + x + ',' + y + ') (' + vx + ',' + vy + ') ';
-        
-        s += '[' +
-        ((cell.b << 28) >>> 28) + ' ' +
-        ((cell.b << 24) >>> 28) + ' ' +
-        ((cell.b << 20) >>> 28) + ' ' +
-        ((cell.b << 16) >>> 28) + ' ' +
-        ((cell.b << 12) >>> 28) + ' ' +
-        ((cell.b <<  8) >>> 28) + ' ' +
-        ((cell.b <<  4) >>> 28) + ' ' +
-        ((cell.b <<  0) >>> 28) +
-        '] ';
-        
-        s += '{' +
-        (cell.a & 1) + ' ' +
-        ((cell.a << 27) >>> 28) + ' ' +
-        ((cell.a << 24) >>> 29) + ' ' +
-        ((cell.a << 16) >>> 24) + ' ' +
-        (cell.a >>> 16) +
-        '} ';
-        
-        console.log(s);
-      }
-      else if(Mode=='BND') {
-        var s = '';
-        
-        var al    = (cell.a & 1);
-        var fl    = (cell.a >>> 1) % 16;
-        var decay = (cell.a >>> 5);
-        s += '(' + al + ', ' + fl + ', ' + decay + ') ';
-        
-        var gate  = (cell.g >>> 0) % 8;
-        var gone  = (cell.g >>> 3) % 8;
-        s += '{' + gate + ', ' + gone + '} ';
-        
-        s += '[' +
-          ((cell.b >>> 0) % 4) + ' ' +
-          ((cell.b >>> 2) % 4) + ' ' +
-          ((cell.b >>> 4) % 4) + ' ' +
-          ((cell.b >>> 6) % 4) +
-        '] ';
-        
-        var speed = (cell.r >>> 0) % 8;
-        var strid = (cell.r >>> 3) % 8;
-        s += '(' + speed + ', ' + strid + ') ';
-        
-        console.log(s);
+      if(typeof ExtractRGBA === 'function') {
+        console.log(ExtractRGBA(cell));
       }
       
-      if(!cell.a) {
-        continue;
-      }
-      else {
-        mouseRGBA = {...cell};
-        mouseZ = z;
-        //break;
-      }
+      mouseRGBA = {...cell};
+      mouseZ = z;
     }
   }
 };

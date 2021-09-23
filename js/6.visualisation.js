@@ -40,7 +40,7 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
   else if(Mode=='BND') {
          if(v==0) return {'r':  0, 'g':  0, 'b':  0};
     else if(v==1) return {'r':200, 'g':  0, 'b':200};
-    else if(v==2) return {'r':200, 'g':200, 'b':  0};
+    else if(v==2) return {'r':180, 'g':180, 'b':  0};
     else if(v==3) return {'r':  0, 'g':200, 'b':200};
   }
   
@@ -99,6 +99,7 @@ var ShowFragmentShaderSource = `
   uniform vec2 u_canvas;  // canvas width and height
   uniform vec3 u_surface;  // surface: (left, top, zoom)
   uniform int u_ps[`+ND+`];
+  uniform highp uint u_nturn;  // nturn
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
@@ -197,14 +198,15 @@ var ShowFragmentShaderSource = `
     ` : ``) + `
     
     
-    ` + (Mode=='BND'? `
+    ` + (Named=='Bond4C' || Named=='Bond4C2'? `
     int d = int(`+zoom+`. * u_surface.z);  // canvas zoom
-    if(d>=8) {
+    if(d>=8 && color!=vec4(0.5, 0.5, 0.5, 1.)) {
       tex3coord = ivec3(tex2coord, layer);
       
       ivec2 cnvc = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy) * `+zoom+`. * u_surface.z );  // canvas coords
       int x = cnvc.x, y = cnvc.y;
       int d2 = d / 2;
+      int d4 = d / 4;
       int d1 = d - 1;
       vec4 clr;
       
@@ -220,10 +222,17 @@ var ShowFragmentShaderSource = `
       
       clr = vec4(0., 0.3, 0., 1.);
       uint gate = ExtractGate(cell);
-           if(gate==1u) { if(y==0  ) color = clr; }
-      else if(gate==2u) { if(x==d-1) color = clr; }
-      else if(gate==3u) { if(y==d-1) color = clr; }
-      else if(gate==4u) { if(x==0  ) color = clr; }
+           if(gate==1u) { if(y==1  ) color = clr; }
+      else if(gate==2u) { if(x==d-2) color = clr; }
+      else if(gate==3u) { if(y==d-2) color = clr; }
+      else if(gate==4u) { if(x==1  ) color = clr; }
+      
+      clr = vec4(0.3, 0.3, 0., 1.);
+      uint gone = ExtractGone(cell);
+           if(gone==1u) { if(y==2   && abs(x-d2)<d4) color = clr; }
+      else if(gone==2u) { if(x==d-3 && abs(y-d2)<d4) color = clr; }
+      else if(gone==3u) { if(y==d-3 && abs(x-d2)<d4) color = clr; }
+      else if(gone==4u) { if(x==2   && abs(y-d2)<d4) color = clr; }
       
       uint[5] bonds = ExtractBonds(cell);
       for(uint n=1u; n<`+RC+`u; n++) {
@@ -233,17 +242,28 @@ var ShowFragmentShaderSource = `
           (bonds[n]==2u ? vec4(0., 1., 0., 1.) :
                           vec4(1., 0., 0., 1.)
           );
-             if(n==1u) { if(y==0   && (x==d2 || x==d2-1)) color = clr; }
-        else if(n==2u) { if(x==d-1 && (y==d2 || y==d2-1)) color = clr; }
-        else if(n==3u) { if(y==d-1 && (x==d2 || x==d2-1)) color = clr; }
-        else if(n==4u) { if(x==0   && (y==d2 || y==d2-1)) color = clr; }
+             if(n==1u) { if((y==0   || y==1  ) && (x==d2 || x==d2-1 || x==d2-2 || x==d2+1)) color = clr; }
+        else if(n==2u) { if((x==d-1 || x==d-2) && (y==d2 || y==d2-1 || y==d2-2 || y==d2+1)) color = clr; }
+        else if(n==3u) { if((y==d-1 || y==d-2) && (x==d2 || x==d2-1 || x==d2-2 || x==d2+1)) color = clr; }
+        else if(n==4u) { if((x==0   || x==1  ) && (y==d2 || y==d2-1 || y==d2-2 || y==d2+1)) color = clr; }
       }
+    }
+    ` : ``) + `
+    
+    ` + (Named=='Bond4C2'? `
+    if(v_texcoord.x<=0.1 && v_texcoord.y<=0.1) {
+      uint stage = u_nturn % 4u;
+      color =
+        stage==0u ? vec4(1., 0., 0., 1.) :
+        stage==1u ? vec4(0., 1., 0., 1.) :
+        stage==2u ? vec4(0., 0., 1., 1.) :
+                    vec4(1., 1., 1., 1.);
     }
     ` : ``) + `
     
   }
 `;//console.log(ShowFragmentShaderSource);
-var ShowProgram = createProgram4Frag(gl, ShowFragmentShaderSource, ["a_position", "u_fieldtexture", "u_canvas", "u_surface", "u_ps"]);
+var ShowProgram = createProgram4Frag(gl, ShowFragmentShaderSource, ["a_position", "u_fieldtexture", "u_canvas", "u_surface", "u_ps", "u_nturn"]);
 
 // SHOW MAIN ////////////////////////////////////////////////////////////////
 
@@ -260,6 +280,8 @@ function Show(single=0, t=-1) {
   gl.uniform3f(ShowProgram.location.u_surface, surface.left, surface.top, surface.zoom);
   
   gl.uniform1iv(ShowProgram.location.u_ps, PS);
+  
+  gl.uniform1ui(ShowProgram.location.u_nturn, nturn - 1);
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   
