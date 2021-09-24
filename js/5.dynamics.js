@@ -1052,6 +1052,22 @@ else if(Named=='Bond4C2') {
     uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
     int atom_bondenergies[4] = int[4]( 0, 20, 25, 15);
     
+    int BondPairEnergies(uint fl1, uint fl2) {
+      if(fl1>fl2) { uint fl0 = fl1;  fl1 = fl2;  fl2 = fl0; }
+      int e = 0;
+           if(fl1==1u && fl2==1u) e = 435;  // H-H
+      else if(fl1==1u && fl2==2u) e = 464;  // O-H
+      else if(fl1==1u && fl2==3u) e = 413;  // C-H
+      else if(fl1==2u && fl2==2u) e = 138;  // O-O
+      else if(fl1==2u && fl2==3u) e = 335;  // C-O
+      else if(fl1==3u && fl2==3u) e = 347;  // C-C
+      // N-H 389
+      // O-N
+      // C-N 293
+      // N-N 159
+      return e;
+    }
+    
     uint revers[5] = uint[5](0u, 3u, 4u, 1u, 2u);
     
     void main() {
@@ -1087,18 +1103,17 @@ else if(Named=='Bond4C2') {
           if(al0>0u) {
             bonds = uint[5](0u, 0u, 0u, 0u, 0u);
             for(uint n=1u; n<`+RC+`u; n++) {
-              if(ExtractAl(cells[n])==0u) {
-                if(bonds0[n]>=2u && ExtractBonds(cells[n])[revers[n]]==3u) {
-                  bonds[n] = 3u;
-                  bondenergy[n] = atom_bondenergies[ExtractFl(cells[n])];
-                  freebonds --;
-                }
-              }
-              else {
-                int e = atom_bondenergies[ExtractFl(cells[n])];
+              uint bnd = 
+                bonds0[n]>=2u && ExtractAl(cells[n])==0u && ExtractBonds(cells[n])[revers[n]]==3u ? 3u :
+                bonds0[n]>=2u ? 2u :
+                1u
+              ;
+              
+              if(ExtractAl(cells[n])>0u || bnd==3u) {
+                int e = BondPairEnergies(fl0, ExtractFl(cells[n]));
                 
                 if(freebonds>0u) {
-                  bonds[n] = bonds0[n]>=2u ? 2u : 1u;
+                  bonds[n] = bnd;
                   bondenergy[n] = e;
                   freebonds --;
                 }
@@ -1113,7 +1128,7 @@ else if(Named=='Bond4C2') {
                   }
                   if(min_e < e) {
                     bonds[min_n] = 0u;  bondenergy[min_n] = 0;
-                    bonds[n] = bonds0[n]>=2u ? 2u : 1u;  bondenergy[n] = e;
+                    bonds[n] = bnd;  bondenergy[n] = e;
                   }
                 }
               }
@@ -1191,6 +1206,9 @@ else if(Named=='Bond4C2') {
                 if(ExtractSpeed(cells[n])==revers[n]) {  // neib moves to us
                   gate = n;
                   break;  // @ todo: accept not first but most priority
+                }
+                if(bonds[n]==1u) {  // unpaired bond
+                  gate = revers[n];  // slight repulsion for refused bond
                 }
               }
             }
