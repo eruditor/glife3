@@ -949,7 +949,7 @@ else if(Named=='Bond4C2') {
     '] ';
     
     var speed = (cell.r >>> 0) % 8;
-    var strid = (cell.r >>> 3) % 8;
+    var strid = (cell.r >>> 3);  //  % 8
     s += '(' + speed + ', ' + strid + ') ';
     
     return s;
@@ -1052,7 +1052,7 @@ else if(Named=='Bond4C2') {
     uint atom_bondnums[4]   = uint[4](0u, 1u, 2u, 4u);  // number of covalent bonds
     int atom_bondenergies[4] = int[4]( 0, 20, 25, 15);
     
-    int BondPairEnergies(uint fl1, uint fl2) {
+    uint BondPairEnergies(uint fl1, uint fl2) {
       if(fl1>fl2) { uint fl0 = fl1;  fl1 = fl2;  fl2 = fl0; }
       int e = 0;
            if(fl1==1u && fl2==1u) e = 435;  // H-H
@@ -1065,7 +1065,7 @@ else if(Named=='Bond4C2') {
       // O-N
       // C-N 293
       // N-N 159
-      return e;
+      return uint(e);
     }
     
     uint revers[5] = uint[5](0u, 3u, 4u, 1u, 2u);
@@ -1089,11 +1089,8 @@ else if(Named=='Bond4C2') {
         uint    gate0  = ExtractGate( cells[0]),  gate  = 0u;
         uint    gone0  = ExtractGone( cells[0]),  gone  = gone0;
         uint    speed0 = ExtractSpeed(cells[0]),  speed = speed0;
-        uint    strid0 = ExtractStrid(cells[0]),  strid = strid0;  // @ strids are broken!
+        uint    strid0 = ExtractStrid(cells[0]),  strid = strid0;
         uint[5] bonds0 = ExtractBonds(cells[0]),  bonds = bonds0;
-        
-        uint freebonds = atom_bondnums[fl];
-        int[5] bondenergy = int[5](0, 0, 0, 0, 0);
         
         uint stage = u_nturn % 4u;  // 0 = bonds, 1 = gate opening, 2 = gate accepting, 3 = movement
         
@@ -1102,6 +1099,9 @@ else if(Named=='Bond4C2') {
           // opening new bond windows
           if(al0>0u) {
             bonds = uint[5](0u, 0u, 0u, 0u, 0u);
+            uint[5] bondenergy = uint[5](0u, 0u, 0u, 0u, 0u);
+            uint freebonds = atom_bondnums[fl];
+            
             for(uint n=1u; n<`+RC+`u; n++) {
               uint bnd = 
                 bonds0[n]>=2u && ExtractAl(cells[n])==0u && ExtractBonds(cells[n])[revers[n]]==3u ? 3u :
@@ -1110,7 +1110,8 @@ else if(Named=='Bond4C2') {
               ;
               
               if(ExtractAl(cells[n])>0u || bnd==3u) {
-                int e = BondPairEnergies(fl0, ExtractFl(cells[n]));
+                uint e = BondPairEnergies(fl0, ExtractFl(cells[n]));
+                if(bnd==3u) e += 1000u;  // super prio for stretched bond; @ todo: reconsider this
                 
                 if(freebonds>0u) {
                   bonds[n] = bnd;
@@ -1118,17 +1119,17 @@ else if(Named=='Bond4C2') {
                   freebonds --;
                 }
                 else {  // if all bonds are busy - choose most-energy-preferable bond
-                  uint min_n = 0u;  int min_e = 1000;
+                  uint min_n = 0u, min_e = 1000u;
                   for(uint nn=1u; nn<n; nn++) {  // looking for minimum energy in existing bonds
                     if(bonds[nn]==0u) continue;
-                    if(bondenergy[nn] < min_e) {
+                    if(bondenergy[nn] <= min_e) {
                       min_e = bondenergy[nn];
                       min_n = nn;
                     }
                   }
                   if(min_e < e) {
-                    bonds[min_n] = 0u;  bondenergy[min_n] = 0;
-                    bonds[n] = bnd;  bondenergy[n] = e;
+                    bonds[min_n] = 0u;   bondenergy[min_n] = 0u;
+                    bonds[n]     = bnd;  bondenergy[n]     = e;
                   }
                 }
               }
@@ -1144,6 +1145,7 @@ else if(Named=='Bond4C2') {
         else if(stage==1u) {
           if(al0>0u) {
             uint maxprio = 0u, curprio = 0u, curgate = 0u;
+            strid = 0u;
             
             for(uint n=1u; n<`+RC+`u; n++) {
               uint nb = ExtractBonds(cells[n])[revers[n]];  // neib's bond to this cell
@@ -1160,7 +1162,10 @@ else if(Named=='Bond4C2') {
               
               // bonded gates
               if(bonds[n]==3u) {  // stretched bond forces
-                if(gone0==revers[n]) {  // backwards
+                if(gone0==revers[n] && strid0>0u) {
+                  curprio = 50u;  curgate = strid0;
+                }
+                else if(gone0==revers[n]) {  // backwards
                   curprio = 40u;  curgate = 0u;
                 }
                 else if(speed0==n) {
@@ -1179,6 +1184,11 @@ else if(Named=='Bond4C2') {
               
               if(curprio>maxprio) {
                 maxprio = curprio;  gate = curgate;
+              }
+              
+              if(bonds[n]>=2u && ExtractAl(cells[n])>0u) {
+                uint nspeed = ExtractSpeed(cells[n]);
+                if(nspeed>0u && nspeed!=revers[n]) strid = nspeed;
               }
             }
             
@@ -1256,6 +1266,7 @@ else if(Named=='Bond4C2') {
         }
         // movement, sluice transfer ////////////////////////////////////////////////////////////////
         else if(stage==3u) {
+          gone = 0u;
           if(gate0>0u) {  // was open at previous turn
             if(al0>0u) {  // alive cell
               uvec4 mate = cells[gate0];
@@ -1291,6 +1302,7 @@ else if(Named=='Bond4C2') {
                   fl = ExtractFl(mate);
                   gone = revers[gate0];
                   speed = ExtractSpeed(mate);
+                  strid = ExtractStrid(mate);
                   
                   uint[5] nbonds = ExtractBonds(mate);
                   uint behind = 0u;  // bonds mate left behind

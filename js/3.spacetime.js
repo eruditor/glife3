@@ -189,6 +189,22 @@ function InitialFill() {
       SetCell(3, 2, 0, 0, 0, 0, (1 << 1) + 1);
       SetCell(3, 3, 0, 0, 0, 0, (1 << 1) + 1);
     }
+    else if(cfg.debug==10) {
+      SetCell(4, 4, 0, 0, 0, 0, (1 << 1) + 1);
+      SetCell(4, 3, 0, 0, 0, 0, (2 << 1) + 1);
+      SetCell(4, 2, 0, 2, 0, 0, (1 << 1) + 1);
+      SetCell(6, 4, 0, 0, 0, 0, (1 << 1) + 1);
+      SetCell(6, 3, 0, 0, 0, 0, (1 << 1) + 1);
+    }
+    else if(cfg.debug==11) {
+      SetCell(2, 4, 0, 2, 0, 0, (1 << 1) + 1);
+      SetCell(4, 3, 0, 0, 4 << 3, 0, (1 << 1) + 1);
+    }
+    else if(cfg.debug==12) {
+      SetCell(2, 4, 0, 2, 0, 0, (1 << 1) + 1);
+      SetCell(3, 4, 0, 0, 0, 0, (1 << 1) + 1);
+      SetCell(6, 3, 0, 0, 0, 0, (1 << 1) + 1);
+    }
     else {
       var lstep = 1000;
       for(var z=0; z<FD; z++) {
