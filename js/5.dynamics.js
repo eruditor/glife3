@@ -1062,7 +1062,7 @@ else if(Named=='Bond4C2') {
       else if(fl1==2u && fl2==3u) e = 335;  // C-O
       else if(fl1==3u && fl2==3u) e = 347;  // C-C
       // N-H 389
-      // O-N
+      // O-N 210
       // C-N 293
       // N-N 159
       return uint(e);
@@ -1136,9 +1136,7 @@ else if(Named=='Bond4C2') {
             }
           }
           else {
-            for(uint n=1u; n<`+RC+`u; n++) {
-              if(ExtractDecay(cells[n])==0u) bonds[n] = 0u;
-            }
+            //for(uint n=1u; n<`+RC+`u; n++) {  if(ExtractAl(cells[n])==0u) bonds[n] = 0u;  }
           }
         }
         // gate opening ////////////////////////////////////////////////////////////////
