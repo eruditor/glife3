@@ -228,11 +228,12 @@ var ShowFragmentShaderSource = `
       else if(gate==4u) { if(x==1  ) color = clr; }
       
       clr = vec4(0.3, 0.3, 0., 1.);
-      uint gone = ExtractGone(cell);
-           if(gone==1u) { if(y==2   && abs(x-d2)<d4) color = clr; }
-      else if(gone==2u) { if(x==d-3 && abs(y-d2)<d4) color = clr; }
-      else if(gone==3u) { if(y==d-3 && abs(x-d2)<d4) color = clr; }
-      else if(gone==4u) { if(x==2   && abs(y-d2)<d4) color = clr; }
+      uint strid = ExtractStrid(cell);
+           if(strid==1u) { if(y==2   && abs(x-d2)<d4) color = clr; }
+      else if(strid==2u) { if(x==d-3 && abs(y-d2)<d4) color = clr; }
+      else if(strid==3u) { if(y==d-3 && abs(x-d2)<d4) color = clr; }
+      else if(strid==4u) { if(x==2   && abs(y-d2)<d4) color = clr; }
+      else if(strid==7u) { if(abs(x-d2)<3 && abs(y-d2)<3) color = clr; }
       
       uint[5] bonds = ExtractBonds(cell);
       for(uint n=1u; n<`+RC+`u; n++) {
