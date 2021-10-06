@@ -286,7 +286,7 @@ function Stats(force=false) {
   if(!force && (cfg.paused || cfg.pausestat)) return;
   
   if(Mode=='BND') {
-    if(cfg.maxfps>=1000) sleep(30);  // overwise GPU can freeze system UI
+    if(cfg.maxfps>=1000) sleep(cfg.sleep);  // overwise GPU can freeze system UI
     return;
   }
   
