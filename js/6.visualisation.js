@@ -227,7 +227,7 @@ var ShowFragmentShaderSource = `
       else if(gate==3u) { if(y==d-2) color = clr; }
       else if(gate==4u) { if(x==1  ) color = clr; }
       
-      clr = vec4(0.3, 0.3, 0., 1.);
+      clr = vec4(0., 0., 1., 1.);
       uint strid = ExtractStrid(cell);
            if(strid==1u) { if(y==2   && abs(x-d2)<d4) color = clr; }
       else if(strid==2u) { if(x==d-3 && abs(y-d2)<d4) color = clr; }

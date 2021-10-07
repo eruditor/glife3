@@ -205,6 +205,44 @@ function InitialFill() {
       SetCell(3, 4, 0, 0, 0, 0, (1 << 1) + 1);
       SetCell(6, 3, 0, 0, 0, 0, (1 << 1) + 1);
     }
+    else if(cfg.debug==13) {
+      SetCell(2, 2, 0, 0, 0, 0, (2 << 1) + 1);
+      SetCell(3, 2, 0, 0, 0, 0, (1 << 1) + 1);
+      SetCell(1, 2, 0, 2, 0, 0, (1 << 1) + 1);
+      
+      SetCell(5, 6, 0, 1, 0, 0, (2 << 1) + 1);
+      SetCell(6, 6, 0, 0, 0, 0, (1 << 1) + 1);
+      SetCell(4, 6, 0, 0, 0, 0, (1 << 1) + 1);
+    }
+    else if(Fseed<10) {
+      var ii = FW * FH * LD / 100;
+      for(var i=1; i<ii; i++) {
+        var x = rndF(5, FW-5);
+        var y = rndF(5, FH-5);
+        var speed = rndF(0,100)<Tmprtr ? rndF(1, 5) : 0;
+        
+        var busy = false;
+        for(var dx=-2; dx<=2; dx++) {
+          for(var dy=-2; dy<=2; dy++) {
+            if(GetCell(x+dx, y+dy, 0).a!=0) { busy = true;  break; }
+          }
+        }
+        if(busy) continue;
+        
+        if(Fseed==1) {
+          SetCell(x  , y  , 0, speed, 0, 0, (3 << 1) + 1);
+          SetCell(x+1, y  , 0,     0, 0, 0, (1 << 1) + 1);
+          SetCell(x-1, y  , 0,     0, 0, 0, (1 << 1) + 1);
+          SetCell(x  , y+1, 0,     0, 0, 0, (1 << 1) + 1);
+          SetCell(x  , y-1, 0,     0, 0, 0, (1 << 1) + 1);
+        }
+        else if(Fseed==2) {
+          SetCell(x  , y  , 0, speed, 0, 0, (2 << 1) + 1);
+          SetCell(x+1, y  , 0,     0, 0, 0, (1 << 1) + 1);
+          SetCell(x-1, y  , 0,     0, 0, 0, (1 << 1) + 1);
+        }
+      }
+    }
     else {
       var lstep = 1000;
       for(var z=0; z<FD; z++) {
