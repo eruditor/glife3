@@ -244,6 +244,22 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   
   $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);\n";
   
+       if($fm->mode=='MVM')          $spacetime = "<script src='js/MVM/spacetime.js$jsget'></script>";
+  else if($fm->mode=='BND')          $spacetime = "<script src='js/BND/spacetime.js$jsget'></script>";
+  else                               $spacetime = '';
+  
+       if($fm->mode=='PRT')          $dynamics = "<script src='js/PRT/dynamics.js$jsget'></script>";
+  else if($fm->mode=='MVM')          $dynamics = "<script src='js/MVM/dynamics.js$jsget'></script>";
+  else if($prms['named']=='Bond4C')  $dynamics = "<script src='js/BND/Bond4C/dynamics.js$jsget'></script>";
+  else if($prms['named']=='Bond4C2') $dynamics = "<script src='js/BND/Bond4C2/dynamics.js$jsget'></script>";
+  else                               $dynamics = "<script src='js/!default/dynamics.js$jsget'></script>";
+  
+       if($fm->mode=='PRT')          $visualisation = "<script src='js/PRT/visualisation.js$jsget'></script>";
+  else if($fm->mode=='MVM')          $visualisation = "<script src='js/MVM/visualisation.js$jsget'></script>";
+  else if($prms['named']=='Bond4C')  $visualisation = "<script src='js/BND/Bond4C/visualisation.js$jsget'></script>";
+  else if($prms['named']=='Bond4C2') $visualisation = "<script src='js/BND/Bond4C2/visualisation.js$jsget'></script>";
+  else                               $visualisation = '';
+  
   return "
     <a name='cont'></a>
     <div id=GLifeCont></div>
@@ -256,9 +272,9 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
     <script src='js/0.params.js$jsget&rseed=$rseed&fseed=$fseed$plus'></script>
     <script src='js/1.math.js$jsget'></script>
     <script src='js/2.hardware.js$jsget'></script>
-    <script src='js/3.spacetime.js$jsget'></script>
+    <script src='js/3.spacetime.js$jsget'></script>$spacetime
     <script src='js/4.physics_laws.js$jsget'></script>
-    <script src='js/5.dynamics.js$jsget'></script>
+    <script src='js/5.dynamics.js$jsget'></script>$dynamics$visualisation
     <script src='js/6.visualisation.js$jsget'></script>
     <script src='js/7.analysis.js$jsget'></script>
     <script src='js/8.interface.js$jsget'></script>

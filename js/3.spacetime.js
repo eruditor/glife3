@@ -29,7 +29,10 @@ function InitSetCell(x, y, z, v) {
 function InitialFill() {
   F.fill(0);  // zeroing F in case this call is not the first
   
-  if(Family=='Langton') {
+  if(typeof InitialFiller === 'function') {
+    InitialFiller();
+  }
+  else if(Family=='Langton') {
     if(LF<=0.0101) {
       InitSetCell(round(FW/2), round(FH/2), 1, 1);
     }
@@ -46,19 +49,6 @@ function InitialFill() {
       }
     }
   }
-  else if(cfg.debug && 0) {
-    if(1) {
-      var FW2 = round(FW/2);
-      var FH2 = round(FH/2);
-      InitSetCell(FW2  , FH2+1, 0, 1);
-      InitSetCell(FW2+1, FH2  , 0, 1);
-      InitSetCell(FW2-1, FH2-1, 0, 1);
-      InitSetCell(FW2  , FH2-1, 0, 1);
-      InitSetCell(FW2+1, FH2-1, 0, 1);
-      
-    }
-    return;
-  }
   else if(Family=='Conway' && LF==0.33) {
     for(var d=1; d<1000; d++) {
       var x = round(FW/2 + FW/4*Math.cos(2*Math.PI*d/1000));
@@ -66,200 +56,6 @@ function InitialFill() {
       var z = 0;
       var v = 1;
       InitSetCell(x, y, z, v);
-    }
-  }
-  else if(Mode=='MVM') {
-    if(cfg.debug==1) {
-      var vv = 215;
-      SetCell( 9, 4, 0, (2000 + 32768) + (vv + 32768) * 65536, (2000 + 32768) + (-vv + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell(10, 5, 0, (   0 + 32768) + ( 0 + 32768) * 65536, (   0 + 32768) + (  0 + 32768) * 65536, 0, (3 << 1) + 1);
-    }
-    else if(cfg.debug==2) {
-      var vv = 215;
-      SetCell( 8, 3, 0, (   0 + 32768) + (vv + 32768) * 65536, (   0 + 32768) + ( vv + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 8, 5, 0, (   0 + 32768) + (vv + 32768) * 65536, (   0 + 32768) + (  0 + 32768) * 65536, 0, (2 << 1) + 1);
-      SetCell( 8, 7, 0, (   0 + 32768) + (vv + 32768) * 65536, (   0 + 32768) + (-vv + 32768) * 65536, 0, (3 << 1) + 1);
-    }
-    else if(cfg.debug==3) {
-      var vv = 0;
-      SetCell( 9, 4, 0, (-4000 + 32768) + (vv + 32768) * 65536, (   0 + 32768) + (-vv + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell(10, 4, 0, (    0 + 32768) + ( 0 + 32768) * 65536, (   0 + 32768) + (  0 + 32768) * 65536, 0, (3 << 1) + 1);
-    }
-    else if(cfg.debug==4) {
-      var vv = 0;
-      SetCell( 9, 4, 0, (-4000 + 32768) + ( 0 + 32768) * 65536, (    0 + 32768) + ( 50 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell(10, 4, 0, (    0 + 32768) + ( 0 + 32768) * 65536, (    0 + 32768) + (  0 + 32768) * 65536, 0, (3 << 1) + 1);
-      //SetCell(11, 4, 0, ( 4000 + 32768) + ( 0 + 32768) * 65536, (    0 + 32768) + (  0 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell(10, 3, 0, (    0 + 32768) + (80 + 32768) * 65536, (-3000 + 32768) + (  0 + 32768) * 65536, 0, (2 << 1) + 1);
-      //SetCell(10, 5, 0, (    0 + 32768) + ( 0 + 32768) * 65536, ( 3500 + 32768) + (  0 + 32768) * 65536, 0, (2 << 1) + 1);
-    }
-    else if(cfg.debug==5) {
-      SetCell( 3, 3, 0, (0 + 32768) + (210 + 32768) * 65536, (0 + 32768) + ( 120 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 3, 5, 0, (0 + 32768) + (200 + 32768) * 65536, (0 + 32768) + (   0 + 32768) * 65536, 0, (2 << 1) + 1);
-      SetCell( 3, 7, 0, (0 + 32768) + (220 + 32768) * 65536, (0 + 32768) + (-105 + 32768) * 65536, 0, (1 << 1) + 1);
-      //SetCell(12, 5, 0, (0 + 32768) + (  0 + 32768) * 65536, (0 + 32768) + (   0 + 32768) * 65536, 0, (1 << 1) + 1);
-    }
-    else if(cfg.debug==6) {
-      SetCell( 4, 5, 0, (0 + 32768) + (220 + 32768) * 65536, (0 + 32768) + (   0 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 5, 3, 0, (0 + 32768) + (  0 + 32768) * 65536, (0 + 32768) + ( 200 + 32768) * 65536, 0, (2 << 1) + 1);
-    }
-    else if(cfg.debug==7) {
-      SetCell( 3, 5, 0, (0 + 32768) + (220 + 32768) * 65536, (-3000 + 32768) + (   0 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 5, 5, 0, (0 + 32768) + (  0 + 32768) * 65536, ( 3000 + 32768) + (   0 + 32768) * 65536, 0, (2 << 1) + 1);
-    }
-    else if(cfg.debug==8) {
-      SetCell( 2, 2, 0, (0 + 32768) + (-200 + 32768) * 65536, (0 + 32768) + (-200 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 2, 4, 0, (0 + 32768) + (-200 + 32768) * 65536, (0 + 32768) + (   0 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 2, 6, 0, (0 + 32768) + (-200 + 32768) * 65536, (0 + 32768) + ( 200 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 4, 2, 0, (0 + 32768) + (   0 + 32768) * 65536, (0 + 32768) + (-200 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 4, 4, 0, (0 + 32768) + (   0 + 32768) * 65536, (0 + 32768) + (   0 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 4, 6, 0, (0 + 32768) + (   0 + 32768) * 65536, (0 + 32768) + ( 200 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 6, 2, 0, (0 + 32768) + ( 200 + 32768) * 65536, (0 + 32768) + (-200 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 6, 4, 0, (0 + 32768) + ( 200 + 32768) * 65536, (0 + 32768) + (   0 + 32768) * 65536, 0, (1 << 1) + 1);
-      SetCell( 6, 6, 0, (0 + 32768) + ( 200 + 32768) * 65536, (0 + 32768) + ( 200 + 32768) * 65536, 0, (1 << 1) + 1);
-    }
-    else {
-      var lstep = 1000;
-      var speedlimit = round(mL/100);
-      for(var z=0; z<FD; z++) {
-        for(var x=round(FW/2-FW*LF/2); x<round(FW/2+FW*LF/2); x++) {
-          for(var y=round(FH/2-FH*LF/2); y<round(FH/2+FH*LF/2); y++) {
-            if(y<0 || y>=FH) continue;
-            if(rndF(0,lstep)<100*LD) {
-              var rv = rndF(0, 1000);
-              var v = (rv>=1000/2 ? 1 : (rv>=1000/4 ? 2 : (rv>=1000/8 ? 3 : 0)));
-              if(v>=RB) v = RB - 1;
-              if(v==0) continue;
-              var xx = rndF(-mL+1, mL-1) + 32768;
-              var yy = rndF(-mL+1, mL-1) + 32768;
-              var vx = rndF(-speedlimit, speedlimit) + 32768;
-              var vy = rndF(-speedlimit, speedlimit) + 32768;
-              SetCell(x, y, z, xx + vx * 65536, yy + vy * 65536, 0, (v << 1) + 1);
-            }
-          }
-        }
-      }
-    }
-  }
-  else if(Mode=='BND') {
-    if(cfg.debug==1) {
-      SetCell(2, 2, 0, 2, 0, 0, (1 << 1) + 1);
-      SetCell(7, 2, 0, 4, 0, 0, (2 << 1) + 1);
-      SetCell(2, 4, 0, 2, 0, 0, (1 << 1) + 1);
-      SetCell(6, 4, 0, 0, 0, 0, (2 << 1) + 1);
-    }
-    else if(cfg.debug==2) {
-      SetCell(4, 4, 0, 1, 0, 0, (1 << 1) + 1);
-      SetCell(2, 3, 0, 2, 0, 0, (2 << 1) + 1);
-    }
-    else if(cfg.debug==3) {
-      SetCell(3, 4, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(3, 3, 0, 0, 0, 0, (2 << 1) + 1);
-      SetCell(3, 2, 0, 0, 0, 0, (2 << 1) + 1);
-      SetCell(5, 2, 0, 4, 0, 0, (1 << 1) + 1);
-    }
-    else if(cfg.debug==4) {
-      SetCell(3, 3, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(4, 3, 0, 2, 0, 0, (2 << 1) + 1);
-    }
-    else if(cfg.debug==5) {
-      SetCell(3, 3, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(3, 4, 0, 2, 0, 0, (2 << 1) + 1);
-    }
-    else if(cfg.debug==6) {
-      SetCell(3, 2, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(2, 3, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(3, 4, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(3, 3, 0, 2, 0, 0, (3 << 1) + 1);
-    }
-    else if(cfg.debug==7) {
-      SetCell(3, 2, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(2, 3, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(3, 4, 0, 2, 0, 0, (1 << 1) + 1);
-      SetCell(3, 3, 0, 0, 0, 0, (3 << 1) + 1);
-    }
-    else if(cfg.debug==8) {
-      SetCell(3, 4, 0, 2, 0, 0, (1 << 1) + 1);
-      SetCell(3, 3, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(3, 2, 0, 0, 0, 0, (3 << 1) + 1);
-    }
-    else if(cfg.debug==9) {
-      SetCell(2, 2, 0, 2, 0, 0, (1 << 1) + 1);
-      SetCell(2, 3, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(3, 2, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(3, 3, 0, 0, 0, 0, (1 << 1) + 1);
-    }
-    else if(cfg.debug==10) {
-      SetCell(4, 4, 0, 2, 0, 0, (1 << 1) + 1);
-      SetCell(4, 3, 0, 0, 0, 0, (2 << 1) + 1);
-      SetCell(4, 2, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(6, 3, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(6, 2, 0, 0, 0, 0, (1 << 1) + 1);
-    }
-    else if(cfg.debug==11) {
-      SetCell(2, 4, 0, 2, 0, 0, (1 << 1) + 1);
-      SetCell(4, 3, 0, 0, 4 << 3, 0, (1 << 1) + 1);
-    }
-    else if(cfg.debug==12) {
-      SetCell(2, 4, 0, 2, 0, 0, (1 << 1) + 1);
-      SetCell(3, 4, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(6, 3, 0, 0, 0, 0, (1 << 1) + 1);
-    }
-    else if(cfg.debug==13) {
-      SetCell(2, 2, 0, 0, 0, 0, (2 << 1) + 1);
-      SetCell(3, 2, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(1, 2, 0, 2, 0, 0, (1 << 1) + 1);
-      
-      SetCell(5, 6, 0, 1, 0, 0, (2 << 1) + 1);
-      SetCell(6, 6, 0, 0, 0, 0, (1 << 1) + 1);
-      SetCell(4, 6, 0, 0, 0, 0, (1 << 1) + 1);
-    }
-    else if(Fseed<10) {
-      var ii = FW * FH * LD / 100;
-      for(var i=1; i<ii; i++) {
-        var x = rndF(5, FW-5);
-        var y = rndF(5, FH-5);
-        var speed = rndF(0,100)<Tmprtr ? rndF(1, 5) : 0;
-        
-        var busy = false;
-        for(var dx=-2; dx<=2; dx++) {
-          for(var dy=-2; dy<=2; dy++) {
-            if(GetCell(x+dx, y+dy, 0).a!=0) { busy = true;  break; }
-          }
-        }
-        if(busy) continue;
-        
-        if(Fseed==1) {
-          SetCell(x  , y  , 0, speed, 0, 0, (3 << 1) + 1);
-          SetCell(x+1, y  , 0,     0, 0, 0, (1 << 1) + 1);
-          SetCell(x-1, y  , 0,     0, 0, 0, (1 << 1) + 1);
-          SetCell(x  , y+1, 0,     0, 0, 0, (1 << 1) + 1);
-          SetCell(x  , y-1, 0,     0, 0, 0, (1 << 1) + 1);
-        }
-        else if(Fseed==2) {
-          SetCell(x  , y  , 0, speed, 0, 0, (2 << 1) + 1);
-          SetCell(x+1, y  , 0,     0, 0, 0, (1 << 1) + 1);
-          SetCell(x-1, y  , 0,     0, 0, 0, (1 << 1) + 1);
-        }
-      }
-    }
-    else {
-      var lstep = 1000;
-      for(var z=0; z<FD; z++) {
-        for(var x=round(FW/2-FW*LF/2); x<round(FW/2+FW*LF/2); x++) {
-          for(var y=round(FH/2-FH*LF/2); y<round(FH/2+FH*LF/2); y++) {
-            if(y<0 || y>=FH) continue;
-            if(rndF(0,lstep)<100*LD) {
-              var rv = rndF(0, 1000);
-              var v = (rv>=1000/2 ? 1 : (rv>=1000/4 ? 2 : (rv>=1000/8 ? 3 : 0)));
-              if(v>=RB) v = RB - 1;
-              if(v==0) continue;
-              var speed = rndF(0,100)<Tmprtr ? rndF(1, 5) : 0;
-              SetCell(x, y, z, speed, 0, 0, (v << 1) + 1);
-            }
-          }
-        }
-      }
     }
   }
   else {
