@@ -1,6 +1,6 @@
 <?
 
-$_ENV->ver = 385;  // release version
+$_ENV->ver = 390;  // release version
 
 $_ENV->anver = 4;  // analysis formula version (orga, rating, etc. ) = rr_glifetriruns.ver
 

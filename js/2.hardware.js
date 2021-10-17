@@ -14,9 +14,9 @@ var gl_ext = gl.getExtension('EXT_color_buffer_float');  // for floating-point m
 
 // main: Field and Rules
 const DataFormat =
-    Mode=='MVM'  ? 'UI32'
-  : Mode=='MVM2' ? 'F32'
-  :                'UI8';
+    Mode=='MVM' ? 'UI32'
+  : Mode=='FLD' ? 'UI32'
+  :               'UI8';
 
 var data_formats = {
   'UI32': [gl.RGBA_INTEGER, gl.RGBA32UI, gl.UNSIGNED_INT,  Uint32Array ],

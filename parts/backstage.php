@@ -246,18 +246,21 @@ function GLifeJS($notaset='', $prms=[], $send2js = '') {
   
        if($fm->mode=='MVM')          $spacetime = "<script src='js/MVM/spacetime.js$jsget'></script>";
   else if($fm->mode=='BND')          $spacetime = "<script src='js/BND/spacetime.js$jsget'></script>";
+  else if($fm->mode=='FLD')          $spacetime = "<script src='js/FLD/spacetime.js$jsget'></script>";
   else                               $spacetime = '';
   
        if($fm->mode=='PRT')          $dynamics = "<script src='js/PRT/dynamics.js$jsget'></script>";
   else if($fm->mode=='MVM')          $dynamics = "<script src='js/MVM/dynamics.js$jsget'></script>";
   else if($prms['named']=='Bond4C')  $dynamics = "<script src='js/BND/Bond4C/dynamics.js$jsget'></script>";
   else if($prms['named']=='Bond4C2') $dynamics = "<script src='js/BND/Bond4C2/dynamics.js$jsget'></script>";
+  else if($fm->mode=='FLD')          $dynamics = "<script src='js/FLD/dynamics.js$jsget'></script>";
   else                               $dynamics = "<script src='js/!default/dynamics.js$jsget'></script>";
   
        if($fm->mode=='PRT')          $visualisation = "<script src='js/PRT/visualisation.js$jsget'></script>";
   else if($fm->mode=='MVM')          $visualisation = "<script src='js/MVM/visualisation.js$jsget'></script>";
   else if($prms['named']=='Bond4C')  $visualisation = "<script src='js/BND/Bond4C/visualisation.js$jsget'></script>";
   else if($prms['named']=='Bond4C2') $visualisation = "<script src='js/BND/Bond4C2/visualisation.js$jsget'></script>";
+  else if($fm->mode=='FLD')          $visualisation = "<script src='js/FLD/visualisation.js$jsget'></script>";
   else                               $visualisation = '';
   
   return "
