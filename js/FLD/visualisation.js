@@ -21,18 +21,11 @@ var fs_Show = function(zoom) {
       else if(dir==4u) { if(x + y      < d2 || d  - y + x     <= d2) color = clr; }
     }
     
-    clr = vec4(0., 0.3, 0., 1.);
-    uint gate = ExtractGate(cell);
-         if(gate==1u) { if(y==1  ) color = clr; }
-    else if(gate==2u) { if(x==d-2) color = clr; }
-    else if(gate==3u) { if(y==d-2) color = clr; }
-    else if(gate==4u) { if(x==1  ) color = clr; }
-    
     uint[5] bonds = ExtractBonds(cell);
     for(uint n=1u; n<`+RC+`u; n++) {
       if(bonds[n]==0u) continue;
       clr =
-        bonds[n]==1u ? vec4(1., 1., 1., 1.) :
+         bonds[n]==1u ? vec4(1., 1., 1., 1.) :
         (bonds[n]==2u ? vec4(0., 1., 0., 1.) :
                         vec4(1., 0., 0., 1.)
         );
@@ -42,18 +35,30 @@ var fs_Show = function(zoom) {
       else if(n==4u) { if((x<4   ) && (y==d2 || y==d2-1 || y==d2-2 || y==d2+1)) color = clr; }
     }
     
-    uint[4] rF = ExtractRF(cell);
-    if(abs(x-d2)<=10 && abs(y-d2)<=10) {
-      if(x<=d2 && abs(y-d2)<2) color = vec4(float(rF[3]) / 128., 0., 0., 1.);
-      if(x>=d2 && abs(y-d2)<2) color = vec4(float(rF[1]) / 128., 0., 0., 1.);
-      if(abs(x-d2)<2 && y<=d2) color = vec4(float(rF[0]) / 128., 0., 0., 1.);
-      if(abs(x-d2)<2 && y>=d2) color = vec4(float(rF[2]) / 128., 0., 0., 1.);
-    }
-    if(abs(x-d2)<2 && abs(y-d2)<2) color = vec4(.2, .2, .2, 1.);
+    clr = vec4(0., 0.3, 0., 1.);
+    uint gate = ExtractGate(cell);
+         if(gate==1u) { if(y==1  ) color = clr; }
+    else if(gate==2u) { if(x==d-2) color = clr; }
+    else if(gate==3u) { if(y==d-2) color = clr; }
+    else if(gate==4u) { if(x==1  ) color = clr; }
     
-    uint L = ExtractL(cell);
-    if(L>0u) {
-      clr = L==1u ? vec4(0., 1., 0., 1.) : vec4(0., 1., 1., 1.);
+    clr = vec4(0., 0.3, 0.3, 1.);
+    uint force = ExtractForce(cell);
+         if(force==1u) { if(y==2  ) color = clr; }
+    else if(force==2u) { if(x==d-3) color = clr; }
+    else if(force==3u) { if(y==d-3) color = clr; }
+    else if(force==4u) { if(x==2  ) color = clr; }
+    
+    uint[2] rF = ExtractRF(cell);
+    if(abs(x-d2)<=4 && abs(y-d2)<=4) {
+      if(y>=d2 && abs(x-d2)<2) color = vec4(float(rF[0]) / 128., 0., 0., 1.);
+      if(y<=d2 && abs(x-d2)<2) color = vec4(0., float(rF[1]) / 128., 0., 1.);
+    }
+    //if(abs(x-d2)<2 && abs(y-d2)<2) color = vec4(.2, .2, .2, 1.);
+    
+    uint el = ExtractEl(cell);
+    if(el>0u) {
+      clr = el==1u ? vec4(1., 1., 1., 1.) : vec4(0., 1., 1., 1.);
       if(abs(x-d2)<3 && abs(y-d2)<3) color = clr;
     }
   }

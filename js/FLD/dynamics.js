@@ -3,27 +3,26 @@ function ExtractRGBA(cell) {
   
   var al   = (cell.a & 1);
   var fl   = (cell.a >>> 1) % 16;
-  var dir  = (cell.a >>> 5) % 8;
-  var gate = (cell.a >>> 8) % 8;
-  var k    = (cell.a >>> 16);
-  
-  s += 'A(' + al + ', ' + fl + ', ' + dir + ', ' + gate + ', ' + k + ') ';
+  var el   = (cell.a >>> 5) % 8;
+  var spin = (cell.a >>> 8) % 2;
+  s += 'A(' + al + ', ' + fl + ', ' + el + ', ' + spin + ') ';
   
   s += 'B[' +
     ((cell.b >>> 0) % 4) + ' ' +
     ((cell.b >>> 2) % 4) + ' ' +
     ((cell.b >>> 4) % 4) + ' ' +
-    ((cell.b >>> 6) % 4) + ', ' +
-    ((cell.b >>> 8) % 4) +
+    ((cell.b >>> 6) % 4) + 
   '] ';
   
-  s += 'G{' + cell.g + '} ';
+  var dir   = (cell.g >>> 0) % 8;
+  var gate  = (cell.g >>> 3) % 8;
+  var force = (cell.g >>> 6) % 8;
+  var k     = (cell.g >>> 16);
+  s += 'G{' + dir + ', ' + gate + ', ' + force + ', ' + k + '} ';
   
   s += 'R{' + 
-    ((cell.r >>>  0) % 256) + ' ' +
-    ((cell.r >>>  8) % 256) + ' ' +
-    ((cell.r >>> 16) % 256) + ' ' +
-    ((cell.r >>> 24) % 256) +
+    ((cell.r >>>  0) % 65536) + ' ' +
+    ((cell.r >>> 16) % 65536) +
    '} ';
   
   return s;
@@ -40,29 +39,22 @@ var fs_ExtractRGBA = `
     return (cell.a >> 1u) % 16u;
   }
   
-  uint ExtractDir(uvec4 cell) {  // direction of movement = 3 bit
+  uint ExtractEl(uvec4 cell) {  // electrons = 3 bit
     return (cell.a >> 5u) % 8u;
   }
   
-  uint ExtractGate(uvec4 cell) {  // gate = 3 bit
-    return (cell.a >> 8u) % 8u;
+  uint ExtractSpin(uvec4 cell) {  // spin = 1 bit
+    return (cell.a >> 8u) % 2u;
   }
   
-  uint ExtractK(uvec4 cell) {  // kinetic energy = 16 bit
-    return (cell.a >> 16u);
-  }
-  
-  uint PackA(uint al, uint fl, uint dir, uint gate, uint k) {
+  uint PackA(uint al, uint fl, uint el, uint spin) {
     return (al    <<  0u) |
            (fl    <<  1u) |
-           (dir   <<  5u) |
-           (gate  <<  8u) |
-           (k     << 16u);
+           (el    <<  5u) |
+           (spin  <<  8u);
   }
   
-  uint ExtractDecay(uvec4 cell) {
-    return 0u;
-  }
+  uint ExtractDecay(uvec4 cell) { return 0u; }
   
   ////////////////////////////////////////////////////////////////
   
@@ -76,34 +68,50 @@ var fs_ExtractRGBA = `
     );
   }
   
-  uint ExtractL(uvec4 cell) {  // eLectron
-    return (cell.b >> 8u) % 4u;
-  }
-  
-  uint PackB(uint[5] bonds, uint L) {
+  uint PackB(uint[5] bonds) {
     return (bonds[1] << 0u) |
            (bonds[2] << 2u) |
            (bonds[3] << 4u) |
-           (bonds[4] << 6u) |
-           (L        << 8u);
+           (bonds[4] << 6u);
   }
   
   ////////////////////////////////////////////////////////////////
   
-  uint[4] ExtractRF(uvec4 cell) {  // red field
-    return uint[4](
-      (cell.r >>  0u) % 256u,
-      (cell.r >>  8u) % 256u,
-      (cell.r >> 16u) % 256u,
-      (cell.r >> 24u) % 256u
+  uint ExtractDir(uvec4 cell) {  // direction of movement = 3 bit
+    return (cell.g >> 0u) % 8u;
+  }
+  
+  uint ExtractGate(uvec4 cell) {  // gate = 3 bit
+    return (cell.g >> 3u) % 8u;
+  }
+  
+  uint ExtractForce(uvec4 cell) {  // force = 3 bit
+    return (cell.g >> 6u) % 8u;
+  }
+  
+  uint ExtractK(uvec4 cell) {  // kinetic energy = 16 bit
+    return (cell.g >> 16u);
+  }
+  
+  uint PackG(uint dir, uint gate, uint force, uint k) {
+    return (dir   <<  0u) |
+           (gate  <<  3u) |
+           (force <<  6u) |
+           (k     << 16u);
+  }
+  
+  ////////////////////////////////////////////////////////////////
+  
+  uint[2] ExtractRF(uvec4 cell) {  // red field
+    return uint[2](
+      (cell.r >>  0u) % 65536u,
+      (cell.r >> 16u) % 65536u
     );
   }
   
-  uint PackR(uint[4] rF) {
+  uint PackR(uint[2] rF) {
     return (rF[0] <<  0u) |
-           (rF[1] <<  8u) |
-           (rF[2] << 16u) |
-           (rF[3] << 24u);
+           (rF[1] << 16u);
   }
   
   ////////////////////////////////////////////////////////////////
@@ -173,14 +181,16 @@ var CalcFragmentShaderSource = `
       
       uint    al0    = ExtractAl(   cells[0]),  al    = al0;
       uint    fl0    = ExtractFl(   cells[0]),  fl    = fl0;
+      uint    el0    = ExtractEl(   cells[0]),  el    = el0;
+      uint    spin0  = ExtractSpin( cells[0]),  spin  = spin0;
+      uint[5] bonds0 = ExtractBonds(cells[0]),  bonds = bonds0;
       uint    dir0   = ExtractDir(  cells[0]),  dir   = dir0;
       uint    gate0  = ExtractGate( cells[0]),  gate  = gate0;
+      uint    force0 = ExtractForce(cells[0]),  force = force0;
       uint    k0     = ExtractK(    cells[0]),  k     = k0;
-      uint[5] bonds0 = ExtractBonds(cells[0]),  bonds = bonds0;
-      uint    L0     = ExtractL(    cells[0]),  L     = L0;
-      uint[4] rF0    = ExtractRF(   cells[0]),  rF    = rF0;
+      uint[2] rF0    = ExtractRF(   cells[0]),  rF    = rF0;
       
-      uint stage = u_nturn % 6u;
+      uint stage = u_nturn % 7u;
       
       // bonds allocation ////////////////////////////////////////////////////////////////
       if(stage==0u) {
@@ -189,73 +199,82 @@ var CalcFragmentShaderSource = `
           uint[5] attracts = uint[5](0u, 0u, 0u, 0u, 0u);
           uint freebonds = atom_bondnums[fl0];
           for(uint n=1u; n<`+RC+`u; n++) {
-            uint[4] nr = ExtractRF(cells[n]);
-            uint r = nr[revers[n]-1u];
-            
             if(freebonds>0u) {
-              bonds[n] = 1u;  attracts[n] = r;
+              bonds[n] = 1u;
               freebonds --;
-            }
-            else {  // if all bonds are busy - choose most-attracting bond
-              uint min_n = 0u, min_r = 1000u;
-              for(uint nn=1u; nn<n; nn++) {  // looking for minimum attract in existing bonds
-                if(bonds[nn]==0u) continue;
-                if(attracts[nn] <= min_r) {
-                  min_r = attracts[nn];
-                  min_n = nn;
-                }
-              }
-              if(min_r < r) {
-                bonds[min_n] = 0u;  attracts[min_n] = 0u;
-                bonds[n]     = 1u;  attracts[n]     = r;
-              }
             }
           }
         }
       }
       // eLectrons ////////////////////////////////////////////////////////////////
       else if(stage==1u) {
-        L = 0u;
-        if(true) {
+        el = 0u;
+        if(al0==0u) {
+          spin = 0u;
           for(uint n=1u; n<`+RC+`u; n++) {
             if(ExtractAl(cells[n])>0u && ExtractBonds(cells[n])[revers[n]]>0u) {  // bonded to us
-              L ++;
+              el ++;
+              spin = ExtractSpin(cells[n]);
             }
           }
         }
       }
       // red field ////////////////////////////////////////////////////////////////
       else if(stage==2u) {
-        rF = uint[4](0u, 0u, 0u, 0u);
-        for(uint n=1u; n<`+RC+`u; n++) {
-          if(ExtractL(cells[n])>0u) {  // electron
-            if(al0==0u) {  // @ check bonds
-              rF[revers[n]-1u] = 128u * 4u;
-            }
-          }
-          else {
-            uint[4] nr = ExtractRF(cells[n]);
-            nr[n-1u] = 0u;  // !
-            rF = array4_sum(rF, nr);
-          }
+        rF = uint[2](0u, 0u);
+        
+        if(el0==1u) {
+          rF[spin0] = 100u * 5u;
         }
-        rF = array4_div(rF, 4u);
+        else if(el0==2u) {
+          rF[0] = 100u * 5u;
+          rF[1] = 100u * 5u;
+        }
+        
+        for(uint n=1u; n<`+RC+`u; n++) {
+          uint[2] nr = ExtractRF(cells[n]);
+          rF[0] += nr[0];
+          rF[1] += nr[1];
+        }
+        rF[0] /= 5u;
+        rF[1] /= 5u;
       }
-      // opening gates ////////////////////////////////////////////////////////////////
+      // electron forces ////////////////////////////////////////////////////////////////
       else if(stage==3u) {
-        if(al0>0u) {
+        force = 0u;
+        if(el0==1u) {
+          uint aspin = (spin0 + 1u) % 2u;  // anti-spin
           uint maxr = 0u, maxn = 0u;
           for(uint n=0u; n<`+RC+`u; n++) {
-            uint[4] nr = ExtractRF(cells[n]);
-            uint r = nr[revers[n]-1u];  // @ ! fix negative !
-            if(n==dir0) r += k0;
+            uint r = ExtractRF(cells[n])[aspin];
             if(r>maxr) { maxr = r;  maxn = n; }
+          }
+          force = maxn;
+          k = maxr;
+        }
+        else if(el0==2u) {
+          force = 0u;
+          k = 100u;
+        }
+      }
+      // opening gates ////////////////////////////////////////////////////////////////
+      else if(stage==4u) {
+        if(al0>0u) {
+          uint maxek = 0u, maxn = 0u;
+          for(uint n=1u; n<`+RC+`u; n++) {
+            uint eforce = 0u, ek = 0u;
+            if(bonds0[n]>0u && ExtractEl(cells[n])>0u) {
+              eforce = ExtractForce(cells[n]);
+              ek = ExtractK(cells[n]);
+            }
+            if(n==dir0) { eforce = dir0;  ek += k0; }
+            if(ek>maxek) { maxek = ek;  maxn = eforce; }
           }
           gate = maxn;
         }
       }
       // accepting gates ////////////////////////////////////////////////////////////////
-      else if(stage==4u) {
+      else if(stage==5u) {
         if(al0==0u) {
           int maxprio = 0, curprio = 0;
           for(uint n=1u; n<`+RC+`u; n++) {
@@ -271,7 +290,7 @@ var CalcFragmentShaderSource = `
         }
       }
       // movement transfer ////////////////////////////////////////////////////////////////
-      else if(stage==5u) {
+      else if(stage==6u) {
         if(gate0>0u) {  // was open at previous turn
           if(al0>0u) {  // alive cell
             uvec4 mate = cells[gate0];
@@ -298,13 +317,12 @@ var CalcFragmentShaderSource = `
       }
       // --- ////////////////////////////////////////////////////////////////
       
-      
       // rgba packing ////////////////////////////////////////////////////////////////
       
       uvec4 color = uvec4(0);
-      color.a = PackA(al, fl, dir, gate, k);
-      color.b = PackB(bonds, L);
-      //color.g = PackG(gF);
+      color.a = PackA(al, fl, el, spin);
+      color.b = PackB(bonds);
+      color.g = PackG(dir, gate, force, k);
       color.r = PackR(rF);
       
       ` + fs_Prepare2Return('color') + `

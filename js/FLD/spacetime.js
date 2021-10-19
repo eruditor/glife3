@@ -1,13 +1,14 @@
 function InitialFiller() {
   if(cfg.debug==1) {
-    SetCell(15, 5, 0, 0, 0, 0, (100 << 16) + (1 << 5) + (2 << 1) + 1);
-    SetCell( 7, 2, 0, 0, 0, 0, (2 << 1) + 1);
-    SetCell( 2, 6, 0, 0, 0, 0, (1 << 1) + 1);
-    SetCell( 6, 5, 0, 0, 0, 0, (3 << 1) + 1);
+    SetCell(15, 5, 0, 0, 0, 0, (1 << 8) + (2 << 1) + 1);
+    SetCell( 7, 2, 0, 0, 0, 0, (0 << 8) + (2 << 1) + 1);
+    SetCell( 2, 6, 0, 0, 0, 0, (1 << 8) + (1 << 1) + 1);
+    SetCell( 6, 5, 0, 0, 0, 0, (0 << 8) + (3 << 1) + 1);
   }
   else if(cfg.debug==2) {
     SetCell( 2, 6, 0, 0, 0, 0, (1 << 1) + 1);
     SetCell( 6, 5, 0, 0, 0, 0, (3 << 1) + 1);
+    SetCell(14, 5, 0, 0, 0, 0, (2 << 1) + 1);
   }
   else {
     var lstep = 1000;
@@ -20,9 +21,10 @@ function InitialFiller() {
             var v = (rv>=1000/2 ? 1 : (rv>=1000/4 ? 2 : (rv>=1000/8 ? 3 : 0)));
             if(v>=RB) v = RB - 1;
             if(v==0) continue;
+            var spin = rndF(0, 2);
             var dir = rndF(0,100)<Tmprtr ? rndF(1, 5) : 0;
-            var k = dir>0 ? rndF(10, 200) : 0;
-            SetCell(x, y, z, dir, 0, 0, (k << 16) + (dir << 5) + (v << 1) + 1);
+            var k = dir>0 ? rndF(10, 800) : 0;
+            SetCell(x, y, z, 0, (k << 16) + (dir << 0), 0, (spin << 8) + (v << 1) + 1);
           }
         }
       }
