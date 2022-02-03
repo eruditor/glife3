@@ -37,7 +37,7 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
     else if(v==2) return {'r':220, 'g':  0, 'b':  0};
     else if(v==3) return {'r':  0, 'g':200, 'b':  0};
   }
-  else if(Mode=='BND' || Mode=='FLD') {
+  else if(Mode=='BND' || Mode=='FLD' || Mode=='XCH') {
          if(v==0) return {'r':  0, 'g':  0, 'b':  0};
     else if(v==1) return {'r':200, 'g':  0, 'b':200};
     else if(v==2) return {'r':180, 'g':180, 'b':  0};

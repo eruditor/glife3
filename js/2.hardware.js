@@ -16,6 +16,7 @@ var gl_ext = gl.getExtension('EXT_color_buffer_float');  // for floating-point m
 const DataFormat =
     Mode=='MVM' ? 'UI32'
   : Mode=='FLD' ? 'UI32'
+  : Mode=='XCH' ? 'UI8'
   :               'UI8';
 
 var data_formats = {
