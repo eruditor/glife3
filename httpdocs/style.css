@@ -1,0 +1,149 @@
+HTML,BODY {padding:0; margin:0; border:none; width:100%; height:100%;}
+BODY {background:#ccc; overflow-y:scroll;}
+
+IMG {border:none; vertical-align:top;}
+
+A:focus {outline:dotted 1px !important}
+
+UL, OL {margin-top:0; margin-bottom:0;}
+
+UL.ul, OL.ol {margin-left:11px; margin-top:13px; margin-bottom:13px;}
+UL.ul LI, OL.ol LI {margin-top:0px; margin-bottom:13px;}
+
+P {margin:5px 0; text-indent:2em;}
+
+A.ext {padding-right:13px; background-position:center right; background-repeat:no-repeat; background-image:linear-gradient(transparent,transparent),url(/i/external.svg);}
+
+BLOCKQUOTE {font-style:italic; margin:13px 0 13px 34px; padding:5px 0 5px 13px; border-left:solid 4px #ddd; background:#f8f8f8;}
+BLOCKQUOTE:before, BLOCKQUOTE:after {color:#aaa; padding:0 2px;}
+BLOCKQUOTE:before {content:"�";}
+BLOCKQUOTE:after {content:"�";}
+BLOCKQUOTE.noquotes:before {content:none; padding:0;}
+BLOCKQUOTE.noquotes:after {content:none; padding:0;}
+
+SUP {vertical-align:middle; position:relative; font-size:70%; bottom:0.4em;}
+
+PRE {font:normal 10px/11px Lucida Console, Monaco, Monospace; white-space:pre-wrap;}
+
+DIV.author4quote {margin:-8px 5px 0 0; text-align:right; font:normal 13px/15px Arial; color:#888;}
+DIV.author4quote:before {content:"� ";}
+DIV.subquote {margin-left:50%; text-align:left; font-style:italic;}
+
+#Wrap {padding:0; border:none; min-height:100%;  background:#fff;}
+#Wrap {-webkit-box-shadow:0px 0px 13px 5px rgba(0,0,0,0.2); -moz-box-shadow:0px 0px 13px 5px rgba(0,0,0,0.2); box-shadow:0px 0px 13px 5px rgba(0,0,0,0.2);}
+
+#Wrap {margin-bottom:-36px;}
+#BottomBuffer {height:36px;}
+#Bottom {height:36px;}
+
+#Wrap, #Bottom {margin-left:auto; margin-right:auto; max-width:1300px;}
+
+#TopLine {font:bold 34px/34px Arial; padding:21px 4% 21px 4%; letter-spacing:1px;}
+#TopLine A.ttl {color:#000; text-decoration:none;}  #TopLine A.ttl:hover {text-decoration:underline;}
+
+#MenuLine {padding:0px 4% 0px 4%; border-top:solid 1px #bbb; border-bottom:solid 1px #bbb; background:#eee; vertical-align:middle;}
+#MenuLine TABLE TD {padding:5px 21px 5px 0px;}
+#MenuLine, #MenuLine A {font:bold 17px/21px Arial;}
+#MenuLine A {color:#333; text-decoration:none;}
+#MenuLine A.chsn {color:#000; border-bottom:solid 1px #000;}
+#MenuLine A:hover {color:#444; text-decoration:underline;}
+
+#Main {font:normal 17px/25px Arial; padding:34px 4.231% 34px 4.231%; word-break:break-word;}
+#Main H1 {font:bold 27px Arial; margin:0 0 30px 0;}  #Main H1 SPAN {color:#aaa; padding-right:8px;}
+#Main H2 {font:bold 21px Arial; margin:0 0  8px 0;}  #Main H2 SPAN {color:#aaa; padding-left:8px;}
+#Main H3 {font:bold 17px Arial; margin:0 0  5px 0;}  #Main H3 SPAN {color:#aaa; padding-right:3px;}
+#Main A         {color:#448;}
+#Main A:visited {color:#848;}
+#Main A:hover   {color:#000;}
+#Main A:active  {color:#e00;}
+
+#BottomLine {border-top:solid 1px #bbb; border-bottom:solid 1px #bbb; background:#eee; border-collapse:collapse; border-spacing:0px;}
+#BottomLine TD {height:33px; padding:0px 0px 0px 13px; font:normal 11px/13px verdana,arial; vertical-align:middle;}
+#BottomLine TD A {color:#000;}
+#BottomLine TD IMG {vertical-align:middle; border:0;}
+
+.masonry {
+  column-gap:1em; -moz-column-gap:1em; -webkit-column-gap:1em;
+  -moz-column-count:1; -webkit-column-count:1; column-count:1;
+  word-break:normal;
+}
+.masonry .brick {display:inline-block; width:100%;}
+@media screen and (min-width: 600px) { .masonry {-moz-column-count:2; -webkit-column-count:2; column-count:2;} }
+@media screen and (min-width: 900px) { .masonry {-moz-column-count:3; -webkit-column-count:3; column-count:3;} }
+@media screen and (min-width:1200px) { .masonry {-moz-column-count:4; -webkit-column-count:4; column-count:4;} }
+
+TABLE.lister {border-collapse:collapse; border-spacing:0px; margin-bottom:5px;}
+TABLE.lister TD {padding:0; word-break:normal;}
+TABLE.lister TD.numer {min-width:36px; color:#aaa; vertical-align:top; text-align:right; padding-right:5px; white-space:nowrap;}
+TABLE.lister TD SPAN.sm {font:normal 11px/13px arial; color:#888;}
+TABLE.lister TD.btm34 {padding-bottom:34px;}
+
+DIV.toptags {margin:-13px 0 21px 25%; text-align:right; font:normal 13px/21px Arial; color:#aaa;}
+DIV.bottomtags {margin:0 0 34px 34px; text-align:right; font:normal 13px/21px Arial; color:#aaa;}
+
+DIV.absl {margin-bottom:21px;}
+DIV.ddnn {font:bold 17px/27px Arial; padding:0; border-top:solid 1px #ccc; border-bottom:solid 1px #ccc; background:#f4f4f4; margin-left:44px;}
+DIV.ddnn A {text-decoration:none;}
+
+.gr {color:#999;}
+
+DIV.grl {padding:3px 0 13px 34px; font:normal 13px/15px Arial; color:#aaa;}
+#Main DIV.grl A {color:#aaa;}
+
+DIV.zz {margin-bottom:34px;}
+
+DIV.zabst {font:italic 15px/19px Arial; margin:0 auto 34px auto; width:80%;}
+
+DIV.zzt {margin-bottom:34px;}
+
+DIV.zauth {margin-bottom:34px; padding-left:50%; font:italic 13px/17px Arial; text-align:right; word-break:normal;}
+DIV.zedtr {margin-bottom:13px; padding-left:50%; font:normal 13px/17px Arial; text-align:right; word-break:normal;}
+DIV.zauth SPAN, DIV.zedtr SPAN {font-style:normal; cursor:help; margin-left:-1.2em; width:1.2em; display:inline-block; text-align:left;}
+
+DIV.zcmnts {padding:0px 0px 34px 25%; font:normal 13px/17px Arial; color:#000;}
+DIV.zprimred {font-weight:bold; font-style:italic; margin-bottom:13px;}
+
+DIV.zpubd {margin-bottom:34px; text-align:right; font:normal 13px/17px Arial; color:#888;}
+
+DIV.zftpc {margin-bottom:34px; font:normal 15px/24px Arial; display:inline-block; vertical-align:bottom;}
+
+#SocialLine {min-width:144px; min-height:24px; margin-bottom:55px; display:inline-block;}
+
+DIV.zprevnext {line-height:19px;}
+DIV.zprev {font:normal 13px/19px Arial; white-space:nowrap; display:inline-block;}
+DIV.znext {font:normal 13px/19px Arial; white-space:nowrap; display:inline-block; float:right;}
+
+
+.h2 {font:bold 21px Arial; margin:0px 0 8px 0;}
+TABLE.lister TD.h2 {padding-right:8px;}
+DIV.h2 A {text-decoration:none;}  DIV.h2 A:hover {text-decoration:underline;}
+
+IMG.imgright {float:right; margin:0 0 8px 21px; max-width:50%; height:auto;}
+
+DIV.descr {margin:0 0 34px 0; font:normal 15px/19px Arial;}
+
+
+
+HTML, BODY {min-width:1200px;}
+CANVAS {vertical-align:top; background:#ccc; cursor:crosshair;}
+DIV.stxt {font:normal 11px/11px Lucida Console, Monaco, Monospace; margin-top:5px; white-space:nowrap;}
+SUP {color:#aaa; font-weight:normal; vertical-align:middle; position:relative; font-size:50%; bottom:0.6em;}
+
+.valtop, .valtop TD {vertical-align:top;}
+.hlp {cursor:help;}
+.nrrw {font-family:arial narrow, arial; font-stretch:condensed;}
+
+#GLifeCont INPUT[type=text] {padding:0px 1px;  margin:1px 1px;}
+
+#glifeStatTB {border:solid 2px #ddd; margin:0 0 10px 0;}
+#glifeStatTB TD, #glifeStatTB TH {padding:2px 4px; text-align:right; vertical-align:top;}
+#glifeStatTB TH {background:#f4f4f4; border-bottom:solid 1px #ddd;}
+#glifeStatTB .tal {text-align:left;}
+TABLE.nrrw TD, TABLE.nrrw TH {font-family:arial narrow, arial!important; font-stretch:condensed!important;}
+
+#SavedListTB TD, #SavedListTB TH {font:normal 11px/13px arial; padding:1px 3px; vertical-align:top;}
+#SavedListTB TD.pd0 {padding:0 1px;}
+#SavedListTB TH {background:#f4f4f4; border-bottom:solid 1px #ddd; text-align:left; font-weight:bold;}
+#SavedListTB TD INPUT {font:normal 11px/11px arial; padding:0;}
+#SavedListTB TD.tar {text-align:right;}
+#SavedListTB TD.nrrw {font-family:arial narrow, arial; font-stretch:condensed;}

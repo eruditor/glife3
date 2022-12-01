@@ -1,1 +1,13 @@
+configs/
+vendor/
+upload/
+uploads/
+
 .DS_Store
+.Spotlight-V100
+.Trashes
+
+Thumbs.db
+desktop.ini
+
+.realsync
