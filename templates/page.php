@@ -131,7 +131,7 @@ class Page {
   <td style='padding-right:1px;'>$rax</td>
   </tr></table>
 </DIV>
-<!-- ".trim($mt)." -->
+<!-- ".trim($mt)." test1 -->
 </BODY>
 </HTML>";
   
