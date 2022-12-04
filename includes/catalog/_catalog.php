@@ -51,13 +51,13 @@ if($_GET['typed']) {
   while($r = mysqli_fetch_object($res)) {
     $mutalnk = !$r->mutaset
       ? ""
-      : (strlen($r->mutaset)<200 ? "<a href='?fm=$r->family_id&notaset=$r->notaset&mutaset=$r->mutaset&maxfps=300'>".RN($r->mutaset)."</a>"
+      : (strlen($r->mutaset)<200 ? "".RN($r->mutaset).""   //<a href='?fm=$r->family_id&notaset=$r->notaset&mutaset=$r->mutaset&maxfps=300'></a>
       : GLifeInfo::ProcrustMutaset($r->mutaset));
     $s .= "
       <tr>
         <td align=right><a href='/show/?glife=$r->id'>$r->id</a></td>
         <td>".glDicts::GetFamily($r->family_id)->name."</td>
-        <td><a href='?fm=$r->family_id&notaset=$r->notaset&maxfps=300'>$r->notaset</a></td>
+        <td>$r->notaset</td>
         <td class=nrrw>$mutalnk</td>
         <td><a href='/show/?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a></td>
         <td>$r->typed</td>
@@ -65,6 +65,7 @@ if($_GET['typed']) {
         <td>".GLifeInfo::GlifeEditInput($r)."</td>
       </tr>
     ";
+    //<a href='?fm=$r->family_id&notaset=$r->notaset&maxfps=300'></a>
   }
   echo "
     <table cellspacing=0 id='SavedListTB'>
