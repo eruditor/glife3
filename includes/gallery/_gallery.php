@@ -29,6 +29,6 @@ while($gl = mysqli_fetch_object($res)) {
   $s .= GLifeInfo::GlifeBigInfo($gl, "", false);
 }
 echo "<table id='SavedListTB'>$s</table>";
-echo $PG->Draw();
+//echo $PG->Draw();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -75,7 +75,7 @@ if($_GET['typed']) {
       $s
     </table>
   ";
-  echo $PG->Draw();
+  //echo $PG->Draw();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 elseif(isset($_GET['stopped'])) {
@@ -141,7 +141,7 @@ elseif(isset($_GET['stopped'])) {
           <td class='pd0 tar'>{$a_records['spread'][$z]}</td>
           <td class='pd0 tar'>{$a_records['variat'][$z]}</td>
       ";
-      if($z==0 && _local==="1") {
+      if($z==0 && $_ENV->dev) {
         $tr .= "
           <td rowspan=$FD>
             <input type=text id='glrule$r->id' value='".SPCQA($r->named . ($r->typed?":$r->typed":""))."' size=24><input type=button value=' Save ' onclick='XHRsave3(`id=$r->id&named=`+encodeURIComponent(document.getElementById(`glrule$r->id`).value));'>
@@ -170,7 +170,7 @@ elseif(isset($_GET['stopped'])) {
     </table>
   ";
   
-  echo $PG->Draw();
+  //echo $PG->Draw();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 else {
