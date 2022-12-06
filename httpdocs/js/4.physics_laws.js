@@ -480,7 +480,11 @@ var sum_alphabet = [0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f','g','h'];  // no
 
 function Nota_Decode(notaset, fd=FD, rb=RB) {
   function Split_Layers(nota) {
-    var layers = nota.split( nota.indexOf('\n')>-1 ? '\n' : ',' );  if(layers.length!=fd) alert('splitted length ('+layers.length+') is not fd='+fd);
+    var layers = nota.split( nota.indexOf('\n')>-1 ? '\n' : ',' );
+    if(layers.length!=fd) {
+      alert('splitted length ('+layers.length+') is not fd='+fd+' (notaset='+notaset+')');
+      for(var z=0; z<fd; z++) layers[z] = '';
+    }
     return layers;
   }
   
