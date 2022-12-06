@@ -5,7 +5,7 @@ Page::$bread[] = ["Stadium", "stadium/"];
 echo "
   <div class=zabst>
     «Stadium» is where glifes are sorted by orga-rating.<br>
-    And orga-rating is an automatically produced number that (we hope) shows how likely this glife contains any signs of artificial life.<br>
+    Orga-rating is an automatically produced number which (we hope) shows how likely this glife contains any signs of artificial life.<br>
   </div>
 ";
 

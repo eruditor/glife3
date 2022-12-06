@@ -6,7 +6,7 @@ echo "
   <div class=zabst>
     «Catalog» is a categorized list of glifes.<br>
     The most interesting glifes are «named» and presented in the «<a href='/gallery/'>Gallery</a>».<br>
-    Those that are manually processed and categorized are «typed», they are here on the left.<br>
+    Those that are manually processed and categorized are «typed».<br>
     All others are devided into 3 categories (good, so-so and bad) by machine.<br>
   </div>
 ";
