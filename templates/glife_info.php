@@ -85,7 +85,7 @@ class GLifeInfo {
   
   
   static function GlifeEditInput($r) {
-    return $_ENV->dev
+    return glUser::$user
       ? "<span style='position:absolute;'>
            <input type=text id='glrule$r->id' value='".SPCQA($r->named . ($r->typed?":$r->typed":""))."' size=16><input type=button value=' Save ' onclick='XHRsave3(`id=$r->id&named=`+encodeURIComponent(document.getElementById(`glrule$r->id`).value));'><br>
            ".(!$r->named && !$r->typed ? "

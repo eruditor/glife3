@@ -15,7 +15,7 @@ echo "
 
 $_tm0 = microtime(true);
 
-$AQ = new AQs($_ENV->dev ? true : false);
+$AQ = new AQs(glUser::$user ? true : false);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 

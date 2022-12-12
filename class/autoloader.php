@@ -14,6 +14,7 @@ spl_autoload_register(
       'Markup'        => "__common/markup.php",
       
       'Router'        => "class/router.php",
+      'glUser'        => "class/gluser.php",
       
       'Page'          => "templates/page.php",
       'Pagination'    => "templates/pagination.php",

@@ -103,7 +103,7 @@ elseif($_POST['family_id']) {
   IUD("INSERT INTO rr_glogs SET glife_id='$glid', usr_id=0, dt=NOW(), val0='', val1='".MRES($q)."'");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
-elseif($_ENV->dev && ($_POST['named'] || $_GET['typed'])) {
+elseif(glUser::$user && ($_POST['named'] || $_GET['typed'])) {
   $id = intval($_POST['id'] ?: $_GET['id']);
   $old = mysql_o("SELECT * FROM rr_glifetris WHERE id='$id'");  if(!$old) die("glife3 $id not found");
   if($old->named && $_GET['typed']) die("already named");

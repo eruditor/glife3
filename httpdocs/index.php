@@ -10,6 +10,8 @@ $_GET = $_ENV->route->get;
 
 Page::$bread[] = ["GLife", "/", "<sup>".sprintf("%.2lf", $_ENV->ver/100)."</sup>"];
 
+glUser::GetFromCookies();
+
 $echo = Router::IncludeURL();
 Page::$main .= $echo;
 
