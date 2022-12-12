@@ -6,7 +6,7 @@ class glUser {
   
   
   static function GetFromCookies() {
-    if($_ENV->route && $_ENV->route->xget['_hsh']=='_set_once') glUser::_set_once();
+    //if($_ENV->route && $_ENV->route->xget['_hsh']=='_set_once') glUser::_set_once();
     
     $uid = intval($_COOKIE['gl3_user_id']);  if(!$uid) return false;
     $hsh = MRES($_COOKIE['gl3_user_ha']);    if(!$hsh) return false;
