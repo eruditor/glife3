@@ -4,9 +4,9 @@
 // neighborhood geometry coords (dx,dy,dz)
 const RG = 
   /*
-      1 2 3
-      8 0 4
-      7 6 5
+   1    7 6 5      5 4
+   0    8 0 4    6 0 3
+  -1    1 2 3    1 2  
   */
   Rgeom==18  // Moore2D 3*3 spiral
   ?
@@ -20,6 +20,18 @@ const RG =
       [ 0,  1,  0],  //  6 = up
       [-1,  1,  0],  //  7
       [-1,  0,  0],  //  8 = left
+    ]
+  :
+  Rgeom==16  // Hex
+  ?
+    [
+      [ 0,  0,  0],  //  0 = self
+      [-1, -1,  0],  //  1 = down-left
+      [ 0, -1,  0],  //  2 = down-right
+      [ 1,  0,  0],  //  3 = right
+      [ 1,  1,  0],  //  4 = up-right
+      [ 0,  1,  0],  //  5 = up-left
+      [-1,  0,  0],  //  6 = left
     ]
   :
   Rgeom==9  // Moore2D 3*3 cartesian

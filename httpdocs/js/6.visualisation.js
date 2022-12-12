@@ -138,6 +138,13 @@ var ShowFragmentShaderSource = `
     uvec4 cell;
     
     ivec2 tex2coord = ivec2(v_texcoord / u_surface.z - u_surface.xy);
+    
+    ` + (Rgeom==16 ? `
+    if(tex2coord.y % 2 == 0) tex2coord.x = int((v_texcoord.x) / u_surface.z - 0.5 - u_surface.x);
+    tex2coord.x += tex2coord.y / 2;
+    tex2coord.x %= fieldSize.x;
+    ` : ``) + `
+    
     if(tex2coord.x<0 || tex2coord.y<0 || tex2coord.x>=fieldSize.x || tex2coord.y>=fieldSize.y) {
       color = vec4(0.5, 0.5, 0.5, 1.);
     }
