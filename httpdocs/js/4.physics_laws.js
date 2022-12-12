@@ -22,32 +22,6 @@ const RG =
       [-1,  0,  0],  //  8 = left
     ]
   :
-  Rgeom==16  // Hex
-  ?
-    [
-      [ 0,  0,  0],  //  0 = self
-      [-1, -1,  0],  //  1 = down-left
-      [ 0, -1,  0],  //  2 = down-right
-      [ 1,  0,  0],  //  3 = right
-      [ 1,  1,  0],  //  4 = up-right
-      [ 0,  1,  0],  //  5 = up-left
-      [-1,  0,  0],  //  6 = left
-    ]
-  :
-  Rgeom==9  // Moore2D 3*3 cartesian
-  ?
-    [
-      [-1, -1,  0],  //  0
-      [ 0, -1,  0],  //  1
-      [ 1, -1,  0],  //  2
-      [-1,  0,  0],  //  3
-      [ 0,  0,  0],  //  4
-      [ 1,  0,  0],  //  5
-      [-1,  1,  0],  //  6
-      [ 0,  1,  0],  //  7
-      [ 1,  1,  0],  //  8
-    ]
-  :
   Rgeom==182  // Moore2D spiral + vonNeumann1D
   ?
     [
@@ -84,6 +58,32 @@ const RG =
       [-1,  0,  0],  //  4 = left
       [ 0,  0,  1],  //  5 = upper
       [ 0,  0, -1],  //  6 = lower
+    ]
+  :
+  Rgeom==16  // Hex2D
+  ?
+    [
+      [ 0,  0,  0],  //  0 = self
+      [-1, -1,  0],  //  1 = down-left
+      [ 0, -1,  0],  //  2 = down-right
+      [ 1,  0,  0],  //  3 = right
+      [ 1,  1,  0],  //  4 = up-right
+      [ 0,  1,  0],  //  5 = up-left
+      [-1,  0,  0],  //  6 = left
+    ]
+  :
+  Rgeom==162  // Hex2D + vonNeumann1D
+  ?
+    [
+      [ 0,  0,  0],  //  0 = self
+      [-1, -1,  0],  //  1 = down-left
+      [ 0, -1,  0],  //  2 = down-right
+      [ 1,  0,  0],  //  3 = right
+      [ 1,  1,  0],  //  4 = up-right
+      [ 0,  1,  0],  //  5 = up-left
+      [-1,  0,  0],  //  6 = left
+      [ 0,  0,  1],  //  7 = upper
+      [ 0,  0, -1],  //  8 = lower
     ]
   :
   Rgeom==1816  // Moore2D 5*5 spiral
@@ -148,6 +148,22 @@ const RG =
   :
   []
 ;
+/*
+  :
+  Rgeom==9  // Moore2D 3*3 cartesian
+  ?
+    [
+      [-1, -1,  0],  //  0
+      [ 0, -1,  0],  //  1
+      [ 1, -1,  0],  //  2
+      [-1,  0,  0],  //  3
+      [ 0,  0,  0],  //  4
+      [ 1,  0,  0],  //  5
+      [-1,  1,  0],  //  6
+      [ 0,  1,  0],  //  7
+      [ 1,  1,  0],  //  8
+    ]
+*/
 
 const RC = RG.length;  // number of cells in neighborhood that affects current cell's state (length of neib encoding)
 

@@ -139,7 +139,7 @@ var ShowFragmentShaderSource = `
     
     ivec2 tex2coord = ivec2(v_texcoord / u_surface.z - u_surface.xy);
     
-    ` + (Rgeom==16 ? `
+    ` + (Rgeom==16 || Rgeom==162 ? `
     if(tex2coord.y % 2 == 0) tex2coord.x = int((v_texcoord.x) / u_surface.z - 0.5 - u_surface.x);
     tex2coord.x += tex2coord.y / 2;
     tex2coord.x %= fieldSize.x;
