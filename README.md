@@ -8,7 +8,7 @@ GLife is a cellular automata platform based on WebGL2.
 
 It's primary target is the search of artificial life — evolving self-repairing self-replicating structures.
 
-Deployed at https://alife.eruditor.ru/
+Deployed at https://glife3.org/
 
 Previous works:
 - Pure-JS (no WebGL) https://github.com/eruditor/clife
