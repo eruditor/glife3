@@ -167,7 +167,7 @@ const RG =
 
 const RC = RG.length;  // number of cells in neighborhood that affects current cell's state (length of neib encoding)
 
-var snn = 0, rgr = 0, rg0 = 0;
+var snn = 0, rgr = 0, rg0 = 0, r_up = false, r_lo = false;
 for(var i=0; i<RC; i++) {
   if(rgr<RG[i][0]) rgr = RG[i][0];
   if(RG[i][0]==0 && RG[i][1]==0) {
@@ -176,11 +176,17 @@ for(var i=0; i<RC; i++) {
   else {
     if(RG[i][2]==0) snn ++;
   }
+  if(RG[i][0]==0 && RG[i][1]==0 && RG[i][2]== 1) r_up = i;
+  if(RG[i][0]==0 && RG[i][1]==0 && RG[i][2]==-1) r_lo = i;
 }
+
 const SNN = intval(snn);  // number of cells in same-layer neighborhood (8 for Moore, 4 for vonNeumann, 24 for Moore5x5)
 const RGR = rgr;  // radius of neighborhood (1 for 3*3, 2 for 5*5)
 const RGD = RGR * 2 + 1;  // diameter of neighborhood (3, 5)
 const RG0 = (RGD * RGD - 1) / 2;  // index of central cartesian cell = shift for RG cartesian indexing
+
+const Rupper = r_up;
+const Rlower = r_lo;
 
 // NEIB VARS ////////////////////////////////////////////////////////////////
 // neib = configuration of cell states in neighborhood geometry
@@ -582,17 +588,16 @@ function Nota_Decode(notaset, fd=FD, rb=RB) {
 //print_r(Nota_Decode(`1234.77:3456.:.7809!*00-0!11*-0\n55.:.1032:03.!*0?-1\n43.:.:.`, 3, 3));
 
 function CheckLegacyBorder(r, z) {  // this is not necessary, but keeps less significant (nonzero) values in rules table
-       if(z==FD-1 && r[ 9]==1) return 0;  // no uppers for top-layer
-  else if(z==0    && r[10]==1) return 0;  // no lowers for bottom-layer
+  if(Rupper===false || Rlower===false) return false;
+       if(z==FD-1 && r[Rupper]==1) return 0;  // no uppers for top-layer
+  else if(z==0    && r[Rlower]==1) return 0;  // no lowers for bottom-layer
   return false;
 }
   
 function CheckPlaneInteraction(r, plane_interaction_z) {
   if(!plane_interaction_z) return false;
-  var ucl = '';
-       if(Rgeom==182) ucl = ''+r[9]+r[0]+r[10];
-  else if(Rgeom==142) ucl = ''+r[5]+r[0]+r[6];
-  else return false;
+  if(Rupper===false || Rlower===false) return false;
+  var ucl = ''+r[Rupper]+r[0]+r[Rlower];
   if(plane_interaction_z[ucl]===undefined) return false;
   return plane_interaction_z[ucl];
 }

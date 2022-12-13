@@ -167,7 +167,7 @@ function SaveGlifetri(prms={}) {
 function PutRpixel(x, y, z, v, r) {
   var clr, cl;
   if(v==0) {
-    clr = 'rgb(187,187,187)';
+    clr = 'rgb(170,170,170)';
   }
   else {
     cl = r==0 ? Color4Cell(z, v, 1, 0.8) : Color4Cell(z, v);
