@@ -32,18 +32,20 @@ $typeds = [
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-if($_GET['typed']) {
+if(isset($_GET['typed'])) {
   $typed = $_GET['typed'];  if(!Validator::isVarcharID($typed) && $typed<>"?") dierr("#179236742");
   $otyped = $typeds[$typed];  if(!$otyped) dierr("#9187543243");
   
   Page::$bread[] = ["<i style='background:#".$otyped."'>$typed</i>", "&typed=$typed"];
+  
+  $qplus = !$typed ? "AND named!=''" : "";
   
   $PG = new Pagination(100);
   $s = '';
   $res = MQ(
    "SELECT SQL_CALC_FOUND_ROWS *
     FROM rr_glifetris
-    WHERE typed='$typed' $famQplus
+    WHERE typed='$typed' $qplus $famQplus
     ORDER BY id DESC
     LIMIT $PG->LP,$PG->PP
   ");
@@ -57,7 +59,7 @@ if($_GET['typed']) {
       <tr>
         <td align=right><a href='/show/?glife=$r->id'>$r->id</a></td>
         <td>".glDicts::GetFamily($r->family_id)->name."</td>
-        <td>$r->notaset</td>
+        <td>".GLifeInfo::ProcrustMutaset($r->notaset)."</td>
         <td class=nrrw>$mutalnk</td>
         <td><a href='/show/?glife=".urlencode($r->named)."&maxfps=300'><i>$r->named</i></a></td>
         <td>$r->typed</td>
