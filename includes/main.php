@@ -20,6 +20,7 @@ echo "
           <a href='/show/?gl_run=839157'>#4</a>.
           <a href='/show/?gl_run=1023439&maxfps=300'>#5</a>.
           <a href='/show/?gl_run=1023442&maxfps=300'>#6</a>.
+          <a href='/?glife=Hive'>#7!</a>.
           <br>
   </div>
 ";
