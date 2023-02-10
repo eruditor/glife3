@@ -7,7 +7,7 @@ class Validator {
   }
   
   static function isSymbolic($v_id) {
-    return preg_match("`[^a-zA-Z0-9_\.\-:;,@$\n]`", $v_id) ? false : true;
+    return preg_match("`[^a-zA-Z0-9_\.\-:;,@$ \n]`", $v_id) ? false : true;
   }
   
   static function isInteger($v) {

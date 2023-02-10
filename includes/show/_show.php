@@ -9,7 +9,7 @@ if($_GET['glife']) {
   
   $gl = mysql_o("SELECT * FROM rr_glifetris WHERE $q");  if(!$gl) die("no gl found");
   
-  Page::$bread[] = [GLifeInfo::GLtitle($gl)];
+  Page::$bread[] = [$gl->named ?: $gl->id];
   
   echo GLifeInfo::GlifeBigInfo($gl);
   
