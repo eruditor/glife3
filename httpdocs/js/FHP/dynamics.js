@@ -126,6 +126,7 @@ var CalcFragmentShaderSource = `
       for(uint n=0u; n<`+RC+`u; n++) {
         new_speeds[n] = ExtractNthSpeed(cells[n], n);
       }
+      new_speeds[7] = ExtractNthSpeed(cells[0], 7u);  // 7 = obstacle
       uint moved = PackR(new_speeds);  // after straight movement step
       
       uint rnd = uint((tex3coord.x + tex3coord.y) % 2);  // very rough random number simulation

@@ -239,9 +239,9 @@ function SetRulesTexture() {
 
 // NEIB ENCODINGS ////////////////////////////////////////////////////////////////
 
-function NeibArr4Int(b) {
-  var ret = new Array(RC);
-  for(var i=RC-1; i>=0; i--) {
+function NeibArr4Int(b, rc=RC) {
+  var ret = new Array(rc);
+  for(var i=rc-1; i>=0; i--) {
     var d = b % RB;
     b -= d;
     b /= RB;
@@ -250,9 +250,9 @@ function NeibArr4Int(b) {
   return ret;
 }
 
-function NeibStr4Int(b) {
+function NeibStr4Int(b, rc=RC) {
   var ret = '';
-  for(var i=RC-1; i>=0; i--) {
+  for(var i=rc-1; i>=0; i--) {
     var d = b % RB;
     b -= d;
     b /= RB;
@@ -292,6 +292,11 @@ function SliceNeib(rule) {  // slices neib to: r0 = cell itself, rr = rotatable 
     var rr = rule.slice(1, -2);
     var l = rr.length;
     var sfx = ''+rule[l+1]+rule[l+2];
+  }
+  else if(Mode=='FHP') {
+    var rr = rule.slice(1, -1);
+    var l = rr.length;
+    var sfx = ''+rule[l+1];
   }
   else {  // 2D case
     var rr = rule.slice(1);
@@ -695,13 +700,13 @@ function SetFHPRules() {
   
   // default movement = no interaction
   for(var b=0; b<RL; b++) {
-    SetRule(z, b + (0 << 8), b);  // rnd=0
-    SetRule(z, b + (1 << 8), b);  // rnd=1
+    var v = b;
+    SetRule(z, b + (0 << 8), v);  // rnd=0
+    SetRule(z, b + (1 << 8), v);  // rnd=1
   }
   
-  var r = 1 << 8;  // random bit
-  
   // FHP-I: 2-particle head-on collisions (p=0.5)
+  var r = 1 << 8;
   SetRule(z,   0b00010010, 0b00100100);
   SetRule(z,   0b00100100, 0b01001000);
   SetRule(z,   0b01001000, 0b00010010);
@@ -712,13 +717,14 @@ function SetFHPRules() {
   
   // FHP-I: symmetric 3-particle collisions
   for(var rnd=0; rnd<=1; rnd++) {
-    var rr = rnd << 8;
-    SetRule(z, rr+0b00101010, 0b01010100);
-    SetRule(z, rr+0b01010100, 0b00101010);
-    //              76543210    76543210
+    var r = rnd << 8;
+    SetRule(z, r+0b00101010, 0b01010100);
+    SetRule(z, r+0b01010100, 0b00101010);
+    //             76543210    76543210
   }
   
   // FHP-II: 4-particle head-on collisions (p=0.5)
+  var r = 1 << 8;
   SetRule(z,   0b01101100, 0b01011010);
   SetRule(z,   0b01011010, 0b00110110);
   SetRule(z,   0b00110110, 0b01101100);
@@ -729,43 +735,75 @@ function SetFHPRules() {
   
   // FHP-II: 2+1 head-on collisions with spectator
   for(var rnd=0; rnd<=1; rnd++) {
-    var rr = rnd << 8;
-    SetRule(z, rr+0b01010010, 0b01100100);
-    SetRule(z, rr+0b00011010, 0b00101100);
-    SetRule(z, rr+0b00010110, 0b01001100);
-    SetRule(z, rr+0b00110010, 0b01101000);
-    //              76543210    76543210
-    SetRule(z, rr+0b00100110, 0b01001010);
-    SetRule(z, rr+0b00110100, 0b01011000);
-    SetRule(z, rr+0b00101100, 0b00011010);
-    SetRule(z, rr+0b01100100, 0b01010010);
-    //              76543210    76543210
-    SetRule(z, rr+0b01001100, 0b00010110);
-    SetRule(z, rr+0b01101000, 0b00110010);
-    SetRule(z, rr+0b01001010, 0b00100110);
-    SetRule(z, rr+0b01011000, 0b00110100);
-    //              76543210    76543210
+    var r = rnd << 8;
+    SetRule(z, r+0b01010010, 0b01100100);
+    SetRule(z, r+0b00011010, 0b00101100);
+    SetRule(z, r+0b00010110, 0b01001100);
+    SetRule(z, r+0b00110010, 0b01101000);
+    //             76543210    76543210
+    SetRule(z, r+0b00100110, 0b01001010);
+    SetRule(z, r+0b00110100, 0b01011000);
+    SetRule(z, r+0b00101100, 0b00011010);
+    SetRule(z, r+0b01100100, 0b01010010);
+    //             76543210    76543210
+    SetRule(z, r+0b01001100, 0b00010110);
+    SetRule(z, r+0b01101000, 0b00110010);
+    SetRule(z, r+0b01001010, 0b00100110);
+    SetRule(z, r+0b01011000, 0b00110100);
+    //             76543210    76543210
   }
   
   // FHP-II: rest particle collisions
   for(var rnd=0; rnd<=1; rnd++) {
-    var rr = rnd << 8;
-    //              76543210    76543210
-    SetRule(z, rr+0b00000011, 0b01000100);
-    SetRule(z, rr+0b00000101, 0b00001010);
-    SetRule(z, rr+0b00001001, 0b00010100);
-    SetRule(z, rr+0b00010001, 0b00101000);
-    SetRule(z, rr+0b00100001, 0b01010000);
-    SetRule(z, rr+0b01000001, 0b00100010);
-    //              76543210    76543210
-    SetRule(z, rr+0b01000100, 0b00000011);
-    SetRule(z, rr+0b00001010, 0b00000101);
-    SetRule(z, rr+0b00010100, 0b00001001);
-    SetRule(z, rr+0b00101000, 0b00010001);
-    SetRule(z, rr+0b01010000, 0b00100001);
-    SetRule(z, rr+0b00100010, 0b01000001);
-    //              76543210    76543210
+    var r = rnd << 8;
+    //             76543210    76543210
+    SetRule(z, r+0b00000011, 0b01000100);
+    SetRule(z, r+0b00000101, 0b00001010);
+    SetRule(z, r+0b00001001, 0b00010100);
+    SetRule(z, r+0b00010001, 0b00101000);
+    SetRule(z, r+0b00100001, 0b01010000);
+    SetRule(z, r+0b01000001, 0b00100010);
+    //             76543210    76543210
+    SetRule(z, r+0b01000100, 0b00000011);
+    SetRule(z, r+0b00001010, 0b00000101);
+    SetRule(z, r+0b00010100, 0b00001001);
+    SetRule(z, r+0b00101000, 0b00010001);
+    SetRule(z, r+0b01010000, 0b00100001);
+    SetRule(z, r+0b00100010, 0b01000001);
+    //             76543210    76543210
   }
+  
+  // obstacle collisions
+  for(var b=0; b<(1 << 7); b++) {
+    var bb = b + (1 << 7);
+    
+    var rule = NeibArr4Int(bb, 8);
+    let {r0, rr, l, sfx} = SliceNeib(rule);
+    
+    rr = ArrRotate(rr, l);
+    rr = ArrRotate(rr, l);
+    rr = ArrRotate(rr, l);
+    
+    var v = NeibInt4Str(GlueNeib(r0, rr, sfx));
+    
+    SetRule(z, bb + (0 << 8), v);  // rnd=0
+    SetRule(z, bb + (1 << 8), v);  // rnd=1
+  }
+  
+  /*
+  b = 0b10001101;
+  var rule = NeibArr4Int(b, 8);
+  let {r0, rr, l, sfx} = SliceNeib(rule);
+  
+  console.log(SliceNeib(rule));
+  console.log(GlueNeib(r0, rr, sfx));
+  
+  
+  console.log(GlueNeib(r0, rr, sfx));
+  */
+  
+  //SetRule(z,   0b10000000, 0b10000000);
+  //             76543210    76543210
   
   //SetRule(z,   0b00000000, 0b00000000);
 }
