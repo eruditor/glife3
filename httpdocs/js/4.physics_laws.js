@@ -192,7 +192,11 @@ const Rlower = r_lo;
 // neib = configuration of cell states in neighborhood geometry
 
 // each cell in neighborhood geometry can take one of RB values
-const RL = Mode=='MVM' || Mode=='BND' || Mode=='FLD' || Mode=='XCH' || Mode=='FHP' ? 1 : Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
+const RL =
+  Mode=='MVM' || Mode=='BND' || Mode=='FLD' || Mode=='XCH' ? 1 : (
+  Mode=='FHP' ? Math.pow(2, 9) :
+  Math.pow(RB, RC)
+  );  // total number of all possible neibs (length of physics rule space)
 const RLv = RL * RB;  // length of rule encoding (rule space -> value)
 const RLv64 = Math.ceil(Math.log(RLv) / Math.log(64));  // number of base64-digits needed to encode rule
 
@@ -208,8 +212,8 @@ if(Rty>RX) alert('max_texture_size is not sufficient to store rules ('+Rty+'>'+R
 else for(var z=0; z<FD; z++) R[z] = new jsdata_Array(4 * Rtx * Rty);
 
 function SetRule(z, b, v) {
-  if(v<255) {
-    R[z][4*b+3] = v;  // alpha-channel for texture value
+  if(v<=255) {  // @ it was "<" (dont know why)
+    R[z][4*b+3] = v;  // alpha-channel for texture value  // @ can pack it 4 times more efficiently
   }
   else {  // for partitioning CA
     for(var i=3; i>=0; i--) {
@@ -684,6 +688,88 @@ function SetLangtonRules() {
   console.timeEnd('SetLangtonRules');
 }
 
+// FHP RULES ////////////////////////////////////////////////////////////////
+
+function SetFHPRules() {
+  var z = 0;
+  
+  // default movement = no interaction
+  for(var b=0; b<RL; b++) {
+    SetRule(z, b + (0 << 8), b);  // rnd=0
+    SetRule(z, b + (1 << 8), b);  // rnd=1
+  }
+  
+  var r = 1 << 8;  // random bit
+  
+  // FHP-I: 2-particle head-on collisions (p=0.5)
+  SetRule(z,   0b00010010, 0b00100100);
+  SetRule(z,   0b00100100, 0b01001000);
+  SetRule(z,   0b01001000, 0b00010010);
+  SetRule(z, r+0b00010010, 0b01001000);
+  SetRule(z, r+0b00100100, 0b00010010);
+  SetRule(z, r+0b01001000, 0b00100100);
+  //             76543210    76543210
+  
+  // FHP-I: symmetric 3-particle collisions
+  for(var rnd=0; rnd<=1; rnd++) {
+    var rr = rnd << 8;
+    SetRule(z, rr+0b00101010, 0b01010100);
+    SetRule(z, rr+0b01010100, 0b00101010);
+    //              76543210    76543210
+  }
+  
+  // FHP-II: 4-particle head-on collisions (p=0.5)
+  SetRule(z,   0b01101100, 0b01011010);
+  SetRule(z,   0b01011010, 0b00110110);
+  SetRule(z,   0b00110110, 0b01101100);
+  SetRule(z, r+0b01101100, 0b00110110);
+  SetRule(z, r+0b01011010, 0b01101100);
+  SetRule(z, r+0b00110110, 0b01011010);
+  //             76543210    76543210
+  
+  // FHP-II: 2+1 head-on collisions with spectator
+  for(var rnd=0; rnd<=1; rnd++) {
+    var rr = rnd << 8;
+    SetRule(z, rr+0b01010010, 0b01100100);
+    SetRule(z, rr+0b00011010, 0b00101100);
+    SetRule(z, rr+0b00010110, 0b01001100);
+    SetRule(z, rr+0b00110010, 0b01101000);
+    //              76543210    76543210
+    SetRule(z, rr+0b00100110, 0b01001010);
+    SetRule(z, rr+0b00110100, 0b01011000);
+    SetRule(z, rr+0b00101100, 0b00011010);
+    SetRule(z, rr+0b01100100, 0b01010010);
+    //              76543210    76543210
+    SetRule(z, rr+0b01001100, 0b00010110);
+    SetRule(z, rr+0b01101000, 0b00110010);
+    SetRule(z, rr+0b01001010, 0b00100110);
+    SetRule(z, rr+0b01011000, 0b00110100);
+    //              76543210    76543210
+  }
+  
+  // FHP-II: rest particle collisions
+  for(var rnd=0; rnd<=1; rnd++) {
+    var rr = rnd << 8;
+    //              76543210    76543210
+    SetRule(z, rr+0b00000011, 0b01000100);
+    SetRule(z, rr+0b00000101, 0b00001010);
+    SetRule(z, rr+0b00001001, 0b00010100);
+    SetRule(z, rr+0b00010001, 0b00101000);
+    SetRule(z, rr+0b00100001, 0b01010000);
+    SetRule(z, rr+0b01000001, 0b00100010);
+    //              76543210    76543210
+    SetRule(z, rr+0b01000100, 0b00000011);
+    SetRule(z, rr+0b00001010, 0b00000101);
+    SetRule(z, rr+0b00010100, 0b00001001);
+    SetRule(z, rr+0b00101000, 0b00010001);
+    SetRule(z, rr+0b01010000, 0b00100001);
+    SetRule(z, rr+0b00100010, 0b01000001);
+    //              76543210    76543210
+  }
+  
+  //SetRule(z,   0b00000000, 0b00000000);
+}
+
 // PARTITIONING RULES ////////////////////////////////////////////////////////////////
 // classic rules are: neib->value, but partitioning rules are: neib->neib
 
@@ -758,6 +844,7 @@ function SetPartitRules() {
 function SetRules(notaset) {
   if(Family=='Langton') SetLangtonRules();
   else if(Mode=='PRT')  SetPartitRules();
+  else if(Mode=='FHP')  SetFHPRules();
   else                  SetConwayRules(notaset);
 }
 

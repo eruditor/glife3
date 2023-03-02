@@ -34,8 +34,6 @@ var fs_Show = function(zoom) {
       else if(n==6u) clr = vec4(1., 0., 1., 1.);
       else           clr = vec4(0.8, 0.8, 0.8, 1.);
       
-      //if(x==d2+int(n)) color = clr;
-      
            if(n==0u && abs(xx)<d4 && abs(yy)<d4) color = clr;
       else if(n==1u && xx>y32  && xx<0)    color = clr;
       else if(n==2u && xx>0    && xx<-y32) color = clr;
@@ -43,13 +41,6 @@ var fs_Show = function(zoom) {
       else if(n==4u && xx>0    && xx<y32)  color = clr;
       else if(n==5u && xx>-y32 && xx<0)    color = clr;
       else if(n==6u && xx<y32  && xx<-y32) color = clr;
-      
-      /*
-           if(n==1u) { if((y==0   || y==1  ) && (x==d2 || x==d2-1 || x==d2-2 || x==d2+1)) color = clr; }
-      else if(n==2u) { if((x==d-1 || x==d-2) && (y==d2 || y==d2-1 || y==d2-2 || y==d2+1)) color = clr; }
-      else if(n==3u) { if((y==d-1 || y==d-2) && (x==d2 || x==d2-1 || x==d2-2 || x==d2+1)) color = clr; }
-      else if(n==4u) { if((x==0   || x==1  ) && (y==d2 || y==d2-1 || y==d2-2 || y==d2+1)) color = clr; }
-      */
     }
   }
   `;

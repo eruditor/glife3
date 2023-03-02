@@ -45,7 +45,7 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
   }
   else if(Mode=='FHP') {
          if(v==0) return {'r':  0, 'g':  0, 'b':  0};
-    else if(v==1) return {'r':150, 'g':150, 'b':150};
+    else if(v==1) return {'r':170, 'g':170, 'b':170};
     /*
          if(v==0) return {'r':  0, 'g':  0, 'b':  0};
     else if(v==1) return {'r':200, 'g':  0, 'b':  0};

@@ -126,7 +126,17 @@ var CalcFragmentShaderSource = `
       for(uint n=0u; n<`+RC+`u; n++) {
         new_speeds[n] = ExtractNthSpeed(cells[n], n);
       }
-      color.r = PackR(new_speeds);
+      uint moved = PackR(new_speeds);  // after straight movement step
+      
+      uint rnd = uint((tex3coord.x + tex3coord.y) % 2);  // very rough random number simulation
+      
+      uint rulecoord = moved + (rnd << 8u);  // rule coord equals packed new_speeds + random
+      
+      ivec2 t = ivec2(rulecoord, 0);
+      if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
+      
+      uvec4 rule = GetTexel2D(u_rulestexture, layer, t);
+      color.r = rule.a;
       
       uvec4 self = cells[0];  // previous self cell state
       
