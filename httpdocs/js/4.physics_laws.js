@@ -192,7 +192,7 @@ const Rlower = r_lo;
 // neib = configuration of cell states in neighborhood geometry
 
 // each cell in neighborhood geometry can take one of RB values
-const RL = Mode=='MVM' || Mode=='BND' || Mode=='FLD' || Mode=='XCH' ? 1 : Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
+const RL = Mode=='MVM' || Mode=='BND' || Mode=='FLD' || Mode=='XCH' || Mode=='FHP' ? 1 : Math.pow(RB, RC);  // total number of all possible neibs (length of physics rule space)
 const RLv = RL * RB;  // length of rule encoding (rule space -> value)
 const RLv64 = Math.ceil(Math.log(RLv) / Math.log(64));  // number of base64-digits needed to encode rule
 

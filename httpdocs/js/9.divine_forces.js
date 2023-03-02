@@ -5,6 +5,12 @@ var mouseX = 0, mouseY = 0, mouseZ = 0, mouseRGBA = {};
 gl.canvas.onmousemove = function(e) {
   mouseX = floor((e.offsetX / surface.zoom) / zoom - surface.left);
   mouseY = floor(((gl.canvas.height - e.offsetY) / surface.zoom) / zoom - surface.top);
+  
+  if(Rgeom==16 || Rgeom==162) {
+    if(mouseY % 2 == 1) mouseX = floor((e.offsetX / surface.zoom) / zoom - surface.left + 0.5);
+    mouseX += mouseY / 2;
+    mouseX %= FW;
+  }
 };
 
 gl.canvas.onmousedown = function(e) {
@@ -20,7 +26,7 @@ gl.canvas.onmousedown = function(e) {
       gl.readBuffer(gl.COLOR_ATTACHMENT0 + z);
       gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F);
       var cell = GetCell(mouseX, mouseY, 0);
-      console.log('z='+z+', rgba=', cell);
+      console.log('xyz=('+mouseX+' '+mouseY+' '+z+'), rgba=', cell);
       
       if(typeof ExtractRGBA === 'function') {
         console.log(ExtractRGBA(cell));

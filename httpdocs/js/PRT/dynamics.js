@@ -63,7 +63,7 @@ void main() {
     else if(dxdy10==21) pwr = 4;
     else if(dxdy10==22) pwr = 3;
     
-    uint nth_bit = 0u;  // float pow() doesn't work here due to rounding precision!
+    uint nth_bit = 0u;  // float pow() doesn't work here due to rounding precision!  // @ may be use >> << here?
     for(int n=0; n<=pwr; n++) {
       nth_bit = u_new_square % `+RB+`u;
       u_new_square = (u_new_square - nth_bit) / `+RB+`u;

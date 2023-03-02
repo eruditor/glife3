@@ -43,6 +43,20 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
     else if(v==2) return {'r':180, 'g':180, 'b':  0};
     else if(v==3) return {'r':  0, 'g':200, 'b':200};
   }
+  else if(Mode=='FHP') {
+         if(v==0) return {'r':  0, 'g':  0, 'b':  0};
+    else if(v==1) return {'r':150, 'g':150, 'b':150};
+    /*
+         if(v==0) return {'r':  0, 'g':  0, 'b':  0};
+    else if(v==1) return {'r':200, 'g':  0, 'b':  0};
+    else if(v==2) return {'r':180, 'g':180, 'b':  0};
+    else if(v==3) return {'r':  0, 'g':200, 'b':  0};
+    else if(v==4) return {'r':  0, 'g':200, 'b':200};
+    else if(v==5) return {'r':  0, 'g':  0, 'b':250};
+    else if(v==6) return {'r':200, 'g':  0, 'b':200};
+    else if(v==7) return {'r':100, 'g':100, 'b':100};
+    */
+  }
   
   var h = 0;
        if(layer==0) h = 300;
@@ -140,7 +154,7 @@ var ShowFragmentShaderSource = `
     ivec2 tex2coord = ivec2(v_texcoord / u_surface.z - u_surface.xy);
     
     ` + (Rgeom==16 || Rgeom==162 ? `
-    if(tex2coord.y % 2 == 0) tex2coord.x = int((v_texcoord.x) / u_surface.z - 0.5 - u_surface.x);
+    if(tex2coord.y % 2 == 1) tex2coord.x = int(floor((v_texcoord.x) / u_surface.z - u_surface.x + 0.5));
     tex2coord.x += tex2coord.y / 2;
     tex2coord.x %= fieldSize.x;
     ` : ``) + `
