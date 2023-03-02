@@ -1,5 +1,10 @@
 var fs_Show = function(zoom) {
   return `
+  
+  uint[8] speeds = ExtractSpeeds(cell);
+  
+  if(speeds[7]==1u) color = vec4(0.4, 0.4, 0.4, 1.);
+  
   int d = int(`+zoom+`. * u_surface.z);  // canvas zoom
   if(d>=8 && color!=vec4(0.5, 0.5, 0.5, 1.)) {
     tex3coord = ivec3(tex2coord, layer);
@@ -21,7 +26,6 @@ var fs_Show = function(zoom) {
     
     clr = vec4(0., 0., 0., 1.);
     
-    uint[8] speeds = ExtractSpeeds(cell);
     for(uint n=0u; n<=7u; n++) {
       if(speeds[n]==0u) continue;
       
@@ -32,7 +36,7 @@ var fs_Show = function(zoom) {
       else if(n==4u) clr = vec4(0., 1., 1., 1.);
       else if(n==5u) clr = vec4(0., 0., 1., 1.);
       else if(n==6u) clr = vec4(1., 0., 1., 1.);
-      else if(n==7u) clr = vec4(0.4, 0.4, 0.4, 1.);
+      else if(n==7u) clr = vec4(0.3, 0.3, 0.3, 1.);
       
            if(n==0u && abs(xx)<d4 && abs(yy)<d4) color = clr;
       else if(n==1u && xx>y32  && xx<0)    color = clr;
