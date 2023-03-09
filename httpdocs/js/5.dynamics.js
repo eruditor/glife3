@@ -101,9 +101,8 @@ function Calc(single=0) {
   
   if(Mode=='PRT') {
     //PS[0] = rndJ(-1, 2);  PS[1] = rndJ(-1, 2);
-    PS[0] = floor(nturn / 3) % 3 - 1;  PS[1] = nturn % 3 - 1;
     //PS[0] = RG[nturn % RC][0];  PS[1] = RG[nturn % RC][1];
-    
+    PS[0] = floor(nturn / 3) % 3 - 1;  PS[1] = nturn % 3 - 1;
     gl.uniform1iv(CalcProgram.location.u_ps, PS);
   }
   
@@ -111,6 +110,8 @@ function Calc(single=0) {
   gl.uniform1iv(CalcProgram.location.u_rulestexture, rulestexture_nums);
   
   gl.uniform1ui(CalcProgram.location.u_nturn, nturn);
+  
+  if(Mode=='FHP') gl.uniform1ui(CalcProgram.location.u_rdn, rndJ(0,10000));
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   

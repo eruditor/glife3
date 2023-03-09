@@ -11,7 +11,7 @@ var fs_Show = function(zoom) {
     
     vec2 shift = vec2(0., 0.);
     ivec2 tex2coord = ivec2(v_texcoord / u_surface.z - u_surface.xy);
-    if(tex2coord.y % 2 == 1) shift = vec2(0.5, 0.);
+    if(tex2coord.y % 2 == 0) shift = vec2(0.5, 0.);
     
     ivec2 cnvc = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy + shift) * `+zoom+`. * u_surface.z );  // canvas coords
     int x = cnvc.x, y = cnvc.y;

@@ -92,8 +92,8 @@ var CalcFragmentShaderSource = `
   precision highp int;
   
   uniform highp usampler3D u_fieldtexture;  // Field texture
-  uniform highp usampler3D u_prevtexture;  // Previous Field texture
   uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
+  uniform highp uint u_rnd;
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
@@ -108,6 +108,22 @@ var CalcFragmentShaderSource = `
   ` + fs_ExtractRGBA + `
   ` + fs_NthDirection + `
   
+  // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
+  uint hash(uint x) {
+    x += ( x << 10u );
+    x ^= ( x >>  6u );
+    x += ( x <<  3u );
+    x ^= ( x >> 11u );
+    x += ( x << 15u );
+    return x;
+  }
+  uint hash(uvec2 v) { return hash( v.x ^ hash(v.y) ); }
+  uint hash(uvec3 v) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ); }
+  
+  uint uRnd(uint mod) {  // random number simulation (with spooky-quantum global correlations)
+    return hash(uvec3(v_texcoord.xy, u_rnd)) % mod;
+  }
+  
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
     
@@ -120,22 +136,42 @@ var CalcFragmentShaderSource = `
       tex3coord = ivec3(v_texcoord, layer);
       
       uvec4 cells[`+RC+`];
-      ` + fs_GetNeibs + `
-      
+      /*` + fs_GetNeibs + `*/
+      int x0 = tex3coord.y % 2 - 1;
+      int x1 = x0 + 1;
+      cells[0] = GetCell( 0,  0, 0);
+      cells[1] = GetCell(x0, -1, 0);
+      cells[2] = GetCell(x1, -1, 0);
+      cells[3] = GetCell( 1,  0, 0);
+      cells[4] = GetCell(x1,  1, 0);
+      cells[5] = GetCell(x0,  1, 0);
+      cells[6] = GetCell(-1,  0, 0);
+     
+      // step1: straight movement
       uint[8] new_speeds;
       for(uint n=0u; n<`+RC+`u; n++) {
         new_speeds[n] = ExtractNthSpeed(cells[n], n);
       }
       new_speeds[7] = ExtractNthSpeed(cells[0], 7u);  // 7 = obstacle
-      uint moved = PackR(new_speeds);  // after straight movement step
       
-      uint rnd = uint((tex3coord.x + tex3coord.y) % 2);  // very rough random number simulation
+      // step2: global force
+      /*
+      if(uRnd(1000u)<5u) {
+        if(new_speeds[2]==1u && new_speeds[4]==0u) {
+           new_speeds[2] = 0u;  new_speeds[4] = 1u;
+        }
+        if(new_speeds[1]==1u && new_speeds[5]==0u) {
+           new_speeds[1] = 0u;  new_speeds[5] = 1u;
+        }
+      }
+      */
       
+      // step3: local interaction
+      uint moved = PackR(new_speeds);
+      uint rnd = uRnd(2u);  
       uint rulecoord = moved + (rnd << 8u);  // rule coord equals packed new_speeds + random
-      
       ivec2 t = ivec2(rulecoord, 0);
       if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
-      
       uvec4 rule = GetTexel2D(u_rulestexture, layer, t);
       color.r = rule.a;
       
@@ -147,4 +183,4 @@ var CalcFragmentShaderSource = `
     }
   }
 `;
-var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_prevtexture", "u_rulestexture"]);
+var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_rnd"]);

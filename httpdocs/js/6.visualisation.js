@@ -144,9 +144,8 @@ var ShowFragmentShaderSource = `
     ivec2 tex2coord = ivec2(v_texcoord / u_surface.z - u_surface.xy);
     
     ` + (Rgeom==16 || Rgeom==162 ? `
-    if(tex2coord.y % 2 == 1) tex2coord.x = int(floor((v_texcoord.x) / u_surface.z - u_surface.x + 0.5));
-    tex2coord.x += tex2coord.y / 2;
-    tex2coord.x %= fieldSize.x;
+    if(tex2coord.y % 2 == 0) tex2coord.x = int(floor(v_texcoord.x / u_surface.z - u_surface.x + 0.5));
+    //tex2coord.x += tex2coord.y / 2;  tex2coord.x %= fieldSize.x;  // for another shape of 6-neighbourhood
     ` : ``) + `
     
     if(tex2coord.x<0 || tex2coord.y<0 || tex2coord.x>=fieldSize.x || tex2coord.y>=fieldSize.y) {

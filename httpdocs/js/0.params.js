@@ -18,6 +18,7 @@ function GetBoolParam(nm)        { return      (SLF.get(nm)>0 || URL.get(nm)>0) 
 class Cfg {
   constructor() {
     this.debug     = GetIntParam('debug');
+    this.shape     = GetIntParam('shape');
     this.autore    = GetBoolParam('autore');
     this.rerun     = GetBoolParam('rerun');
     this.anyrand   = GetBoolParam('anyrand');

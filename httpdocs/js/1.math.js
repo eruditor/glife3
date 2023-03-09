@@ -3,6 +3,7 @@
 function intval(x) { if(!x) return 0;  return parseInt(x, 10); }
 function floor(x) { return Math.floor(x); }
 function round(x) { return Math.round(x); }
+function abs(x)   { return Math.abs(x); }
 function sgn(x) { return x > 0 ? 1 : (x < 0 ? -1 : 0); }
 function round100(x, d=100) { return Math.round(x/d)*d; }
 function sqr(x) { return x*x; }
@@ -34,9 +35,9 @@ function mulberry32(a) {
 }
 var Frand32 = mulberry32(Fseed);
 var Rrand32 = mulberry32(Rseed);
-function rndF(a, b) { return Math.floor(Frand32()*(b-a)) + a; }
-function rndR(a, b) { return Math.floor(Rrand32()*(b-a)) + a; }
-function rndJ(a, b) { return Math.floor(Math.random()*(b-a)) + a; }
+function rndF(a, b) { return Math.floor(Frand32()*(b-a)) + a; }  // random for Field generation
+function rndR(a, b) { return Math.floor(Rrand32()*(b-a)) + a; }  // random for Rules generation
+function rndJ(a, b) { return Math.floor(Math.random()*(b-a)) + a; }  // just a usual random
 function ReInitSeeds(refield=false) {
   if(!refield) Rseed = int10(URL.get('rseed')) || Rrand32() * 4294967296;  Rrand32(Rseed);  document.getElementById('rseedinp').value = Rseed;
                Fseed = int10(URL.get('fseed')) || Frand32() * 4294967296;  Frand32(Fseed);  document.getElementById('fseedinp').value = Fseed;

@@ -4,6 +4,7 @@ var F = new jsdata_Array(4 * FW * FH * FD);
 
 function SetCell(x, y, z, r, g, b, a) {
   if(x<0 || y<0 || z<0 || x>FW || y>FH || z>FD) return;
+  x = round(x);  y = round(y);  z = round(z);
   var s = 4 * (z * FH * FW + y * FW + x);
   F[s+0] = r;
   F[s+1] = g;
