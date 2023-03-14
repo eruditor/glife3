@@ -1,9 +1,29 @@
+var fs_Color4Cell = `
+  vec4 Color4Cell(uvec4 cell, int layer) {
+    vec4 ret = vec4(0., 0., 0., 1.);
+    
+    uint[8] speeds = ExtractSpeeds(cell);
+    
+    if(speeds[7]==1u) return vec4(0.4, 0.4, 0.4, 1.);
+    
+    float sum = 0., total = 0.;
+    for(uint n=0u; n<=6u; n++) {
+      total += 1.;
+      if(speeds[n]!=0u) sum += 1.;
+    }
+    float div = sum / total;
+    ret = vec4(div, div, div, 1.);
+    
+    return ret;
+  }
+`;
+
 var fs_Show = function(zoom) {
   return `
   
   uint[8] speeds = ExtractSpeeds(cell);
   
-  if(speeds[7]==1u) color = vec4(0.4, 0.4, 0.4, 1.);
+  //if(speeds[7]==1u) color = vec4(0.4, 0.4, 0.4, 1.);
   
   int d = int(`+zoom+`. * u_surface.z);  // canvas zoom
   if(d>=8 && color!=vec4(0.5, 0.5, 0.5, 1.)) {

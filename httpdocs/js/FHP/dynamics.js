@@ -154,9 +154,8 @@ var CalcFragmentShaderSource = `
       }
       new_speeds[7] = ExtractNthSpeed(cells[0], 7u);  // 7 = obstacle
       
-      // step2: global force
-      /*
-      if(uRnd(1000u)<5u) {
+      // step2: global force (gravity)
+      if(uRnd(1000u)<3u) {
         if(new_speeds[2]==1u && new_speeds[4]==0u) {
            new_speeds[2] = 0u;  new_speeds[4] = 1u;
         }
@@ -164,7 +163,6 @@ var CalcFragmentShaderSource = `
            new_speeds[1] = 0u;  new_speeds[5] = 1u;
         }
       }
-      */
       
       // step3: local interaction
       uint moved = PackR(new_speeds);

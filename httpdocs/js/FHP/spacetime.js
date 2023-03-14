@@ -55,47 +55,6 @@ function InitialFiller() {
     SetCell(8, 2, 0,   (1 << 7), 0, 0, (1 << 1) + 1);
   }
   else if(cfg.shape==1) {
-    // global filler
-    var x, y, z=0;
-    for(x=0; x<FW; x++) {
-      for(y=0; y<FH; y++) {
-        if(rndF(0,1000)<50) {
-          var speed = rndF(0, 7);
-          SetCell(x, y, z,   (1 << speed), 0, 0, (1 << 1) + 1);
-        }
-      }
-    }
-    // round
-    for(x=0; x<FW; x++) {
-      for(y=0; y<FH; y++) {
-        var dx = (x-FW/2)+FW/5;
-        var dy = (y-FH/2);
-        if(abs(dx)>FW/4 || abs(dy)>FH/4) continue;
-        var density = 1100 - 1000*abs(dx)/FW - 1000*abs(dy)/FH;
-        if(rndF(0,1000)<density) {
-          var speed = rndF(0, 7);
-          if(1) {  // wind to the right
-            if(speed==2 || speed==3 || speed==4) speed = rndF(0, 7);
-            if(speed==3) speed = rndF(0, 7);
-          }
-          SetCell(x, y, z,   (1 << speed), 0, 0, (1 << 1) + 1);
-        }
-      }
-    }
-    // obstacles
-    for(x=FW/2+FW/8; x<FW/2+FW/8+FW/8; x++) {
-      for(y=FH/2-FH/30; y<FH/2+FH/30; y++) {
-        SetCell(x, y     , z,   (1 << 7), 0, 0, (1 << 1) + 1);
-        SetCell(x, y-4*FH/30, z,   (1 << 7), 0, 0, (1 << 1) + 1);
-        if(x>FW/2+FW/8+FW/16) SetCell(x, y-2*FH/30, z,   (1 << 7), 0, 0, (1 << 1) + 1);
-      }
-    }
-    // floor
-    for(var x=0; x<FW; x++) {
-      SetCell(x, 0, z,   (1 << 7), 0, 0, (1 << 1) + 1);
-    }
-  }
-  else {
     for(var z=0; z<FD; z++) {
       for(var x=0; x<FW; x++) {
         for(var y=0; y<FH; y++) {
@@ -139,6 +98,58 @@ function InitialFiller() {
     y = 0;
     for(var x=0; x<FW; x++) {
       SetCell(x, y, z,   (1 << 7), 0, 0, (1 << 1) + 1);
+    }
+  }
+  else {
+    // global filler
+    var x, y, z=0;
+    for(x=0; x<FW; x++) {
+      for(y=0; y<FH; y++) {
+        if(rndF(0,1000)<50) {
+          var speed = rndF(0, 7);
+          SetCell(x, y, z,   (1 << speed), 0, 0, (1 << 1) + 1);
+        }
+      }
+    }
+    // round
+    var speedbits = new Array(7);
+    for(x=0; x<FW; x++) {
+      for(y=0; y<FH; y++) {
+        var dx = (x-FW/2)+FW/5;
+        var dy = (y-FH/2);
+        if(abs(dx)>FW/4 || abs(dy)>FH/4) continue;
+        var density = 1000 - 1000*abs(dx)/FW - 1000*abs(dy)/FH;
+        var d = rndF(1,1000);
+        if(d<density) {
+          var nn = density / d;  if(nn>6) nn = 6;
+          speedbits.fill(0);
+          for(var sp=0; sp<=nn; sp++) {
+            var speed = rndF(0, 7);
+            if(1) {  // wind to the right
+              if(speed==2 || speed==3 || speed==4) speed = rndF(0, 7);
+              if(speed==3) speed = rndF(0, 7);
+            }
+            speedbits[speed] = 1;
+          }
+          var speedbyte = 0;
+          for(var k=0; k<=6; k++) {
+            if(speedbits[k]>0) speedbyte += (1 << k);
+          }
+          SetCell(x, y, z,   speedbyte, 0, 0, (1 << 1) + 1);
+        }
+      }
+    }
+    // obstacles
+    for(x=FW/2+FW/8; x<FW/2+FW/8+FW/8; x++) {
+      for(y=FH/2-FH/30; y<FH/2+FH/30; y++) {
+        SetCell(x, y     , z,   (1 << 7), 0, 0, (1 << 1) + 1);
+        SetCell(x, y-4*FH/30, z,   (1 << 7), 0, 0, (1 << 1) + 1);
+        if(x>FW/2+FW/8+FW/16) SetCell(x, y-2*FH/30, z,   (1 << 7), 0, 0, (1 << 1) + 1);
+      }
+    }
+    // floor
+    for(var x=0; x<FW; x++) {
+      SetCell(x, 0, z,   (1 << 7), 0, 0, (1 << 1) + 1);
     }
   }
 }

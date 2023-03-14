@@ -28,7 +28,7 @@ class Surface {
 }
 var surface = new Surface();
 
-// SHOW SHADER ////////////////////////////////////////////////////////////////
+// COLORS ////////////////////////////////////////////////////////////////
 
 function Color4Cell(layer=0, v=1, s=1, l=0.5) {
   if(Mode=='MVM') {
@@ -62,38 +62,42 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
   return HSL2RGB(h, s, l);
 }
 
-var fs_colors = `
+if(typeof fs_Color4Cell === 'undefined') {
+  var fs_colors = `
     if(v==0u) ret = vec4(0., 0., 0., 1.);
-`;
-for(var z=0; z<FD; z++) {
-  for(var v=1; v<RB; v++) {
-    var rgb = Color4Cell(z, v);
-    fs_colors += `    else if(layer==`+z+` && v==`+v+`u) ret = vec4(`+(rgb.r/255)+`, `+(rgb.g/255)+`, `+(rgb.b/255)+`, 1.);\n`;
+  `;
+  for(var z=0; z<FD; z++) {
+    for(var v=1; v<RB; v++) {
+      var rgb = Color4Cell(z, v);
+      fs_colors += `    else if(layer==`+z+` && v==`+v+`u) ret = vec4(`+(rgb.r/255)+`, `+(rgb.g/255)+`, `+(rgb.b/255)+`, 1.);\n`;
+    }
   }
+  
+  var fs_Color4Cell = `
+    vec4 Color4Cell(uvec4 cell, int layer) {
+      vec4 ret = vec4(0., 0., 0., 1.);
+      
+      uint aliv = ExtractAl(cell);
+      uint decay = ExtractDecay(cell);
+      
+      if(aliv==0u && decay==0u) return ret;
+      
+      uint v = ExtractFl(cell);
+      
+      ` + fs_colors + `
+      
+      float sat = aliv>0u ? 1. : float(decay * 15u) / 255.;
+      
+      ret.r *= sat;
+      ret.g *= sat;
+      ret.b *= sat;
+      
+      return ret;
+    }
+  `;
 }
 
-var fs_Color4Cell = `
-  vec4 Color4Cell(uvec4 cell, int layer) {
-    vec4 ret = vec4(0., 0., 0., 1.);
-    
-    uint aliv = ExtractAl(cell);
-    uint decay = ExtractDecay(cell);
-    
-    if(aliv==0u && decay==0u) return ret;
-    
-    uint v = ExtractFl(cell);
-    
-    ` + fs_colors + `
-    
-    float sat = aliv>0u ? 1. : float(decay * 15u) / 255.;
-    
-    ret.r *= sat;
-    ret.g *= sat;
-    ret.b *= sat;
-    
-    return ret;
-  }
-`;
+// SHOW SHADER ////////////////////////////////////////////////////////////////
 
 var ShowFragmentShaderSource = `
   precision mediump float;
