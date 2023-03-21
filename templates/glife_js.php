@@ -70,6 +70,7 @@ class GLifeJS {
     else if($fm->mode=='FLD')          $spacetime = "<script src='/js/FLD/spacetime.js$jsget'></script>";
     else if($fm->mode=='XCH')          $spacetime = "<script src='/js/XCH/spacetime.js$jsget'></script>";
     else if($fm->mode=='FHP')          $spacetime = "<script src='/js/FHP/spacetime.js$jsget'></script>";
+    else if($fm->mode=='EIA')          $spacetime = "<script src='/js/EIA/spacetime.js$jsget'></script>";
     else                               $spacetime = '';
     
          if($fm->mode=='PRT')          $dynamics = "<script src='/js/PRT/dynamics.js$jsget'></script>";

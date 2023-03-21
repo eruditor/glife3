@@ -167,14 +167,16 @@ const RG =
 
 const RC = RG.length;  // number of cells in neighborhood that affects current cell's state (length of neib encoding)
 
-var snn = 0, rgr = 0, rg0 = 0, r_up = false, r_lo = false;
+var snn = 0, rgr = 0, r00 = 0, r_up = false, r_lo = false;
 for(var i=0; i<RC; i++) {
   if(rgr<RG[i][0]) rgr = RG[i][0];
-  if(RG[i][0]==0 && RG[i][1]==0) {
-    rg0 = i;
-  }
-  else {
-    if(RG[i][2]==0) snn ++;
+  if(RG[i][2]==0) {
+    if(RG[i][0]==0 && RG[i][1]==0) {
+      r00 = i;
+    }
+    else {
+      snn ++;
+    }
   }
   if(RG[i][0]==0 && RG[i][1]==0 && RG[i][2]== 1) r_up = i;
   if(RG[i][0]==0 && RG[i][1]==0 && RG[i][2]==-1) r_lo = i;
@@ -184,7 +186,7 @@ const SNN = intval(snn);  // number of cells in same-layer neighborhood (8 for M
 const RGR = rgr;  // radius of neighborhood (1 for 3*3, 2 for 5*5)
 const RGD = RGR * 2 + 1;  // diameter of neighborhood (3, 5)
 const RG0 = (RGD * RGD - 1) / 2;  // index of central cartesian cell = shift for RG cartesian indexing
-
+const R00 = r00;  // index of self-cell (0,0,0)
 const Rupper = r_up;
 const Rlower = r_lo;
 

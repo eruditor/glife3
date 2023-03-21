@@ -39,11 +39,12 @@ var CalcFragmentShaderSource = `
       
       // finding rule for this neighborhood
       
-      `+field_ValP+` sum = 0.;
+      `+field_Vec4P+` sum4 = `+field_Vec4+`(0);
       for(int n=0; n<`+RC+`; n++) {
-        sum += cells[n].a;
+        sum4 += cells[n];
       }
-      color.a = sum / `+RC+`.;
+      float a = 4., b = 1.;
+      color = (a * self + b * (sum4 / `+RC+`.)) / (a + b);
       
       ` + fs_PackAliveness('color.a') + `
       

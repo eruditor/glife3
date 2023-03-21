@@ -27,7 +27,7 @@ var fs_GetNeibs = `      `+field_Vec4P+` cells[`+RC+`];\n`;
 for(var k in RG) {
   fs_GetNeibs += `      cells[`+k+`] = GetCell(`+RG[k][0]+`, `+RG[k][1]+`, `+RG[k][2]+`);\n`;
 }
-fs_GetNeibs += `      `+field_Vec4P+` self = cells[0];  // previous self cell state\n`;
+fs_GetNeibs += `      `+field_Vec4P+` self = cells[`+R00+`];  // previous self cell state\n`;
 
 // array index for samplers must be constant integral expressions, so we need this crap to address texture by layer
 // we can use more convenient texture3D, but it's size (dimensions) is more limited than for 2D textures (rules texture for RB>4 exceeds the limit)

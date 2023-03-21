@@ -26,7 +26,7 @@ gl.canvas.onmousedown = function(e) {
       gl.readBuffer(gl.COLOR_ATTACHMENT0 + z);
       gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F);
       var cell = GetCell(mouseX, mouseY, 0);
-      console.log('xyz=('+mouseX+' '+mouseY+' '+z+'), rgba=', cell);
+      console.log('xyz=('+mouseX+' '+mouseY+' '+z+'), rgba=', cell);  //console.log(F);
       
       if(typeof ExtractRGBA === 'function') {
         console.log(ExtractRGBA(cell));
