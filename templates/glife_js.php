@@ -79,6 +79,7 @@ class GLifeJS {
     else if($fm->mode=='FLD')          $dynamics = "<script src='/js/FLD/dynamics.js$jsget'></script>";
     else if($fm->mode=='XCH')          $dynamics = "<script src='/js/XCH/dynamics.js$jsget'></script>";
     else if($fm->mode=='FHP')          $dynamics = "<script src='/js/FHP/dynamics.js$jsget'></script>";
+    else if($fm->mode=='EIA')          $dynamics = "<script src='/js/EIA/dynamics.js$jsget'></script>";
     else                               $dynamics = "<script src='/js/!default/dynamics.js$jsget'></script>";
     
          if($fm->mode=='PRT')          $visualisation = "<script src='/js/PRT/visualisation.js$jsget'></script>";
@@ -88,6 +89,7 @@ class GLifeJS {
     else if($fm->mode=='FLD')          $visualisation = "<script src='/js/FLD/visualisation.js$jsget'></script>";
     else if($fm->mode=='XCH')          $visualisation = "<script src='/js/XCH/visualisation.js$jsget'></script>";
     else if($fm->mode=='FHP')          $visualisation = "<script src='/js/FHP/visualisation.js$jsget'></script>";
+    else if($fm->mode=='EIA')          $visualisation = "<script src='/js/EIA/visualisation.js$jsget'></script>";
     else                               $visualisation = '';
     
     return "

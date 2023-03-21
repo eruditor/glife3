@@ -17,7 +17,7 @@ ORGA.FillFragmentShaderSource = `
   precision mediump float;
   precision highp int;
   
-  uniform highp usampler3D u_fieldtexture;
+  uniform `+field_Sampler+` u_fieldtexture;
   
   in vec2 v_texcoord;  // [0..FW, 0..FH]
   
@@ -103,8 +103,8 @@ ORGA.CalcFragmentShaderSource = `
   precision mediump float;
   precision highp int;
   
-  uniform highp usampler3D u_orgatexF0;
-  uniform highp usampler3D u_orgatexF1;
+  uniform `+field_Sampler+` u_orgatexF0;
+  uniform `+field_Sampler+` u_orgatexF1;
   
   in vec2 v_texcoord;  // [0..FW, 0..FH]
   
@@ -183,7 +183,7 @@ function CalcORGA() {
 ORGA.ShowFragmentShaderSource = `
   precision mediump float;
   
-  uniform highp usampler3D u_orgatexC;
+  uniform `+field_Sampler+` u_orgatexC;
   
   in vec2 v_texcoord;  // [0..FW, 0..FH]
   

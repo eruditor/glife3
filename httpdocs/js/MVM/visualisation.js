@@ -4,7 +4,6 @@ var fs_Show = function(zoom) {
   if(cnv_zoom>=8) {
     tex3coord = ivec3(tex2coord, layer);
     
-    uvec4 cells[`+RC+`];
     ` + fs_GetNeibs + `
     
     ivec2 cnv_coord = ivec2( fract(v_texcoord / u_surface.z - u_surface.xy) * `+zoom+`. * u_surface.z );

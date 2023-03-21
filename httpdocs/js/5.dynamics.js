@@ -15,18 +15,19 @@ var fs_ModuloTorus = `
 
 function fs_GetCell(func='GetCell', tex='u_fieldtexture') {
   return `
-  uvec4 `+func+`(int dx, int dy, int dz) {
-         if(dz>0 && tex3coord.z==`+(FD-1)+`) return uvec4(0);  // no upper for top layer
-    else if(dz<0 && tex3coord.z==0)          return uvec4(0);  // no lower for bottom layer
+  `+field_Vec4P+` `+func+`(int dx, int dy, int dz) {
+         if(dz>0 && tex3coord.z==`+(FD-1)+`) return `+field_Vec4+`(0);  // no upper for top layer
+    else if(dz<0 && tex3coord.z==0)          return `+field_Vec4+`(0);  // no lower for bottom layer
     return texelFetch(`+tex+`, ModuloTorus(tex3coord + ivec3(dx, dy, dz), fieldSize), 0);
   }
   `;
 }
 
-var fs_GetNeibs = ``;
+var fs_GetNeibs = `      `+field_Vec4P+` cells[`+RC+`];\n`;
 for(var k in RG) {
   fs_GetNeibs += `      cells[`+k+`] = GetCell(`+RG[k][0]+`, `+RG[k][1]+`, `+RG[k][2]+`);\n`;
 }
+fs_GetNeibs += `      `+field_Vec4P+` self = cells[0];  // previous self cell state\n`;
 
 // array index for samplers must be constant integral expressions, so we need this crap to address texture by layer
 // we can use more convenient texture3D, but it's size (dimensions) is more limited than for 2D textures (rules texture for RB>4 exceeds the limit)
@@ -39,15 +40,15 @@ fs_GetTexel2D += `  }`;
 // DATA PACKING ////////////////////////////////////////////////////////////////
 
 var fs_ExtractRGBA = `
-    uint ExtractAl(uvec4 cell) {  // aliveness
+    uint ExtractAl(`+field_Vec4P+` cell) {  // aliveness
       return cell.a > 0u ? 1u : 0u;
     }
     
-    uint ExtractFl(uvec4 cell) {  // flavor
+    uint ExtractFl(`+field_Vec4P+` cell) {  // flavor
       return cell.a>0u ? cell.a : cell.b % 10u;
     }
     
-    uint ExtractDecay(uvec4 cell) {  // decay
+    uint ExtractDecay(`+field_Vec4P+` cell) {  // decay
       return cell.b<30u ? 0u : cell.b / 10u - 3u;
     }
 `;

@@ -10,6 +10,8 @@ if(!gl) alert('Enable WebGL2 in your browser. Look under Settings -> Experimenta
 
 var gl_ext = gl.getExtension('EXT_color_buffer_float');  // for floating-point math
 
+gl.disable(gl.DITHER);  // not necessary
+
 // DATA FORMAT ////////////////////////////////////////////////////////////////
 
 // main: Field and Rules
@@ -17,17 +19,25 @@ const DataFormat =
     Mode=='MVM' ? 'UI32'
   : Mode=='FLD' ? 'UI32'
   : Mode=='XCH' ? 'UI8'
+  : Mode=='EIA' ? 'F32'
   :               'UI8';
 
-var data_formats = {
-  'UI32': [gl.RGBA_INTEGER, gl.RGBA32UI, gl.UNSIGNED_INT,  Uint32Array ],
-  'F32' : [gl.RGBA,         gl.RGBA32F,  gl.FLOAT,         Float32Array],
-  'UI8' : [gl.RGBA_INTEGER, gl.RGBA8UI,  gl.UNSIGNED_BYTE, Uint8Array  ]
+const data_formats = {
+  'UI8' : [gl.RGBA_INTEGER, gl.RGBA8UI,  gl.UNSIGNED_BYTE, Uint8Array,    'lowp',  'usampler3D', 'uint',  'uvec4'],
+  'UI32': [gl.RGBA_INTEGER, gl.RGBA32UI, gl.UNSIGNED_INT,  Uint32Array ,  'highp', 'usampler3D', 'uint',  'uvec4'],
+  'F32' : [gl.RGBA,         gl.RGBA32F,  gl.FLOAT,         Float32Array,  'highp', 'sampler3D',  'float', 'vec4']
 };
 const gldata_Format   = data_formats[DataFormat][0];
 const gldata_Internal = data_formats[DataFormat][1];
 const gldata_Type     = data_formats[DataFormat][2];
 const jsdata_Array    = data_formats[DataFormat][3];
+const field_Precision = data_formats[DataFormat][4];
+const field_Sampler   = field_Precision + ' ' + data_formats[DataFormat][5];
+const field_Val       = data_formats[DataFormat][6];
+const field_Vec4      = data_formats[DataFormat][7];
+const field_ValP      = field_Precision + ' ' + field_Val;
+const field_Vec4P     = field_Precision + ' ' + field_Vec4;
+
 
 // auxiliary: floating-point math for Analysis
 const glFl32_Format   = gl.RGBA;  // if EXT_color_buffer_float is not supported - use INT32
@@ -44,6 +54,19 @@ const jsUI32_Array    = Uint32Array;
 
 gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);  // 1 byte alignment (not default 4) for WebGL
 
+function logGlError(shader, source) {
+  var infolog = gl.getShaderInfoLog(shader);
+  infolog = infolog.replace(String.fromCharCode(0), ' ').trim();  // remove trailing %A0%00 symbols
+  var errline = '';
+  var lines = source.split(/\r?\n/);
+  var matches = infolog.matchAll(/ERROR: (\d+):(\d+):/g);
+  for(var match of matches) {
+    errline += '\n ↳  Line ' + match[2] + ': ' + lines[match[2]-1].trim();
+  }
+  console.log(infolog, errline);
+  console.log(source);
+}
+
 function createShader(gl, type, source) {
   var shader = gl.createShader(type);
   source = "#version 300 es\n" + source.trim();
@@ -52,7 +75,7 @@ function createShader(gl, type, source) {
   
   var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if(!success) {
-    console.log(gl.getShaderInfoLog(shader));
+    logGlError(shader, source);
     gl.deleteShader(shader);
     return false;
   }
@@ -94,7 +117,7 @@ function createProgram4Frag(gl, FragmentShaderSource, varnames=[]) {
 var CommonVertexShaderSource = `
   precision mediump float;
   
-  uniform highp usampler3D u_fieldtexture;  // Field texture, UInt32
+  uniform `+field_Sampler+` u_fieldtexture;  // Field texture, UInt32
   ivec3 fieldSize;
   
   in vec2 a_position;  // input data from vertice coords buffer

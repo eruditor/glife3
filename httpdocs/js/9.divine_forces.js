@@ -55,19 +55,19 @@ var MousFragmentShaderSource = `
   precision mediump float;
   precision highp int;
   
-  uniform highp usampler3D u_fieldtexture;  // Field texture, UInt32
+  uniform `+field_Sampler+` u_fieldtexture;
   uniform ivec3 u_mouse;  // mouse coords (x,y,z)
-  uniform uvec4 u_rgba;  // color to paint with
+  uniform `+field_Vec4P+` u_rgba;  // color to paint with
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
-  out uvec4 glFragColor[`+FD+`];
+  out `+field_Vec4P+` glFragColor[`+FD+`];
   
   ivec3 tex3coord;
   ivec3 fieldSize;
   uint dbg;
   
-  uvec4 GetCell() {
+  `+field_Vec4P+` GetCell() {
     return texelFetch(u_fieldtexture, tex3coord, 0);
   }
   
@@ -78,7 +78,7 @@ var MousFragmentShaderSource = `
       
       tex3coord = ivec3(v_texcoord, layer);
       
-      uvec4 color = GetCell();
+      `+field_Vec4P+` color = GetCell();
       
       if(tex3coord==u_mouse) {
         color = u_rgba;

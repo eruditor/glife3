@@ -121,13 +121,13 @@ var CalcFragmentShaderSource = `
   precision mediump float;
   precision highp int;
   
-  uniform highp usampler3D u_fieldtexture;  // Field texture
-  uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
+  uniform `+field_Sampler+` u_fieldtexture;
+  uniform highp usampler2D u_rulestexture[`+FD+`];
   uniform highp uint u_nturn;  // nturn
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
-  out uvec4 glFragColor[`+FD+`];
+  out `+field_Vec4P+` glFragColor[`+FD+`];
   
   ivec3 tex3coord;
   ivec3 fieldSize;
@@ -174,7 +174,6 @@ var CalcFragmentShaderSource = `
       
       // getting cell's neighborhood
       
-      uvec4 cells[`+RC+`];
       ` + fs_GetNeibs + `
       
       // extracting self-cell info
@@ -319,7 +318,7 @@ var CalcFragmentShaderSource = `
       
       // rgba packing ////////////////////////////////////////////////////////////////
       
-      uvec4 color = uvec4(0);
+      `+field_Vec4P+` color = uvec4(0);
       color.a = PackA(al, fl, el, spin);
       color.b = PackB(bonds);
       color.g = PackG(dir, gate, force, k);

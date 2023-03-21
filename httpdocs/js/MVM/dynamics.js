@@ -191,12 +191,12 @@ var CalcFragmentShaderSource = `
   precision mediump float;
   precision highp int;
   
-  uniform highp usampler3D u_fieldtexture;  // Field texture
-  uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
+  uniform `+field_Sampler+` u_fieldtexture;
+  uniform highp usampler2D u_rulestexture[`+FD+`];
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
-  out uvec4 glFragColor[`+FD+`];
+  out `+field_Vec4P+` glFragColor[`+FD+`];
   
   ivec3 tex3coord;
   ivec3 fieldSize;
@@ -239,18 +239,10 @@ var CalcFragmentShaderSource = `
       tex3coord = ivec3(v_texcoord, layer);
       
       // getting cell's neighborhood
-      uvec4 cells[`+RC+`];
-      /*
-      for(uint n=0u; n<`+RC+`u; n++) {
-        ivec2 ndir = NthDirection(n);
-        cells[n] = GetCell(ndir.x, ndir.y, 0);
-      }
-      */
+      
       ` + fs_GetNeibs + `
       
-      uvec4 self = cells[0];  // previous self cell state
-      
-      uvec4 color = uvec4(0);
+      `+field_Vec4P+` color = uvec4(0);
       
       uint[8] b = uint[8](0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);  // new b
       

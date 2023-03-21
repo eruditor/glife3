@@ -27,7 +27,7 @@ DFT.FillFragmentShaderSource = `
   precision highp float;
   precision highp int;
   
-  uniform highp usampler3D u_fieldtexture;
+  uniform `+field_Sampler+` u_fieldtexture;
   
   in vec2 v_texcoord;  // [0..FW, 0..FH]
   out vec4 glFragColor[`+FD+`];

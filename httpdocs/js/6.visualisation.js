@@ -74,7 +74,7 @@ if(typeof fs_Color4Cell === 'undefined') {
   }
   
   var fs_Color4Cell = `
-    vec4 Color4Cell(uvec4 cell, int layer) {
+    vec4 Color4Cell(`+field_Vec4P+` cell, int layer) {
       vec4 ret = vec4(0., 0., 0., 1.);
       
       uint aliv = ExtractAl(cell);
@@ -103,7 +103,7 @@ var ShowFragmentShaderSource = `
   precision mediump float;
   precision highp int;
   
-  uniform highp usampler3D u_fieldtexture;  // Field texture, UInt32
+  uniform `+field_Sampler+` u_fieldtexture;  // Field texture, UInt32
   uniform vec2 u_canvas;  // canvas width and height
   uniform vec3 u_surface;  // surface: (left, top, zoom)
   uniform int u_ps[`+ND+`];
@@ -143,7 +143,7 @@ var ShowFragmentShaderSource = `
       if((xy.y % 2) == 1) layer += 2;
     ` : ``) + `
     
-    uvec4 cell;
+    `+field_Vec4P+` cell;
     
     ivec2 tex2coord = ivec2(v_texcoord / u_surface.z - u_surface.xy);
     

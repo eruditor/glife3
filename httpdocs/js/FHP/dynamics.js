@@ -91,13 +91,13 @@ var CalcFragmentShaderSource = `
   precision mediump float;
   precision highp int;
   
-  uniform highp usampler3D u_fieldtexture;  // Field texture
-  uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
+  uniform `+field_Sampler+` u_fieldtexture;
+  uniform highp usampler2D u_rulestexture[`+FD+`];
   uniform highp uint u_rnd;
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
-  out uvec4 glFragColor[`+FD+`];
+  out `+field_Vec4P+` glFragColor[`+FD+`];
   
   ivec3 tex3coord;
   ivec3 fieldSize;
@@ -127,7 +127,7 @@ var CalcFragmentShaderSource = `
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
     
-    uvec4 color;
+    `+field_Vec4P+` color;
     
     for(int layer=0; layer<`+FD+`; layer++) {
       
@@ -135,8 +135,8 @@ var CalcFragmentShaderSource = `
       
       tex3coord = ivec3(v_texcoord, layer);
       
-      uvec4 cells[`+RC+`];
       /*` + fs_GetNeibs + `*/
+      `+field_Vec4P+` cells[`+RC+`];
       int x0 = tex3coord.y % 2 - 1;
       int x1 = x0 + 1;
       cells[0] = GetCell( 0,  0, 0);
@@ -146,6 +146,7 @@ var CalcFragmentShaderSource = `
       cells[4] = GetCell(x1,  1, 0);
       cells[5] = GetCell(x0,  1, 0);
       cells[6] = GetCell(-1,  0, 0);
+      `+field_Vec4P+` self = cells[0];  // previous self cell state
      
       // step1: straight movement
       uint[8] new_speeds;
@@ -172,8 +173,6 @@ var CalcFragmentShaderSource = `
       if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
       uvec4 rule = GetTexel2D(u_rulestexture, layer, t);
       color.r = rule.a;
-      
-      uvec4 self = cells[0];  // previous self cell state
       
       ` + fs_PackAliveness('color.a') + `
       

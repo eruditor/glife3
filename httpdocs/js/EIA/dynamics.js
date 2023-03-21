@@ -1,3 +1,7 @@
+var fs_ExtractRGBA = `
+  
+`;
+
 var CalcFragmentShaderSource = `
   precision mediump float;
   precision highp int;
@@ -35,28 +39,11 @@ var CalcFragmentShaderSource = `
       
       // finding rule for this neighborhood
       
-      uint rulecoord = 0u;
+      `+field_ValP+` sum = 0.;
       for(int n=0; n<`+RC+`; n++) {
-        rulecoord *= `+RB+`u;
-        rulecoord += cells[n].a;  // @ 8bit-packing only!
+        sum += cells[n].a;
       }
-      ivec2 t = ivec2(rulecoord, 0);
-      if(t.x>=`+RX+`) { t.y = t.x / `+RX+`;  t.x = t.x % `+RX+`; }
-      
-      uvec4 rule = GetTexel2D(u_rulestexture, layer, t);
-      
-      // rule.a is the new color (value) of the cell
-      color.a = rule.a;
-      
-      ` + (TT>2 ? `
-      uvec4 prev = GetPrevCell(0, 0, 0);
-      // color.a - prev.a
-      if(prev.a>0u) {
-        int inewv = int(color.a) - int(prev.a);
-        if(inewv<0) inewv += `+RB+`;
-        color.a = uint(inewv);
-      }
-      ` : ``) + `
+      color.a = sum / `+RC+`.;
       
       ` + fs_PackAliveness('color.a') + `
       
