@@ -19,7 +19,8 @@ const DataFormat =
     Mode=='MVM' ? 'UI32'
   : Mode=='FLD' ? 'UI32'
   : Mode=='XCH' ? 'UI8'
-  : Mode=='EIA' ? 'F32'
+  : Mode=='LFL' ? 'F32'
+  : Mode=='LI4' ? 'UI32'
   :               'UI8';
 
 const data_formats = {
@@ -182,8 +183,8 @@ function CreateTexture(width, height, depth=0, type='') {
   else                  gl.texImage3D(gl_tex, 0, gldata_Internal, width, height, depth, 0, gldata_Format, gldata_Type, null);
   gl.texParameteri(gl_tex, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl_tex, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl_tex, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl_tex, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl_tex, gl.TEXTURE_WRAP_S, gl.REPEAT);  // CLAMP_TO_EDGE
+  gl.texParameteri(gl_tex, gl.TEXTURE_WRAP_T, gl.REPEAT);  // CLAMP_TO_EDGE
   return texture;
 }
 

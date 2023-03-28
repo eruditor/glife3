@@ -43,8 +43,8 @@ var CalcFragmentShaderSource = `
       for(int n=0; n<`+RC+`; n++) {
         sum4 += cells[n];
       }
-      float a = 4., b = 1.;
-      color = (a * self + b * (sum4 / `+RC+`.)) / (a + b);
+      uint a = 4u, b = 1u;
+      color = (a * self + b * (sum4 / `+RC+`u)) / (a + b);
       
       ` + fs_PackAliveness('color.a') + `
       

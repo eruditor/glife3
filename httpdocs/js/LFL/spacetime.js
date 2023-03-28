@@ -13,7 +13,7 @@ function InitialFiller() {
           if(z>=2 && y<FH/2) continue;
           var density = round((1 - Math.abs(2*y/FH-1)/LF) * Lstep * LD);
           if(rndF(0,Lstep)<density) {
-            SetCell(x, y, z,  rndF(1,100)/100, rndF(1,100)/100, 0, 1);
+            SetCell(x, y, z,  rndF(1,100)/100, rndF(1,100)/100, rndF(1,100)/100, 1);
           }
         }
       }

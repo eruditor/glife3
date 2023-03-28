@@ -146,10 +146,6 @@ const RG =
       [ 2,  2,  0],  //  24
     ]
   :
-  []
-;
-/*
-  :
   Rgeom==9  // Moore2D 3*3 cartesian
   ?
     [
@@ -163,7 +159,9 @@ const RG =
       [ 0,  1,  0],  //  7
       [ 1,  1,  0],  //  8
     ]
-*/
+  :
+  []
+;
 
 const RC = RG.length;  // number of cells in neighborhood that affects current cell's state (length of neib encoding)
 
