@@ -2,8 +2,6 @@ var fs_ExtractRGBA = `
   
 `;
 
-const RD = 13;
-
 var CalcFragmentShaderSource = `
   precision highp float;
   precision highp int;
@@ -34,10 +32,11 @@ var CalcFragmentShaderSource = `
     return exp(-v*v/2.);
   }
   
+  float Km = 0.50;
+  float Ks = 0.15;
+  
   float K(float r) {  // Kernel
-    float Km = 0.5 * R;
-    float Ks = 0.15 * R;
-    return bell(r, Km, Ks);
+    return bell(r/R, Km, Ks);
   }
   
   float G(float r) {  // Growth
@@ -48,16 +47,21 @@ var CalcFragmentShaderSource = `
     return vec4(G(v.r), G(v.g), G(v.b), G(v.a));
   }
   
-  float leni(int dx, int dy) {
+  float len(int dx, int dy) {
     return sqrt(float(dx*dx+dy*dy));
   }
   
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
     
+    tex3coord = ivec3(v_texcoord, 0);
+    
     vec4 color;
     
-    tex3coord = ivec3(v_texcoord, 0);
+    //Ks = 0.01 + 0.50 * (v_texcoord.x / `+FW+`.);
+    //Km = 0.01 + 1.50 * (v_texcoord.y / `+FH+`.);
+    //Ks = 0.30;
+    //Km = 0.20;
     
     vec4 self = vec4(0);
     vec4 cell;
@@ -67,7 +71,7 @@ var CalcFragmentShaderSource = `
       for(int dy=-iR; dy<=iR; dy++) {
         cell = GetCell(dx, dy, 0);
         if(dx==0 && dy==0) self = cell;
-        float r = sqrt(float(dx*dx+dy*dy));
+        float r = len(dx, dy);
         float k = K(r);
         sumC += k * cell;
         sumK += k;
@@ -79,7 +83,7 @@ var CalcFragmentShaderSource = `
     
     color = clamp(self + delta, 0., 1.);
     
-    //color = vec4(0., K(leni(tex3coord.x - fieldSize.x/2, tex3coord.y - fieldSize.y/2)), 0., 1.);  // draw Kernel
+    //color = vec4(0., K(len(tex3coord.x - fieldSize.x/2, tex3coord.y - fieldSize.y/2)), 0., 1.);  // draw Kernel
     
     glFragColor[0] = color;
   }

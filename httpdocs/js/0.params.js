@@ -66,6 +66,10 @@ var Named = GetStrParam('named');
 var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 
+// LENIA PARAMS ////////////////////////////////////////////////////////////////
+
+const RD     = GetIntParam('RD', 13);  // neighbourhood radius
+
 // MVM PARAMS ////////////////////////////////////////////////////////////////
 
 const mL = 10000,  mL2 = 2 * mL,  mL3 = 3 * mL,  fmL = mL + `.`;  // mL = half-radius of the cell

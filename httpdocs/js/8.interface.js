@@ -67,6 +67,7 @@ function CreateNavButtons() {
   <td><input type=button class='mediabtn' value='\u2623\uFE0F' onclick='Pause(1); console.log(StatORGA(1));' title='Show ORGA calculus'>
   </tr></table>
   
+  <a name='win'></a>
   <table cellspacing=0 class='navTB'><tr>
   <td><input type=button class='mediabtn' value='\u2934\uFE0F' onclick="surface.left+=0.1*(FW/surface.zoom/2); surface.top +=0.1*(FH/surface.zoom/2); surface.zoom/=1.1; Show(1);" title='Zoom in'>
   <td><input type=button class='mediabtn' value='\u2935\uFE0F' onclick="surface.zoom*=1.1; surface.left-=0.1*(FW/surface.zoom/2); surface.top -=0.1*(FH/surface.zoom/2); Show(1);" title='Zoom out'>
@@ -77,6 +78,7 @@ function CreateNavButtons() {
   <td><input type=button class='mediabtn' value='&#x1F191'     onclick="surface.left=0; surface.top=0; surface.zoom=1; Show(1);" title='Reset view'>
   </tr></table>
   
+  <!--
   <table cellspacing=0 class='navTB'><tr>
   <td><input type=button value='Calc()' onclick="Calc(1);"></td>
   <td><input type=button value='Show(t=0)' onclick="Show(1,0);"></td>
@@ -85,6 +87,7 @@ function CreateNavButtons() {
   <td><input type=button value='log(Tn)' onclick="console.log(T0,T1,T2);"></td>
   <td><input type=button value='DT&rarr;-DT' onclick="DT=-DT; console.log(DT);"></td>
   </tr></table>
+  -->
   `;
   
   function htk_keyUp(e) {  //e.ctrlKey
@@ -92,6 +95,7 @@ function CreateNavButtons() {
     else if(e.key=='o') { Calc(1);  Show(1);  Stats(1); }
     else if(e.key=='-') { Speed(-1); }
     else if(e.key=='=') { Speed( 1); }
+    else if(e.key=='r') { if(confirm("ReField?")) { ReInitSeeds(true); Init(); } }
   }
   document.addEventListener('keydown', htk_keyUp);
   
