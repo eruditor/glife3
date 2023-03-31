@@ -1,9 +1,9 @@
 function InitialFiller() {
   if(cfg.debug==1) {
-    SetCell(0, 0, 0,   1, 1, 1, 1);
-    SetCell(1, 0, 0,   0.5, 0.5, 0.5, 1);
-    SetCell(0, 1, 0,   0.5, 0, 0, 1);
-    SetCell(2, 2, 0,   0, 0.5, 0, 1);
+    SetCell(5, 5, 0,   0, 0.9, 0, 1);
+    SetCell(6, 5, 0,   0, 0.1, 0, 1);
+    SetCell(5, 7, 0,   0, 0.5, 0, 1);
+    //SetCell(8, 5, 0,   0, 0.5, 0, 1);
   }
   else if(cfg.debug==2) {  // RD=13
     var orbium = [
@@ -38,13 +38,35 @@ function InitialFiller() {
       }
     }
   }
-  else {
+  else if(cfg.debug==3) {
     for(var x=0; x<FW; x++) {
       for(var y=0; y<FH; y++) {
         var rr = Math.sqrt( (sqr(x/FW-0.5) + sqr(y/FH-0.5)) * 4) / LF;
         var density = round( (1 - rr) * 10000 * LD );
         if(rndF(0,10000)<density) {
           SetCell(x, y, 0,  0, rndF(1,100)/100, 0, 1);
+        }
+      }
+    }
+  }
+  else if(cfg.debug==7) {
+    for(var x=0; x<FW; x++) {
+      for(var y=0; y<FH; y++) {
+        var rr = Math.sqrt( (sqr(x/FW-0.5) + sqr(y/FH-0.5)) * 4) / LF;
+        var density = round( (1 - rr) * 10000 * LD );
+        if(rndF(0,10000)<density) {
+          SetCell(x, y, 0,  rndF(1,100)/100, rndF(1,100)/100, rndF(1,100)/100, 1);
+        }
+      }
+    }
+  }
+  else {
+    for(var x=0; x<FW; x++) {
+      for(var y=0; y<FH; y++) {
+        var rr = Math.sqrt( (sqr(x/FW-0.5) + sqr(y/FH-0.5)) * 4) / LF;
+        var density = round( (1 - rr) * 10000 * LD );
+        if(rndF(0,10000)<density) {
+          SetCell(x, y, 0,  rndF(1,100)/100, rndF(1,100)/100, 0, 1);
         }
       }
     }

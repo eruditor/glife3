@@ -85,7 +85,7 @@ function CreateNavButtons() {
   <td><input type=button value='Show(t=1)' onclick="Show(1,1);"></td>
   <td><input type=button value='Show(t=2)' onclick="Show(1,2);"></td>
   <td><input type=button value='log(Tn)' onclick="console.log(T0,T1,T2);"></td>
-  <td><input type=button value='DT&rarr;-DT' onclick="DT=-DT; console.log(DT);"></td>
+  <td><input type=button value='TD&rarr;-TD' onclick="TD=-TD; console.log(TD);"></td>
   </tr></table>
   -->
   `;

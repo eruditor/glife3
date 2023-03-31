@@ -81,7 +81,7 @@ function InitialFill() {
 
 var T0 = 0, T1 = 1, T2 = 2;  // previous (0) and current (1) moments; or T2=t+1 (next), T1=t+0 (prev), T0=t-1 (grand-parent)
 
-var DT = 1;  // direction of time (1=forward, -1=backward)
+var TD = 1;  // direction of time (1=forward, -1=backward)
 
 function FlipTime() {  // switching between previous and current moment fields
   if(TT==2) {
@@ -89,7 +89,7 @@ function FlipTime() {  // switching between previous and current moment fields
     else      { T0 = 0;  T1 = 1; }
   }
   else if(TT==3) {
-    if(DT>0) {
+    if(TD>0) {
            if(T0==0) { T0 = 1;  T1 = 2;  T2 = 0; }
       else if(T0==1) { T0 = 2;  T1 = 0;  T2 = 1; }
       else           { T0 = 0;  T1 = 1;  T2 = 2; }
