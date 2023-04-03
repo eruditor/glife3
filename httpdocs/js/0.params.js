@@ -18,7 +18,7 @@ function GetBoolParam(nm)        { return      (SLF.get(nm)>0 || URL.get(nm)>0) 
 class Cfg {
   constructor() {
     this.debug     = GetIntParam('debug');
-    this.shape     = GetIntParam('shape');
+    this.shape     = GetStrParam('shape');
     this.autore    = GetBoolParam('autore');
     this.rerun     = GetBoolParam('rerun');
     this.anyrand   = GetBoolParam('anyrand');
@@ -69,6 +69,7 @@ var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 // LENIA PARAMS ////////////////////////////////////////////////////////////////
 
 const RD     = GetIntParam('RD', 13);  // neighbourhood radius
+const DT     = GetIntParam('DT',  5);  // time step = 1/DT
 
 // MVM PARAMS ////////////////////////////////////////////////////////////////
 

@@ -77,8 +77,9 @@ function CreateNavButtons() {
   <td><input type=button class='mediabtn' value='\u2B07\uFE0F' onclick="surface.top +=SurStep(); Show(1);" title='Move down'>
   <td><input type=button class='mediabtn' value='&#x1F191'     onclick="surface.left=0; surface.top=0; surface.zoom=1; Show(1);" title='Reset view'>
   </tr></table>
+  `;
   
-  <!--
+  if(TT>2) ret += `
   <table cellspacing=0 class='navTB'><tr>
   <td><input type=button value='Calc()' onclick="Calc(1);"></td>
   <td><input type=button value='Show(t=0)' onclick="Show(1,0);"></td>
@@ -87,7 +88,6 @@ function CreateNavButtons() {
   <td><input type=button value='log(Tn)' onclick="console.log(T0,T1,T2);"></td>
   <td><input type=button value='TD&rarr;-TD' onclick="TD=-TD; console.log(TD);"></td>
   </tr></table>
-  -->
   `;
   
   function htk_keyUp(e) {  //e.ctrlKey
