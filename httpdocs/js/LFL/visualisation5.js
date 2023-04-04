@@ -8,6 +8,12 @@ var fs_Color4Cell = `
     ret.b = ret.b<0. ? -2.*ret.b : 0.;
     */
     
+    const float k = 0.8;
+    
+    ret.r = k * ret.r + 1. - k;
+    ret.g = k * ret.g + 1. - k;
+    ret.b = k * ret.b + 1. - k;
+    
     return ret;
   }
 `;

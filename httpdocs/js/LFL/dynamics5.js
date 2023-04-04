@@ -27,7 +27,7 @@ var CalcFragmentShaderSource = `
   
   ////////////////////////////////////////////////////////////////
   
-  #define species11
+  #define species`+Specie+`
   
   #ifdef species0
   /*
@@ -409,6 +409,10 @@ var CalcFragmentShaderSource = `
       mat4 avg = sum / (total + EPSILON);
       mat4 growth = mult(eta, bell(avg, mu, sigma) * 2. - 1.);
       vec3 growthDst = vec3( getDst(growth, iv0), getDst(growth, iv1), getDst(growth, iv2) );
+      
+      //     if(tex3coord.x<`+round(1*FW/4)+`) growthDst -= 0.2;
+      //else if(tex3coord.x>`+round(3*FW/4)+`) growthDst += 0.2;
+      
       vec3 rgb = clamp(self.rgb + dT * growthDst, 0., 1.);
       
       glFragColor[0] = self;

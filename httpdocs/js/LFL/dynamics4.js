@@ -25,7 +25,7 @@ var CalcFragmentShaderSource = `
   
   ////////////////////////////////////////////////////////////////
   
-  #define species11
+  #define species`+Specie+`
   
   #ifdef species0
   /*
