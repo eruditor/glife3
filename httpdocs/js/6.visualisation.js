@@ -6,7 +6,7 @@ var IH = round100(window.innerHeight);  // window height
 //if(document.body.clientWidth < document.body.clientHeight) [FW, FH] = [FH, FW];
 var zoom = Math.floor(Math.min(IW / FW, IH / FH));
 if(zoom<1) zoom = 1;
-if(FD>1 && zoom<2) zoom = 2;  // for displaying 3D case we need at least 2*2 pixels for each cell
+if(FDD>1 && zoom<2) zoom = 2;  // for displaying 3D case we need at least 2*2 pixels for each cell
 
 canvas.width  = zoom * FW;  canvas.style.width  = canvas.width  + 'px';
 canvas.height = zoom * FH;  canvas.style.height = canvas.height + 'px';
@@ -46,6 +46,16 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
   else if(Mode=='FHP') {
          if(v==0) return {'r':  0, 'g':  0, 'b':  0};
     else if(v==1) return {'r':170, 'g':170, 'b':170};
+  }
+  else if(Mode=='LFL') {
+    var z = layer;
+         if(v==0) return {'r':  0, 'g':  0, 'b':  0};
+    else if(z==0 && v==1) return {'r':250, 'g':  0, 'b':  0};
+    else if(z==0 && v==2) return {'r':  0, 'g':250, 'b':  0};
+    else if(z==0 && v==3) return {'r':  0, 'g':  0, 'b':250};
+    else if(z==1 && v==1) return {'r':250, 'g':150, 'b':150};
+    else if(z==1 && v==2) return {'r':150, 'g':250, 'b':150};
+    else if(z==1 && v==3) return {'r':150, 'g':150, 'b':250};
   }
   
   var h = 0;
@@ -138,7 +148,7 @@ var ShowFragmentShaderSource = `
     // | z=0 | z=1 |
     // | z=2 | z=3 |
     int layer = 0;
-    ` + (FD>1 ? `
+    ` + (FDD>1 ? `
       if((xy.x % 2) == 1) layer += 1;
       if((xy.y % 2) == 1) layer += 2;
     ` : ``) + `

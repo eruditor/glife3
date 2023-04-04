@@ -66,6 +66,7 @@ class GLifeJS {
     $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);\n";
     
     $named = $prms['named'];
+    $named4 = substr($named, 0, 4);
     $named6 = substr($named, 0, 6);
     
          if($fm->mode=='MVM')  $spacetime = "<script src='/js/MVM/spacetime.js$jsget'></script>";
@@ -87,6 +88,7 @@ class GLifeJS {
     else if($named6=='Lenia1') $dynamics = "<script src='/js/LFL/dynamics1.js$jsget'></script>";
     else if($named6=='Chakaz') $dynamics = "<script src='/js/LFL/dynamics4.js$jsget'></script>";
     else if($named6=='LeniaQ') $dynamics = "<script src='/js/LFL/dynamics_qm.js$jsget'></script>";
+    else if($named4=='Leia')   $dynamics = "<script src='/js/LFL/dynamics5.js$jsget'></script>";
     else if($fm->mode=='LFL')  $dynamics = "<script src='/js/LFL/dynamics.js$jsget'></script>";
     else if($fm->mode=='LI4')  $dynamics = "<script src='/js/LI4/dynamics.js$jsget'></script>";
     else                       $dynamics = "<script src='/js/!default/dynamics.js$jsget'></script>";
@@ -99,6 +101,7 @@ class GLifeJS {
     else if($fm->mode=='XCH')  $visualisation = "<script src='/js/XCH/visualisation.js$jsget'></script>";
     else if($fm->mode=='FHP')  $visualisation = "<script src='/js/FHP/visualisation.js$jsget'></script>";
     else if($named6=='LeniaQ') $visualisation = "<script src='/js/LFL/visualisation_qm.js$jsget'></script>";
+    else if($named4=='Leia')   $visualisation = "<script src='/js/LFL/visualisation5.js$jsget'></script>";
     else if($fm->mode=='LFL')  $visualisation = "<script src='/js/LFL/visualisation.js$jsget'></script>";
     else if($fm->mode=='LI4')  $visualisation = "<script src='/js/LI4/visualisation.js$jsget'></script>";
     else                       $visualisation = '';

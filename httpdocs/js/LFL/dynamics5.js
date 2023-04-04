@@ -13,6 +13,8 @@ var CalcFragmentShaderSource = `
   
   #define EPSILON 0.000001
   #define mult matrixCompMult
+  #define sqrt2 1.414213562373095
+  #define sqrt22 2,82842712474619
   
   const ivec4 iv0 = ivec4(0);
   const ivec4 iv1 = ivec4(1);
@@ -250,6 +252,7 @@ var CalcFragmentShaderSource = `
   ////////////////////////////////////////////////////////////////
   
   uniform `+field_Sampler+` u_fieldtexture;  // Field texture
+  uniform highp uint u_nturn;
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
@@ -338,78 +341,97 @@ var CalcFragmentShaderSource = `
   
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
-    tex3coord = ivec3(v_texcoord, 0);
+    
+    int layer = int(u_nturn) % 2;
+    
+    tex3coord = ivec3(v_texcoord, 0);  // no z=layer here!
     
     float r;
     int x, y;
     
-    /*
-    // non-optimized full-square scan
-    for(x=-iR; x<=iR; x++) {
-      for(y=-iR; y<=iR; y++) {
-        r = len(x, y) / R;
+    if(layer==1) {
+      /*
+      // non-optimized full-square scan
+      for(x=-iR; x<=iR; x++) {
+        for(y=-iR; y<=iR; y++) {
+          r = len(x, y) / R;
+          if(r>1.) continue;
+          weight = getWeight(r);
+          IncSum(x, y);
+        }
+      }
+      */
+      
+      // central cell (self)
+      x = 0;  y = 0;  r = 0.;
+      weight = getWeight(r);
+      IncSum(x, y);
+      self = cell;
+      
+      // axes
+      for(x=1; x<=iR; x++) {
+        r = float(x) / R;
+        weight = getWeight(r);
+        IncSum( x,  0);
+        IncSum(-x,  0);
+        IncSum( 0,  x);
+        IncSum( 0, -x);
+      }
+      
+      // diagonals
+      int diagR = int(floor( R / sqrt(2.) ));  // floor, not ceil or round!
+      for(x=1; x<=diagR; x++) {
+        r = sqrt(2.) * float(x) / R;
         if(r>1.) continue;
         weight = getWeight(r);
-        IncSum(x, y);
+        IncSum( x,  x);
+        IncSum( x, -x);
+        IncSum(-x,  x);
+        IncSum(-x, -x);
       }
-    }
-    */
-    
-    // central cell (self)
-    x = 0;  y = 0;  r = 0.;
-    weight = getWeight(r);
-    IncSum(x, y);
-    self = cell;
-    
-    // axes
-    for(x=1; x<=iR; x++) {
-      r = float(x) / R;
-      weight = getWeight(r);
-      IncSum( x,  0);
-      IncSum(-x,  0);
-      IncSum( 0,  x);
-      IncSum( 0, -x);
-    }
-    
-    // diagonals
-    int diagR = int(floor( R / sqrt(2.) ));  // floor, not ceil or round!
-    for(x=1; x<=diagR; x++) {
-      r = sqrt(2.) * float(x) / R;
-      if(r>1.) continue;
-      weight = getWeight(r);
-      IncSum( x,  x);
-      IncSum( x, -x);
-      IncSum(-x,  x);
-      IncSum(-x, -x);
-    }
-    
-    for(x=1; x<iR; x++) {
-      for(y=x+1; y<=iR; y++) {
-        r = len(x, y) / R;
-        if(r>1.) continue;
-        weight = getWeight(r);
-        IncSum( x,  y);
-        IncSum( x, -y);
-        IncSum(-x,  y);
-        IncSum(-x, -y);
-        IncSum( y,  x);
-        IncSum( y, -x);
-        IncSum(-y,  x);
-        IncSum(-y, -x);
+      
+      for(x=1; x<iR; x++) {
+        for(y=x+1; y<=iR; y++) {
+          r = len(x, y) / R;
+          if(r>1.) continue;
+          weight = getWeight(r);
+          IncSum( x,  y);
+          IncSum( x, -y);
+          IncSum(-x,  y);
+          IncSum(-x, -y);
+          IncSum( y,  x);
+          IncSum( y, -x);
+          IncSum(-y,  x);
+          IncSum(-y, -x);
+        }
       }
+      
+      mat4 avg = sum / (total + EPSILON);
+      mat4 growth = mult(eta, bell(avg, mu, sigma) * 2. - 1.);
+      vec3 growthDst = vec3( getDst(growth, iv0), getDst(growth, iv1), getDst(growth, iv2) );
+      vec3 rgb = clamp(self.rgb + dT * growthDst, 0., 1.);
+      
+      glFragColor[0] = self;
+      glFragColor[1] = vec4(rgb - self.rgb, 1.);  // Delta
     }
-    
-    mat4 avg = sum / (total + EPSILON);
-    mat4 growth = mult(eta, bell(avg, mu, sigma) * 2. - 1.);
-    vec3 growthDst = vec3( getDst(growth, iv0), getDst(growth, iv1), getDst(growth, iv2) );
-    vec3 rgb = clamp(self.rgb + dT * growthDst, 0., 1.);
-    
-    if(tex3coord.x<`+round(FW/4)+`) {
-      rgb = clamp(rgb - vec3(0.05,0,0), 0., 1.);
+    else if(layer==0) {
+      vec4 sum8 = GetCell(-1,-1, 1) / 2.
+                + GetCell( 0,-1, 1)
+                + GetCell( 1,-1, 1) / 2.
+                + GetCell( 1, 0, 1)
+                + GetCell( 1, 1, 1) / 2.
+                + GetCell( 0, 1, 1)
+                + GetCell(-1, 1, 1) / 2.
+                + GetCell(-1, 0, 1);
+      vec4 dlt0 = GetCell( 0, 0, 1);
+      
+      glFragColor[0] = GetCell( 0, 0, 0) + dlt0 - sum8 / 6.;
+      glFragColor[1] = dlt0;
     }
-    
-    glFragColor[0] = vec4(rgb, 1.);
+    else {
+      glFragColor[0] = vec4(1,0,0,1);
+    }
   }
 `;
-var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture"]);
+var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_nturn"]);
 //console.log(CalcFragmentShaderSource);

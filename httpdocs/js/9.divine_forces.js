@@ -22,7 +22,7 @@ gl.canvas.onmousedown = function(e) {
   }
   else if(e.which===3) {  // right click
     gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffers[T0]);
-    for(var z=0; z<FD; z++) {
+    for(var z=0; z<FDD; z++) {
       gl.readBuffer(gl.COLOR_ATTACHMENT0 + z);
       gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F);
       var cell = GetCell(mouseX, mouseY, 0);
@@ -52,7 +52,7 @@ gl.canvas.oncontextmenu = function() {
 // MOUSE SHADER ////////////////////////////////////////////////////////////////
 
 var MousFragmentShaderSource = `
-  precision mediump float;
+  precision highp float;
   precision highp int;
   
   uniform `+field_Sampler+` u_fieldtexture;
@@ -100,7 +100,9 @@ function Mous() {
   ActivateTexture(T0, MousProgram.location.u_fieldtexture);
   
   gl.uniform3i(MousProgram.location.u_mouse, mouseX, mouseY, mouseZ);
-  gl.uniform4ui(MousProgram.location.u_rgba, mouseRGBA.r, mouseRGBA.g, mouseRGBA.b, mouseRGBA.a);
+  
+  if(DataFormat=='F32') gl.uniform4f(MousProgram.location.u_rgba, mouseRGBA.r, mouseRGBA.g, mouseRGBA.b, mouseRGBA.a);
+  else gl.uniform4ui(MousProgram.location.u_rgba, mouseRGBA.r, mouseRGBA.g, mouseRGBA.b, mouseRGBA.a);
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 

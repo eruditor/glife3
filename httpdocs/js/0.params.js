@@ -70,6 +70,7 @@ var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
 
 const RD     = GetIntParam('RD', 13);  // neighbourhood radius
 const DT     = GetIntParam('DT',  5);  // time step = 1/DT
+const FDD = Named=='Leia1' ? 1 : FD;  // layers to display
 
 // MVM PARAMS ////////////////////////////////////////////////////////////////
 

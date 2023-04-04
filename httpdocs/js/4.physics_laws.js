@@ -193,7 +193,7 @@ const Rlower = r_lo;
 
 // each cell in neighborhood geometry can take one of RB values
 const RL =
-  Mode=='MVM' || Mode=='BND' || Mode=='FLD' || Mode=='XCH' ? 1 : (
+  Mode=='MVM' || Mode=='BND' || Mode=='FLD' || Mode=='XCH' || Mode=='LFL' ? 1 : (
   Mode=='FHP' ? Math.pow(2, 9) :
   Math.pow(RB, RC)
   );  // total number of all possible neibs (length of physics rule space)
@@ -525,7 +525,7 @@ function Nota_Decode(notaset, fd=FD, rb=RB) {
   function Split_Layers(nota) {
     var layers = nota.split( nota.indexOf('\n')>-1 ? '\n' : ',' );
     if(layers.length!=fd) {
-      alert('splitted length ('+layers.length+') is not fd='+fd+' (notaset='+notaset+')');
+      if(notaset) alert('splitted length ('+layers.length+') is not fd='+fd+' (notaset='+notaset+')');
       for(var z=0; z<fd; z++) layers[z] = '';
     }
     return layers;

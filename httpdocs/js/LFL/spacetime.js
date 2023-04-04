@@ -121,19 +121,6 @@ function InitialFiller() {
         SetCell(x, y, 0,  cells[0][sy][sx], cells[1][sy][sx], cells[2][sy][sx], 1);
       }
     }
-    
-    for(var clr in cells) {
-      var ny = 0, tx = '';
-      for(var sy in cells[clr]) {
-        var nx = 0;
-        for(var sx in cells[clr][sy]) {
-          nx ++;
-          ny ++;
-        }
-        tx += ' ' + nx;
-      }
-      console.log(clr, ny, tx);
-    }
   }
   else if(cfg.debug==3) {
     for(var x=0; x<FW; x++) {

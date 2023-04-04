@@ -323,6 +323,22 @@ function Stats(force=false) {
       for(var y=0; y<FH; y++) {
         var cell = GetCell(x, y, z);
         
+        if(Mode=='LFL') {
+          if(z==0) {
+            graphnums[graphstep][z][1] += cell.r;
+            graphnums[graphstep][z][2] += cell.g;
+            graphnums[graphstep][z][3] += cell.b;
+          }
+          else if(z==1) {
+            var c0 = GetCell(x, y, 0);
+            graphnums[graphstep][z][1] += c0.r<0 ? -c0.r : 0;
+            graphnums[graphstep][z][2] += c0.g<0 ? -c0.g : 0;
+            graphnums[graphstep][z][3] += c0.b<0 ? -c0.b : 0;
+          }
+          
+          continue;
+        }
+        
         var al = DataFormat=='UI8' ? (cell.a > 0 ? 1 : 0) : (cell.a & 1);
         var v = DataFormat=='UI8' ? cell.a : (al ? cell.a << 27 >>> 28 : 0);  // cell's value
         if(al==0) continue;  // dead cell
