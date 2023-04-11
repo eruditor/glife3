@@ -342,12 +342,14 @@ var CalcFragmentShaderSource = `
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
     
-    int layer = int(u_nturn) % 2;
-    
     tex3coord = ivec3(v_texcoord, 0);  // no z=layer here!
     
     float r;
     int x, y;
+    
+    int layer = int(u_nturn) % 2;
+    `+(QQ?`for(layer=0; layer<`+FD+`; layer++) {`:'')+`
+    
     
     if(layer==1) {
       /*
@@ -410,15 +412,25 @@ var CalcFragmentShaderSource = `
       mat4 growth = mult(eta, bell(avg, mu, sigma) * 2. - 1.);
       vec3 growthDst = vec3( getDst(growth, iv0), getDst(growth, iv1), getDst(growth, iv2) );
       
-      //     if(tex3coord.x<`+round(1*FW/4)+`) growthDst -= 0.2;
-      //else if(tex3coord.x>`+round(3*FW/4)+`) growthDst += 0.2;
-      
       vec3 rgb = clamp(self.rgb + dT * growthDst, 0., 1.);
       
-      glFragColor[0] = self;
-      glFragColor[1] = vec4(rgb - self.rgb, 1.);  // Delta
+      `+(!QQ?`glFragColor[0] = self;`:'')+`
+      glFragColor[1] = vec4(rgb - self.rgb, 0.8);  // Delta
     }
     else if(layer==0) {
+      vec4 sum8 = vec4(0);
+      vec4 c0, d0, cc, dd, ee;
+      c0 = GetCell( 0, 0, 0);  d0 = GetCell( 0, 0, 1);  // ↓ c0 can drain from cc not more than cc has
+      cc = GetCell(-1,-1, 0);  dd = GetCell(-1,-1, 1);  sum8 += clamp( (d0 - dd)/8., -abs(c0/8.), abs(cc/8.) );
+      cc = GetCell( 0,-1, 0);  dd = GetCell( 0,-1, 1);  sum8 += clamp( (d0 - dd)/8., -abs(c0/8.), abs(cc/8.) );
+      cc = GetCell( 1,-1, 0);  dd = GetCell( 1,-1, 1);  sum8 += clamp( (d0 - dd)/8., -abs(c0/8.), abs(cc/8.) );
+      cc = GetCell( 1, 0, 0);  dd = GetCell( 1, 0, 1);  sum8 += clamp( (d0 - dd)/8., -abs(c0/8.), abs(cc/8.) );
+      cc = GetCell( 1, 1, 0);  dd = GetCell( 1, 1, 1);  sum8 += clamp( (d0 - dd)/8., -abs(c0/8.), abs(cc/8.) );
+      cc = GetCell( 0, 1, 0);  dd = GetCell( 0, 1, 1);  sum8 += clamp( (d0 - dd)/8., -abs(c0/8.), abs(cc/8.) );
+      cc = GetCell(-1, 1, 0);  dd = GetCell(-1, 1, 1);  sum8 += clamp( (d0 - dd)/8., -abs(c0/8.), abs(cc/8.) );
+      cc = GetCell(-1, 0, 0);  dd = GetCell(-1, 0, 1);  sum8 += clamp( (d0 - dd)/8., -abs(c0/8.), abs(cc/8.) );
+      
+      /*
       vec4 sum8 = GetCell(-1,-1, 1) / 2.
                 + GetCell( 0,-1, 1)
                 + GetCell( 1,-1, 1) / 2.
@@ -427,14 +439,17 @@ var CalcFragmentShaderSource = `
                 + GetCell( 0, 1, 1)
                 + GetCell(-1, 1, 1) / 2.
                 + GetCell(-1, 0, 1);
-      vec4 dlt0 = GetCell( 0, 0, 1);
+      */
       
-      glFragColor[0] = GetCell( 0, 0, 0) + dlt0 - sum8 / 6.;
-      glFragColor[1] = dlt0;
+      glFragColor[0] = c0 + sum8;   // + c0 - sum8 / 6.
+      `+(!QQ?`glFragColor[1] = d0;`:'')+`
     }
     else {
       glFragColor[0] = vec4(1,0,0,1);
     }
+    
+    `+(QQ?`}`:'')+`
+    
   }
 `;
 var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_nturn"]);

@@ -69,8 +69,8 @@ function CreateNavButtons() {
   
   <a name='win'></a>
   <table cellspacing=0 class='navTB'><tr>
-  <td><input type=button class='mediabtn' value='\u2934\uFE0F' onclick="surface.left+=0.1*(FW/surface.zoom/2); surface.top +=0.1*(FH/surface.zoom/2); surface.zoom/=1.1; Show(1);" title='Zoom in'>
-  <td><input type=button class='mediabtn' value='\u2935\uFE0F' onclick="surface.zoom*=1.1; surface.left-=0.1*(FW/surface.zoom/2); surface.top -=0.1*(FH/surface.zoom/2); Show(1);" title='Zoom out'>
+  <td><input type=button class='mediabtn' value='\u2934\uFE0F' onclick="surface.left+=0.1*(FW/surface.zoom/2); surface.top +=0.1*(FH/surface.zoom/2); surface.zoom/=1.1; Show(1);" title='Zoom out'>
+  <td><input type=button class='mediabtn' value='\u2935\uFE0F' onclick="surface.zoom*=1.1; surface.left-=0.1*(FW/surface.zoom/2); surface.top -=0.1*(FH/surface.zoom/2); Show(1);" title='Zoom in'>
   <td><input type=button class='mediabtn' value='\u2B05\uFE0F' onclick="surface.left+=SurStep(); Show(1);" title='Move left'>
   <td><input type=button class='mediabtn' value='\u27A1\uFE0F' onclick="surface.left-=SurStep(); Show(1);" title='Move right'>
   <td><input type=button class='mediabtn' value='\u2B06\uFE0F' onclick="surface.top -=SurStep(); Show(1);" title='Move up'>

@@ -327,9 +327,14 @@ function Stats(force=false) {
         
         if(Mode=='LFL') {
           if(z==0) {
+            /*
             graphnums[graphstep][z][1] += cell.r;
             graphnums[graphstep][z][2] += cell.g;
             graphnums[graphstep][z][3] += cell.b;
+            */
+            graphnums[graphstep][z][1] += cell.r>0.7 ? 1 : 0;
+            graphnums[graphstep][z][2] += cell.g>0.7 ? 1 : 0;
+            graphnums[graphstep][z][3] += cell.b>0.7 ? 1 : 0;
           }
           else if(z==1) {
             var c0 = GetCell(x, y, 0);

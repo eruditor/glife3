@@ -21,12 +21,13 @@ gl.canvas.onmousedown = function(e) {
     gl.canvas.addEventListener('mousemove', Mous);
   }
   else if(e.which===3) {  // right click
+    console.log('xy=('+mouseX+' '+mouseY+'):');
     gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffers[T0]);
-    for(var z=0; z<FDD; z++) {
+    for(var z=0; z<FD; z++) {
       gl.readBuffer(gl.COLOR_ATTACHMENT0 + z);
       gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F);
       var cell = GetCell(mouseX, mouseY, 0);
-      console.log('xyz=('+mouseX+' '+mouseY+' '+z+'), rgba=', cell);  //console.log(F);
+      console.log('z='+z+': rgba=', cell);  //console.log(F);
       
       if(typeof ExtractRGBA === 'function') {
         console.log(ExtractRGBA(cell));
