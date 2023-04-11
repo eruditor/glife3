@@ -20,7 +20,6 @@ const DataFormat =
   : Mode=='FLD' ? 'UI32'
   : Mode=='XCH' ? 'UI8'
   : Mode=='LFL' ? 'F32'
-  : Mode=='LI4' ? 'UI32'
   :               'UI8';
 
 const data_formats = {
@@ -65,7 +64,7 @@ function logGlError(shader, source) {
     errline += '\n ↳  Line ' + match[2] + ': ' + lines[match[2]-1].trim();
   }
   console.log(infolog, errline);
-  console.log(source);
+  //console.log(source);
 }
 
 function createShader(gl, type, source) {

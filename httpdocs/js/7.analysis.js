@@ -142,7 +142,7 @@ function SaveGlifetri(prms={}) {
   
   prms['FD'] = FD;
   prms['notaset'] = Notaset;
-  prms['mutaset'] = EncodeMutaStr(Mutas);
+  prms['mutaset'] = typeof(Mutas)!=='undefined' ? EncodeMutaStr(Mutas) : '';
   prms['rseed'] = Rseed;
   prms['fseed'] = Fseed;
   prms['FW'] = FW;
@@ -179,6 +179,8 @@ function PutRpixel(x, y, z, v, r) {
 }
 
 function DrawRules(full=false) {
+  if(typeof(RL)==='undefined') return;
+  
   var sum = [];
   for(var z=0; z<FD; z++) {
     sum[z] = [];

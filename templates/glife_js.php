@@ -46,9 +46,14 @@ class GLifeJS {
       $fm = glDicts::GetFamily($gl->family_id);
       $prms['FD'] = glDicts::GetFD($gl);
       $prms['notaset'] = $gl->notaset;
-      if($gl->named && !$gl->mutaset) $prms['named'] = $gl->named;
       //$prms['mutaset'] = $gl->mutaset;
-      $send2js .= "Mutaset = '".str_replace("\n", "\\n", $gl->mutaset)."';\n";
+      if($gl->named && !$gl->mutaset) $prms['named'] = $gl->named;
+      if(GLifeInfo::is_jsoned($gl)) {
+        $send2js .= "Ruleset = `" . $gl->mutaset . "`;\n";
+      }
+      else {
+        $send2js .= "Mutaset = '".str_replace("\n", "\\n", $gl->mutaset)."';\n";
+      }
     }
     
     if(!$fm) $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);  if(!$fm) dierr("#48379230");
@@ -65,7 +70,10 @@ class GLifeJS {
     
     $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);\n";
     
-    $named = $prms['named'];
+    $spacetime = $physics = $dynamics = $visualisation = '';
+    
+    $named = $gl->named;
+    $prefnm = ($t=stripos($named,"-")) ? substr($named,0,$t) : '';
     $named4 = substr($named, 0, 4);
     $named6 = substr($named, 0, 6);
     
@@ -75,8 +83,9 @@ class GLifeJS {
     else if($fm->mode=='XCH')  $spacetime = "<script src='/js/XCH/spacetime.js$jsget'></script>";
     else if($fm->mode=='FHP')  $spacetime = "<script src='/js/FHP/spacetime.js$jsget'></script>";
     else if($fm->mode=='LFL')  $spacetime = "<script src='/js/LFL/spacetime.js$jsget'></script>";
-    else if($fm->mode=='LI4')  $spacetime = "<script src='/js/LI4/spacetime.js$jsget'></script>";
-    else                       $spacetime = '';
+    
+         if($fm->mode=='LFL')  $physics = "<script src='/js/LFL/physics.js$jsget'></script>";
+    else                       $physics = "<script src='/js/!default/physics.js$jsget'></script>";
     
          if($fm->mode=='PRT')  $dynamics = "<script src='/js/PRT/dynamics.js$jsget'></script>";
     else if($fm->mode=='MVM')  $dynamics = "<script src='/js/MVM/dynamics.js$jsget'></script>";
@@ -85,12 +94,9 @@ class GLifeJS {
     else if($fm->mode=='FLD')  $dynamics = "<script src='/js/FLD/dynamics.js$jsget'></script>";
     else if($fm->mode=='XCH')  $dynamics = "<script src='/js/XCH/dynamics.js$jsget'></script>";
     else if($fm->mode=='FHP')  $dynamics = "<script src='/js/FHP/dynamics.js$jsget'></script>";
-    else if($named6=='Lenia1') $dynamics = "<script src='/js/LFL/dynamics1.js$jsget'></script>";
-    else if($named6=='Chakaz') $dynamics = "<script src='/js/LFL/dynamics4.js$jsget'></script>";
     else if($named6=='LeniaQ') $dynamics = "<script src='/js/LFL/dynamics_qm.js$jsget'></script>";
     else if($named4=='Leia')   $dynamics = "<script src='/js/LFL/dynamics5.js$jsget'></script>";
     else if($fm->mode=='LFL')  $dynamics = "<script src='/js/LFL/dynamics.js$jsget'></script>";
-    else if($fm->mode=='LI4')  $dynamics = "<script src='/js/LI4/dynamics.js$jsget'></script>";
     else                       $dynamics = "<script src='/js/!default/dynamics.js$jsget'></script>";
     
          if($fm->mode=='PRT')  $visualisation = "<script src='/js/PRT/visualisation.js$jsget'></script>";
@@ -103,8 +109,6 @@ class GLifeJS {
     else if($named6=='LeniaQ') $visualisation = "<script src='/js/LFL/visualisation_qm.js$jsget'></script>";
     else if($named4=='Leia')   $visualisation = "<script src='/js/LFL/visualisation5.js$jsget'></script>";
     else if($fm->mode=='LFL')  $visualisation = "<script src='/js/LFL/visualisation.js$jsget'></script>";
-    else if($fm->mode=='LI4')  $visualisation = "<script src='/js/LI4/visualisation.js$jsget'></script>";
-    else                       $visualisation = '';
     
     return "
       <a name='cont'></a>
@@ -119,7 +123,7 @@ class GLifeJS {
       <script src='/js/1.math.js$jsget'></script>
       <script src='/js/2.hardware.js$jsget'></script>
       <script src='/js/3.spacetime.js$jsget'></script>$spacetime
-      <script src='/js/4.physics_laws.js$jsget'></script>
+      <script src='/js/4.physics_laws.js$jsget'></script>$physics
       <script src='/js/5.dynamics.js$jsget'></script>$dynamics$visualisation
       <script src='/js/6.visualisation.js$jsget'></script>
       <script src='/js/7.analysis.js$jsget'></script>

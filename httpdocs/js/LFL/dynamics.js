@@ -1,16 +1,34 @@
 var fs_ExtractRGBA = ``;
 
+function IterateGLSLarray(line) {
+  var ret = '';
+  for(var l=0; l<LL; l++) {
+    ret += line.replaceAll('[l]', '['+l+']').replaceAll('lll', l) + '\n';
+  }
+  return ret;
+}
+
 var CalcFragmentShaderSource = `
   precision highp float;
   precision highp int;
   
+  ////////////////////////////////////////////////////////////////
+  
   #define R `+RD+`.
   #define iR `+RD+`
-  #define dT 0.1
+  #define iR1 `+(RD+1)+`
+  #define dT `+(1/DT)+`
+  
+  #define eps 0.000001
+  
+  ////////////////////////////////////////////////////////////////
+  
+  ` + GetUniforms4Ruleset() + `
+  
+  ////////////////////////////////////////////////////////////////
   
   uniform `+field_Sampler+` u_fieldtexture;  // Field texture
-  uniform `+field_Sampler+` u_prevtexture;  // Previous Field texture
-  uniform highp usampler2D u_rulestexture[`+FD+`];  // Rules texture
+  uniform highp uint u_nturn;
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
   
@@ -25,119 +43,147 @@ var CalcFragmentShaderSource = `
   
   ` + fs_GetTexel2D + `
   
-  float bell(float x, float m, float s) {
+  ////////////////////////////////////////////////////////////////
+  
+  float bell1(float x, float m, float s) {
     if(s<=0.) return 0.;
     float v = (x-m)/s;
     return exp(-v*v/2.);
+    //return exp( -(x-m)*(x-m) / s / s / 2. );  // order of operands in this multiplication affects the result!!!
   }
   
-  float Km = 0.50;  // shift
-  float Ks = 0.15;  // width
-  
-  //mat2 Km2 = mat2(0.20, 0.50, 0.50, 0.50);
-  //mat2 Ks2 = mat2(0.30, 0.33, 0.44, 0.15);
-  //mat2 Gh2 = mat2(1.00, 0.00, 0.50, 1.00);
-  
-  mat2 Km2 = mat2(0.50, 0.50, 0.50, 0.20);
-  mat2 Ks2 = mat2(0.15, 0.44, 0.33, 0.30);
-  mat2 Gh2 = mat2(1.00, 0.50, 0.70, 1.00);
-  //                    r affects g
-  
-  #define eps 0.000001
-  const mat2 m2eps = mat2(eps, eps, eps, eps);
-  
-  float K(float r) {  // Kernel
-    return bell(r/R, Km, Ks);
+  float get1Weight(float r, int l) {
+    float Br = betaLen[l] / relR[l] * r;
+    int iBr = int(Br);
+    float mod1 = fract(Br);
+    float height = iBr==0 ? beta0[l] : (iBr==1 ? beta1[l] : beta2[l]);
+    return height * bell1(mod1, 0.5, 0.15);
   }
   
-  float K0(float r, float m, float s) {
-    return bell(r/R, m, s);
+  float[`+LL+`] getWeight(in float r) {
+    float[`+LL+`] ret;
+    `+IterateGLSLarray('ret[l] = get1Weight(r, lll);')+`
+    return ret;
   }
   
-  mat2 K2(float r) {
-    return mat2(
-      K0(r, Km2[0].r, Ks2[0].r),
-      K0(r, Km2[0].g, Ks2[0].g),
-      K0(r, Km2[1].r, Ks2[1].r),
-      K0(r, Km2[1].g, Ks2[1].g)
-    );
+  ////////////////////////////////////////////////////////////////
+  
+  vec3 drawKernel(vec2 uv) {
+    ivec2 ij = ivec2(uv / 0.25);  // 0..3
+    if(ij.x>3) return vec3(0);
+    
+    int l = (3-ij.y)*4 + ij.x;  // [3-ij.y][ij.x]
+    if(l>=`+LL+`) return vec3(0);
+    
+    vec2 xy = mod(uv, 0.25) * 8. - 1.;  // -1..1
+    float r = length(xy);
+    
+    vec3 rgb;
+    
+    vec2 a = abs(xy);
+    if((a.x>0.94 || a.y>0.94) && (a.x<0.98 && a.y<0.98)) { rgb[dst[l]] = 1.;  return rgb; }
+    
+    if(r>1.) return vec3(0);
+    rgb[src[l]] = get1Weight(r, l);
+    
+    return rgb;
   }
   
-  float G(float u) {  // Growth
-    return bell(u, 0.15, 0.015) * 2. - 1.;
-  }
-  
-  vec2 G2(mat2 u) {
-    return vec2(
-      Gh2[0].r*G(u[0].r) + Gh2[1].r*G(u[1].r),
-      Gh2[0].g*G(u[0].g) + Gh2[1].g*G(u[1].g)
-    );
-  }
-  
-  //vec4 G(vec4 u) { return vec4(G(u.r), G(u.g), G(u.b), G(u.a)); }
+  ////////////////////////////////////////////////////////////////
   
   float len(int dx, int dy) {
-    return sqrt(float(dx*dx+dy*dy));
+    return length(vec2(dx,dy));  // sqrt(float(dx*dx+dy*dy))
+  }
+  
+  ////////////////////////////////////////////////////////////////
+  
+  vec4 self, cell;
+  float[`+LL+`] sum, total, weight;
+  
+  int IncSum(int dx, int dy) {
+    cell = GetCell(dx, dy, 0);
+    `+IterateGLSLarray('sum[l] += cell[src[l]] * weight[l];  total[l] += weight[l];')+`
+    return 0;
   }
   
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
-    
     tex3coord = ivec3(v_texcoord, 0);
     
-    vec4 color;
+    float r;
+    int x, y;
     
-    //Ks = 0.01 + 0.50 * (v_texcoord.x / `+FW+`.);
-    //Km = 0.01 + 1.50 * (v_texcoord.y / `+FH+`.);
-    //Ks = 0.30;
-    //Km = 0.20;
+    // for(x=-iR; x<=iR; x++) for(y=-iR; y<=iR; y++) { r = len(x, y) / R;  if(r>1.) continue;  weight = getWeight(r);  IncSum(x, y); }  // non-optimized full-square scan
     
-    vec2 self;
-    mat2 sumC = mat2(0);
-    mat2 sumK = mat2(0);
-    for(int dx=-iR; dx<=iR; dx++) {
-      for(int dy=-iR; dy<=iR; dy++) {
-        vec4 cell = GetCell(dx, dy, 0);
-        if(dx==0 && dy==0) self = cell.rg;
-        
-        mat2 k = K2( len(dx,dy) );
-        sumC += mat2(k[0].r*cell.r, k[0].g*cell.g, k[1].r*cell.r, k[1].g*cell.g);
-        sumK += k;
+    // central cell (self)
+    x = 0;  y = 0;  r = 0.;
+    weight = getWeight(r);
+    IncSum(x, y);
+    self = cell;
+    
+    // axes
+    for(x=1; x<=iR; x++) {
+      r = float(x) / R;
+      weight = getWeight(r);
+      IncSum( x,  0);
+      IncSum(-x,  0);
+      IncSum( 0,  x);
+      IncSum( 0, -x);
+    }
+    
+    // diagonals
+    int diagR = int(floor( R / sqrt(2.) ));  // floor, not ceil or round!
+    for(x=1; x<=diagR; x++) {
+      r = sqrt(2.) * float(x) / R;
+      weight = getWeight(r);
+      IncSum( x,  x);
+      IncSum( x, -x);
+      IncSum(-x,  x);
+      IncSum(-x, -x);
+    }
+    
+    ` + (() => {
+      return '';
+      // first 2 frames are awfully slow on MacBook: https://stackoverflow.com/questions/28005206/gldrawarrays-first-few-calls-very-slow-using-my-shader-and-then-very-fast
+      var ret = '';
+      for(var x=1; x<RD; x++) {
+        for(var y=x+1; y<RD; y++) {
+          var r = Math.sqrt(x*x+y*y) / RD;
+          if(r>1) continue;
+          ret += 'weight = getWeight('+ParseTerminateFraction(r)+');';
+          ret += 'IncSum('+x+','+y+');IncSum('+x+',-'+y+');IncSum(-'+x+','+y+');IncSum(-'+x+',-'+y+');';
+          ret += 'IncSum('+y+','+x+');IncSum('+y+',-'+x+');IncSum(-'+y+','+x+');IncSum(-'+y+',-'+x+');\n';
+        }
+      }
+      return ret;
+    })() + `
+    
+    // semiquadrants
+    for(x=1; x<iR; x++) {
+      for(y=x+1; y<=iR; y++) {
+        r = len(x, y) / R;
+        if(r>1.) continue;
+        weight = getWeight(r);
+        IncSum( x,  y);
+        IncSum( x, -y);
+        IncSum(-x,  y);
+        IncSum(-x, -y);
+        IncSum( y,  x);
+        IncSum( y, -x);
+        IncSum(-y,  x);
+        IncSum(-y, -x);
       }
     }
     
-    mat2 sum = sumC / (sumK + m2eps);
-    vec2 delta = dT * G2(sum);
+    vec3 growths = vec3(0);
+    float avg;
+    `+IterateGLSLarray('avg = sum[l] / total[l];  growths[dst[l]] += eta[l] * ( bell1(avg, mu[l], sigma[l]) * 2. - 1. );')+`
+    vec3 rgb = clamp(self.rgb + dT * growths, 0., 1.);
     
-    color.rg = clamp(self + delta, 0., 1.);
-    color.a = 1.;
+    //rgb = drawKernel(v_texcoord.xy / float(fieldSize.y));
     
-    //color = vec4(0., K(len(tex3coord.x - fieldSize.x/2, tex3coord.y - fieldSize.y/2)), 0., 1.);  // draw Kernel
-    
-    glFragColor[0] = color;
+    glFragColor[0] = vec4(rgb, 1.);
   }
 `;
-/*
-    for(int layer=0; layer<`+FD+`; layer++) {
-      tex3coord = ivec3(v_texcoord, layer);
-      
-      // getting cell's neighborhood
-      
-      ` + fs_GetNeibs + `
-      
-      // finding rule for this neighborhood
-      
-      `+field_Vec4P+` sum4 = `+field_Vec4+`(0);
-      for(int n=0; n<`+RC+`; n++) {
-        sum4 += cells[n];
-      }
-      float a = 4., b = 1.;
-      color = (a * self + b * (sum4 / `+RC+`.)) / (a + b);
-      
-      ` + fs_PackAliveness('color.a') + `
-      
-      ` + fs_Prepare2Return('color') + `
-    }
-*/
-var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_prevtexture", "u_rulestexture"]);
+var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_nturn"]);
 //console.log(CalcFragmentShaderSource);

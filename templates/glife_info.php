@@ -2,6 +2,11 @@
 
 class GLifeInfo {
   
+  static function is_jsoned($gl) {
+    return $gl->mutaset && mb_substr($gl->mutaset,0,1)=="{" ? true : false;
+  }
+  
+  
   static function GlifeBigInfo($gl, $q4runs='', $single=true) {
     if(!$gl) return "";
     
@@ -52,26 +57,36 @@ class GLifeInfo {
     $nm = GLifeInfo::GLtitle($gl);
     $nm = $single && !$q4runs ? "<u>$nm</u>" : "<a href='/show/?glife=".($gl->named ? urlencode(SPCQA($gl->named)) : $gl->id)."'>$nm</a>";
     
-    if($gl->mutaset) {
-      $clean = glDicts::GetNonmutated($gl);
-      $cleanstr = GLifeInfo::GLtitle($clean);
-      if($clean) $cleanstr = "<a href='/show/?glife=".($clean->named ?: $clean->id)."'>$cleanstr</a>";
-      $cleanstr = "mutated $cleanstr";
+    if(GLifeInfo::is_jsoned($gl)) {
+      $glinfo = "
+      ";
     }
     else {
-      $cleanstr = RN(str_replace(",", "\n", $gl->notaset));
-    }
-    
-    if(strlen($cleanstr)>80*$FD) {
-      $cleanstr = GLifeInfo::ProcrustMutaset($cleanstr);
+      if($gl->mutaset) {
+        $clean = glDicts::GetNonmutated($gl);
+        $cleanstr = GLifeInfo::GLtitle($clean);
+        if($clean) $cleanstr = "<a href='/show/?glife=".($clean->named ?: $clean->id)."'>$cleanstr</a>";
+        $cleanstr = "mutated $cleanstr";
+      }
+      else {
+        $cleanstr = RN(str_replace(",", "\n", $gl->notaset));
+      }
+      
+      if(strlen($cleanstr)>80*$FD) {
+        $cleanstr = GLifeInfo::ProcrustMutaset($cleanstr);
+      }
+      
+      $glinfo = "
+        <span class='nrrw'>$cleanstr</span><br>
+        <small class='nrrw gr'>".GLifeInfo::ProcrustMutaset($gl->mutaset)."</small>
+      ";
     }
     
     $s = "
       <tr><td>
         <h3 title='popularity=".round($gl->sumturns/1000)."'>$nm " . ($gl->typed?"<span class=gr>($gl->typed)</span>":"") . "</h3>
         " . glDicts::GetFamily($gl->family_id)->name . ":<br>
-        <span class='nrrw'>$cleanstr</span><br>
-        <small class='nrrw gr'>".GLifeInfo::ProcrustMutaset($gl->mutaset)."</small>
+        $glinfo
       </td>
       <td><table><tr>$srun</tr></table><br></td>
       <td>".GLifeInfo::GlifeEditInput($gl)."</td>

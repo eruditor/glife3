@@ -404,9 +404,7 @@ var CalcFragmentShaderSource = `
     vec3 growthDst = vec3( getDst(growth, iv0), getDst(growth, iv1), getDst(growth, iv2) );
     vec3 rgb = clamp(self.rgb + dT * growthDst, 0., 1.);
     
-    if(tex3coord.x<`+round(FW/4)+`) {
-      rgb = clamp(rgb - vec3(0.05,0,0), 0., 1.);
-    }
+    //if(tex3coord.x<`+round(FW/4)+`) rgb = clamp(rgb - vec3(0.05,0,0), 0., 1.);
     
     glFragColor[0] = vec4(rgb, 1.);
   }
