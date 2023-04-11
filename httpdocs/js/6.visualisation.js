@@ -17,6 +17,9 @@ if(canvas.width>IW) {  // let canvas spread all its width without limits in case
   canvas.parentNode.insertBefore(tdiv, canvas.nextSibling);
 }
 
+document.body.style.minWidth = canvas.width + 'px';
+IW = canvas.parentNode.clientWidth;
+
 // SURFACE ////////////////////////////////////////////////////////////////
 
 class Surface {

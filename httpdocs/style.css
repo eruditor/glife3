@@ -124,7 +124,7 @@ DIV.descr {margin:0 0 34px 0; font:normal 15px/19px Arial;}
 
 
 
-HTML, BODY {min-width:1200px;}
+HTML, BODY {min-width:320px;}
 CANVAS {vertical-align:top; background:#ccc; cursor:crosshair;}
 DIV.stxt {font:normal 11px/11px Lucida Console, Monaco, Monospace; margin-top:5px; white-space:nowrap;}
 SUP {color:#aaa; font-weight:normal; vertical-align:middle; position:relative; font-size:50%; bottom:0.6em;}
