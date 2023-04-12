@@ -110,8 +110,13 @@ function Calc(single=0) {
     gl.uniform1iv(CalcProgram.location.u_ps, PS);
   }
   
-  var rulestexture_nums = [];  for(var z=0; z<FD; z++) rulestexture_nums[z] = TT + z;
-  gl.uniform1iv(CalcProgram.location.u_rulestexture, rulestexture_nums);
+  if(Mode=='LFL') {
+    gl.uniform1i(CalcProgram.location.u_rulestexture, TT + 0);
+  }
+  else {
+    var rulestexture_nums = [];  for(var z=0; z<FD; z++) rulestexture_nums[z] = TT + z;
+    gl.uniform1iv(CalcProgram.location.u_rulestexture, rulestexture_nums);
+  }
   
   gl.uniform1ui(CalcProgram.location.u_nturn, nturn);
   

@@ -4,6 +4,7 @@ function intval(x) { if(!x) return 0;  return parseInt(x, 10); }
 function floor(x) { return Math.floor(x); }
 function round(x) { return Math.round(x); }
 function abs(x)   { return Math.abs(x); }
+function fract(x) { return x - Math.floor(x); }
 function sgn(x) { return x > 0 ? 1 : (x < 0 ? -1 : 0); }
 function round100(x, d=100) { return Math.round(x/d)*d; }
 function sqr(x) { return x*x; }

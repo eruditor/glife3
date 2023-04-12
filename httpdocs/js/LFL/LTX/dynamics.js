@@ -28,6 +28,7 @@ var CalcFragmentShaderSource = `
   ////////////////////////////////////////////////////////////////
   
   uniform `+field_Sampler+` u_fieldtexture;  // Field texture
+  uniform highp sampler2D u_rulestexture;  // Rules texture
   uniform highp uint u_nturn;
   
   in vec2 v_texcoord;  // the texCoords passed in from the vertex shader
@@ -52,16 +53,37 @@ var CalcFragmentShaderSource = `
     //return exp( -(x-m)*(x-m) / s / s / 2. );  // order of operands in this multiplication affects the result!!!
   }
   
+  vec4 texels[`+K4+`];
+  
   float get1Weight(float r, int l) {
+    return texels[l/4][l%4];
+    /*
+    vec4 tx = texelFetch(u_rulestexture, ivec2(round(r*`+TXL+`.), l/4), 0);
+    return tx[l%4];
+    */
+    /*
     float Br = betaLen[l] / relR[l] * r;
     int iBr = int(Br);
     float mod1 = fract(Br);
     float height = iBr==0 ? beta0[l] : (iBr==1 ? beta1[l] : beta2[l]);
     return height * bell1(mod1, 0.5, 0.15);
+    */
   }
   
-  float[`+LL+`] getWeight(in float r) {
+  void getTexels(float r) {
+    int ix = int(round(r*`+TXL+`.));
+    ` + (() => {
+      var ret = '';
+      for(var kb=0; kb<K4; kb++) {
+        ret += `texels[`+kb+`] = texelFetch(u_rulestexture, ivec2(ix, `+kb+`), 0);\n`;
+      }
+      return ret;
+    })() + `
+  }
+  
+  float[`+LL+`] getWeight(float r) {
     float[`+LL+`] ret;
+    getTexels(r);
     `+IterateGLSLarray('ret[l] = get1Weight(r, lll);')+`
     return ret;
   }
@@ -84,6 +106,8 @@ var CalcFragmentShaderSource = `
     if((a.x>0.94 || a.y>0.94) && (a.x<0.98 && a.y<0.98)) { rgb[dst[l]] = 1.;  return rgb; }
     
     if(r>1.) return vec3(0);
+    
+    getTexels(r);
     rgb[src[l]] = get1Weight(r, l);
     
     return rgb;
@@ -167,7 +191,7 @@ var CalcFragmentShaderSource = `
     glFragColor[0] = vec4(rgb, 1.);
   }
 `;
-var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_nturn"]);
+var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_nturn"]);
 //console.log(CalcFragmentShaderSource);
 
 // CELLAR ////////////////////////////////////////////////////////////////

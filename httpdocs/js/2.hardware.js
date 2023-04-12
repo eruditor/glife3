@@ -23,6 +23,7 @@ const DataFormat =
   :               'UI8';
 
 const data_formats = {
+  //      0                 1            2                 3               4        5             6        7
   'UI8' : [gl.RGBA_INTEGER, gl.RGBA8UI,  gl.UNSIGNED_BYTE, Uint8Array,    'lowp',  'usampler3D', 'uint',  'uvec4'],
   'UI32': [gl.RGBA_INTEGER, gl.RGBA32UI, gl.UNSIGNED_INT,  Uint32Array ,  'highp', 'usampler3D', 'uint',  'uvec4'],
   'F32' : [gl.RGBA,         gl.RGBA32F,  gl.FLOAT,         Float32Array,  'highp', 'sampler3D',  'float', 'vec4']
