@@ -76,10 +76,6 @@ var CalcFragmentShaderSource = `
   
   //vec4 G(vec4 u) { return vec4(G(u.r), G(u.g), G(u.b), G(u.a)); }
   
-  float len(int dx, int dy) {
-    return sqrt(float(dx*dx+dy*dy));
-  }
-  
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
     
@@ -100,7 +96,7 @@ var CalcFragmentShaderSource = `
         vec4 cell = GetCell(dx, dy, 0);
         if(dx==0 && dy==0) self = cell.rg;
         
-        mat2 k = K2( len(dx,dy) );
+        mat2 k = K2( length(vec2(dx,dy)) );
         sumC += mat2(k[0].r*cell.r, k[0].g*cell.g, k[1].r*cell.r, k[1].g*cell.g);
         sumK += k;
       }
@@ -111,8 +107,6 @@ var CalcFragmentShaderSource = `
     
     color.rg = clamp(self + delta, 0., 1.);
     color.a = 1.;
-    
-    //color = vec4(0., K(len(tex3coord.x - fieldSize.x/2, tex3coord.y - fieldSize.y/2)), 0., 1.);  // draw Kernel
     
     glFragColor[0] = color;
   }

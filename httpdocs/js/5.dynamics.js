@@ -11,16 +11,16 @@ var fs_ModuloTorus = `
     if(a.z>=b.z) ret.z = a.z - b.z;
     return ret;
   }
-`;
+`.trim();
 
 function fs_GetCell(func='GetCell', tex='u_fieldtexture') {
-  return `
+  return (`
   `+field_Vec4P+` `+func+`(int dx, int dy, int dz) {
          if(dz>0 && tex3coord.z==`+(FD-1)+`) return `+field_Vec4+`(0);  // no upper for top layer
     else if(dz<0 && tex3coord.z==0)          return `+field_Vec4+`(0);  // no lower for bottom layer
     return texelFetch(`+tex+`, ModuloTorus(tex3coord + ivec3(dx, dy, dz), fieldSize), 0);
   }
-  `;
+  `).trim();
 }
 
 var fs_GetNeibs = '';
@@ -83,6 +83,15 @@ function fs_Prepare2Return(varname='color') {
     ret += (z>0 ? `else ` : `     `) + `if(layer==`+z+`) glFragColor[`+z+`] = `+varname+`;\n      `;
   }
   return ret;
+}
+
+function IterateGLSLarray(line, tab='    ') {
+  var ret = '';
+  for(var l=0; l<LL; l++) {
+    var ll = (LL>=10 && l<10 ? ' ' : '') + l;
+    ret += tab + line.replaceAll('[l]', '['+ll+']').replaceAll('lll', ll) + '\n';
+  }
+  return ret.trim();
 }
 
 var fs_ExtractXY = '', fs_ExtractA = '', fs_Trends = '';

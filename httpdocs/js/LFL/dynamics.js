@@ -1,13 +1,5 @@
 var fs_ExtractRGBA = ``;
 
-function IterateGLSLarray(line) {
-  var ret = '';
-  for(var l=0; l<LL; l++) {
-    ret += line.replaceAll('[l]', '['+l+']').replaceAll('lll', l) + '\n';
-  }
-  return ret;
-}
-
 var CalcFragmentShaderSource = `
   precision highp float;
   precision highp int;
@@ -91,12 +83,6 @@ var CalcFragmentShaderSource = `
   
   ////////////////////////////////////////////////////////////////
   
-  float len(int dx, int dy) {
-    return length(vec2(dx,dy));  // sqrt(float(dx*dx+dy*dy))
-  }
-  
-  ////////////////////////////////////////////////////////////////
-  
   vec4 self, cell;
   float[`+LL+`] sum, total, weight;
   
@@ -143,7 +129,7 @@ var CalcFragmentShaderSource = `
     // semiquadrants
     for(x=1; x<iR; x++) {
       for(y=x+1; y<=iR; y++) {
-        r = len(x, y) / R;
+        r = length(vec2(x,y)) / R;
         if(r>1.) continue;
         weight = getWeight(r);
         IncSum( x,  y);
@@ -171,9 +157,6 @@ var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position"
 //console.log(CalcFragmentShaderSource);
 
 // CELLAR ////////////////////////////////////////////////////////////////
-
-// non-optimized full-square scan
-// for(x=-iR; x<=iR; x++) for(y=-iR; y<=iR; y++) { r = len(x, y) / R;  if(r>1.) continue;  weight = getWeight(r);  IncSum(x, y); }
 
 /*
 // first 2 frames are awfully slow on MacBook: https://stackoverflow.com/questions/28005206/gldrawarrays-first-few-calls-very-slow-using-my-shader-and-then-very-fast

@@ -37,7 +37,7 @@ class Cfg {
     this.randrules = GetBoolParam('randrules');
     this.nmuta     = GetIntParam('nmuta');  // number of random mutations in rules
     
-    this.turn4stats = 100;  // not recommended to change
+    this.turn4stats = GetIntParam('turn4stats', 100);  // not recommended to change
     
     this.sleep = GetIntParam('sleep', 30);
   }

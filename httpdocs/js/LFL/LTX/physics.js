@@ -57,10 +57,10 @@ function Mat4uniforms(v) {
       t += (t?', ':'') + val;
     }
     var typ = (key!='src' && key!='dst' ? 'float' : 'int')
-    ret += (ret?'\n':'') + `const `+typ+` `+key+`[`+len+`] = `+typ+`[`+len+`]( `+t+` );`;
+    ret += `  const `+typ+` `+key+`[`+len+`] = `+typ+`[`+len+`]( `+t+` );\n`;
   }
   LL = len;
-  return ret;
+  return ret.trim();
 }
 
 function GetUniforms4Ruleset() {
@@ -87,8 +87,8 @@ function get1Weight(r, betaLen, relR, beta0, beta1, beta2) {
 }
 
 var R;
-const TXL = 255;  // space granularity: 256 points for [0,1] interval
-const TXL1 = TXL+1;
+const TXL = 1024;  // space granularity: 256 points for [0,1] interval
+const TXL1 = TXL-1;
 var K4;  // = (number of kernels / 4)  // 4 numbers stored in 1 texture cell
 
 var kernelist = ParseUniformsJSON(Ruleset);
@@ -104,7 +104,7 @@ LL = kernels.length;
 
 K4 = Math.ceil( LL / 4 );
 
-R = new jsdata_Array(4 * TXL1 * K4);
+R = new jsdata_Array(4 * TXL * K4);
 R.fill(0);
 
 function InitRules() {
@@ -115,11 +115,11 @@ function InitRules() {
       if(!K) break;
       
       var t ='';
-      for(var ix=0; ix<=TXL; ix++) {
-        var r = ix / TXL;
+      for(var ix=0; ix<=TXL1; ix++) {
+        var r = ix / TXL1;
         var weight = get1Weight(r, K['betaLen'], K['relR'], K['beta0'], K['beta1'], K['beta2']);
         
-        R[4*(kb*TXL1+ix)+xb] = weight;
+        R[4*(kb*TXL+ix)+xb] = weight;
         
         t += ' ' + weight;
       }
@@ -128,9 +128,9 @@ function InitRules() {
   }
   
   var RulesTexture = [];
-  RulesTexture[0] = CreateTexture(TXL1, K4);
+  RulesTexture[0] = CreateTexture(TXL, K4);
 
-  SetTexture(TT + 0, RulesTexture[0], R, TXL1, K4);
+  SetTexture(TT + 0, RulesTexture[0], R, TXL, K4);
   
 }
 

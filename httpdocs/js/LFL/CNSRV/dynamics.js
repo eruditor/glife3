@@ -318,12 +318,6 @@ var CalcFragmentShaderSource = `
   
   ////////////////////////////////////////////////////////////////
   
-  float len(int dx, int dy) {
-    return length(vec2(dx,dy));  // sqrt(float(dx*dx+dy*dy))
-  }
-  
-  ////////////////////////////////////////////////////////////////
-  
   vec4 self, cell;
   mat4 sum = mat4(0), total = mat4(0), weight;
   
@@ -352,18 +346,6 @@ var CalcFragmentShaderSource = `
     
     
     if(layer==1) {
-      /*
-      // non-optimized full-square scan
-      for(x=-iR; x<=iR; x++) {
-        for(y=-iR; y<=iR; y++) {
-          r = len(x, y) / R;
-          if(r>1.) continue;
-          weight = getWeight(r);
-          IncSum(x, y);
-        }
-      }
-      */
-      
       // central cell (self)
       x = 0;  y = 0;  r = 0.;
       weight = getWeight(r);
@@ -394,7 +376,7 @@ var CalcFragmentShaderSource = `
       
       for(x=1; x<iR; x++) {
         for(y=x+1; y<=iR; y++) {
-          r = len(x, y) / R;
+          r = length(vec2(x,y)) / R;
           if(r>1.) continue;
           weight = getWeight(r);
           IncSum( x,  y);
