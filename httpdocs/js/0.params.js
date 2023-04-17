@@ -48,25 +48,26 @@ var cfg = new Cfg();
 
 const Family = GetStrParam('family', glFamily.name);   // name of rule's family
 const FM     = GetIntParam('fm',     glFamily.id);
-const Mode   = GetStrParam('mode',   glFamily.mode);   // CA modes: ''=classic, PRT=partitioning, MVM=movement, BND=bonds
+const Mode   = GetStrParam('mode',   glFamily.mode);   // CA modes: ''=classic, PRT=partitioning, MVM=movement, BND=bonds, etc
 const TT     = GetIntParam('TT',     glFamily.TT);     // number of moments of time involved in dynamics (2 or 3)
 const RB     = GetIntParam('RB',     glFamily.RB);     // number of states for cell
 const Rgeom  = GetIntParam('Rgeom',  glFamily.Rgeom);  // neighborhood geometry (see RG)
 const Rsymm  = GetIntParam('Rsymm',  glFamily.Rsymm);  // symmetry of rules (rotational, parity, etc)
-const FD     = GetIntParam('FD', int10(glFamily.FD) || 3);  // field depth (number of layers)
+const FD     = Math.abs(GetIntParam('FD', int10(glFamily.FD) || 3));  // field depth (number of layers)
 const FW     = GetIntParam('FW', 600);  // field width
 const FH     = GetIntParam('FH', 350);  // field height
+
 const LF     = GetIntParam('LF',  90) / 100;  // initially filled piece size
 const LD     = GetIntParam('LD', 100) / 100;  // initially filled piece density
 const Lstep  = 10;  // setting to 100 will break previously saved fseeds
 
-var Notaset = GetStrParam('notaset');  // encoded or named rules
+var Notaset  = GetStrParam('notaset');  // encoded or named rules
 if(Mutaset===undefined) var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)
-var Named = GetStrParam('named');
-var Rseed = GetIntParam('rseed');  // seed for PRNG (Rules)
-var Fseed = GetIntParam('fseed');  // seed for PRNG (Field)
+var Named    = GetStrParam('named');
+var Rseed    = GetIntParam('rseed');  // seed for PRNG (Rules)
+var Fseed    = GetIntParam('fseed');  // seed for PRNG (Field)
 
-const FDD    = Named=='Leia1' ? 1 : FD;  // layers to display
+const FDD    = glFamily.FD<0 || Named=='Leia1' ? 1 : FD;  // layers to display
 
 // LENIA PARAMS ////////////////////////////////////////////////////////////////
 

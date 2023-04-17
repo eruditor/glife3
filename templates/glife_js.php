@@ -98,6 +98,7 @@ class GLifeJS {
     else if($named6=='LeniaQ') $dynamics = "<script src='/js/LFL/QM/dynamics.js$jsget'></script>";
     else if($named4=='Leia')   $dynamics = "<script src='/js/LFL/CNSRV/dynamics.js$jsget'></script>";
     else if($prefnm=='LTX')    $dynamics = "<script src='/js/LFL/LTX/dynamics.js$jsget'></script>";
+    else if($prefnm=='Test4')  $dynamics = "<script src='/js/LFL/Tests/dynamics4.js$jsget'></script>";
     else if($fm->mode=='LFL')  $dynamics = "<script src='/js/LFL/dynamics.js$jsget'></script>";
     else                       $dynamics = "<script src='/js/!default/dynamics.js$jsget'></script>";
     
@@ -110,6 +111,7 @@ class GLifeJS {
     else if($fm->mode=='FHP')  $visualisation = "<script src='/js/FHP/visualisation.js$jsget'></script>";
     else if($named6=='LeniaQ') $visualisation = "<script src='/js/LFL/QM/visualisation.js$jsget'></script>";
     else if($named4=='Leia')   $visualisation = "<script src='/js/LFL/CNSRV/visualisation.js$jsget'></script>";
+    else if($prefnm=='Cenia')  $visualisation = "<script src='/js/LFL/CNSRV/visualisation.js$jsget'></script>";
     else if($fm->mode=='LFL')  $visualisation = "<script src='/js/LFL/visualisation.js$jsget'></script>";
     
     return "

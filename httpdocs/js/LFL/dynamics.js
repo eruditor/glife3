@@ -92,10 +92,7 @@ var CalcFragmentShaderSource = `
     return 0;
   }
   
-  void main() {
-    fieldSize = textureSize(u_fieldtexture, 0);
-    tex3coord = ivec3(v_texcoord, 0);
-    
+  vec3 CalcGrown() {
     float r;
     int x, y;
     
@@ -148,15 +145,82 @@ var CalcFragmentShaderSource = `
     `+IterateGLSLarray('avg = sum[l] / total[l];  growths[dst[l]] += eta[l] * ( bell1(avg, mu[l], sigma[l]) * 2. - 1. );')+`
     vec3 rgb = clamp(self.rgb + dT * growths, 0., 1.);
     
-    //rgb = drawKernel(v_texcoord.xy / float(fieldSize.y));
+    return rgb;
+  }
+  
+  void main() {
+    fieldSize = textureSize(u_fieldtexture, 0);
+    tex3coord = ivec3(v_texcoord, 0);
     
-    glFragColor[0] = vec4(rgb, 1.);
+    `+(
+    Family=='Cenia'
+    ? `
+    uint stage = u_nturn % 3u;
+    if(stage==0u) {
+      vec3 rgb = CalcGrown();
+      glFragColor[0] = self;
+      glFragColor[1] = vec4(rgb - self.rgb, 0.8);  // Delta
+    }
+    else if(stage==1u) {
+      vec4 sum8 = vec4(0);
+      vec4 c0, d0, cc, dd;
+      float kk;  // all kk=8. is also fine here
+      c0 = GetCell( 0, 0, 0);  d0 = GetCell( 0, 0, 1);  // ↓ c0 can drain from cc not more than cc has
+      cc = GetCell(-1,-1, 0);  dd = GetCell(-1,-1, 1);  kk = 12.;  sum8 += clamp( (d0 - dd)/kk, -abs(c0/kk), abs(cc/kk) );
+      cc = GetCell( 0,-1, 0);  dd = GetCell( 0,-1, 1);  kk =  6.;  sum8 += clamp( (d0 - dd)/kk, -abs(c0/kk), abs(cc/kk) );
+      cc = GetCell( 1,-1, 0);  dd = GetCell( 1,-1, 1);  kk = 12.;  sum8 += clamp( (d0 - dd)/kk, -abs(c0/kk), abs(cc/kk) );
+      cc = GetCell( 1, 0, 0);  dd = GetCell( 1, 0, 1);  kk =  6.;  sum8 += clamp( (d0 - dd)/kk, -abs(c0/kk), abs(cc/kk) );
+      cc = GetCell( 1, 1, 0);  dd = GetCell( 1, 1, 1);  kk = 12.;  sum8 += clamp( (d0 - dd)/kk, -abs(c0/kk), abs(cc/kk) );
+      cc = GetCell( 0, 1, 0);  dd = GetCell( 0, 1, 1);  kk =  6.;  sum8 += clamp( (d0 - dd)/kk, -abs(c0/kk), abs(cc/kk) );
+      cc = GetCell(-1, 1, 0);  dd = GetCell(-1, 1, 1);  kk = 12.;  sum8 += clamp( (d0 - dd)/kk, -abs(c0/kk), abs(cc/kk) );
+      cc = GetCell(-1, 0, 0);  dd = GetCell(-1, 0, 1);  kk =  6.;  sum8 += clamp( (d0 - dd)/kk, -abs(c0/kk), abs(cc/kk) );
+      
+      glFragColor[0] = c0 + sum8;
+      glFragColor[1] = d0;  // can zero here?
+    }
+    else if(stage==2u) {
+      self = GetCell( 0, 0, 0);
+      
+      vec4 above = GetCell( 0, 1, 0);
+      vec4 below = GetCell( 0,-1, 0);
+      vec4 delta = vec4(0);
+      vec4 gravity = vec4(0, 0, 0.1, 0);
+      
+      if(all(lessThan(self.rgb, vec3(0.1))) && all(greaterThanEqual(self.rgb, vec3(0)))) {
+        if(tex3coord.y<`+round(FH/2)+`) {
+          if(tex3coord.y<`+(round(FH/2)-1)+` && all(lessThan(above.rgb, vec3(0.1))) && all(greaterThanEqual(above.rgb, vec3(0)))) {
+            delta += above * gravity;  // take
+          }
+          if(tex3coord.y>0                   && all(lessThan(below.rgb, vec3(0.1))) && all(greaterThanEqual(below.rgb, vec3(0)))) {
+            delta -= self  * gravity;  // give
+          }
+        }
+        else {
+          if(tex3coord.y>`+round(FH/2)+`     && all(lessThan(below.rgb, vec3(0.1))) && all(greaterThanEqual(below.rgb, vec3(0)))) {
+            delta += below * gravity;  // take
+          }
+          if(tex3coord.y<`+(FH-1)+`          && all(lessThan(above.rgb, vec3(0.1))) && all(greaterThanEqual(above.rgb, vec3(0)))) {
+            delta -= self  * gravity;  // give
+          }
+        }
+      }
+      
+      glFragColor[0] = self + delta;
+      glFragColor[1] = vec4(0);
+    }
+    `
+    : `
+    glFragColor[0] = vec4(CalcGrown(), 1.);
+    `
+    )+`
+    
+    //glFragColor[0] = vec4(drawKernel(v_texcoord.xy / float(fieldSize.y)), 1.);
   }
 `;
 var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_nturn"]);
 //console.log(CalcFragmentShaderSource);
 
-// CELLAR ////////////////////////////////////////////////////////////////
+// LEGACY ////////////////////////////////////////////////////////////////
 
 /*
 // first 2 frames are awfully slow on MacBook: https://stackoverflow.com/questions/28005206/gldrawarrays-first-few-calls-very-slow-using-my-shader-and-then-very-fast

@@ -44,7 +44,11 @@ class glDicts {
   
   static function GetFD($gl) {
     $FD = 0;
-    if($gl->FD) {
+    $fm = glDicts::GetFamily($gl->family_id);
+    if($fm->FD<0) {
+      $FD = $fm->FD;
+    }
+    elseif($gl->FD) {
       $FD = $gl->FD;
     }
     elseif($gl->notaset) {
@@ -58,7 +62,6 @@ class glDicts {
       if(is_array($json->livecells)) $FD = count($json->livecells);
     }
     elseif($gl->family_id) {
-      $fm = glDicts::GetFamily($gl->family_id);
       if($fm->FD) $FD = $fm->FD;
     }
     return $FD;

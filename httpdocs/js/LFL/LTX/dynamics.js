@@ -170,7 +170,7 @@ var CalcFragmentShaderSource = `
   }
 `;
 var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_rulestexture", "u_nturn"]);
-console.log(CalcFragmentShaderSource);
+//console.log(CalcFragmentShaderSource);
 
 // LEGACY ////////////////////////////////////////////////////////////////
 

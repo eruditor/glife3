@@ -335,7 +335,6 @@ var CalcFragmentShaderSource = `
   
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
-    
     tex3coord = ivec3(v_texcoord, 0);  // no z=layer here!
     
     float r;

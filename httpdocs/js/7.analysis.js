@@ -323,28 +323,30 @@ function Stats(force=false) {
       qx = floor(x / qd);
       if(!qq[z][qx]) qq[z][qx] = [];
       for(var y=0; y<FH; y++) {
-        var cell = GetCell(x, y, z);
         
         if(Mode=='LFL') {
+          var c0 = GetCell(x, y, 0);
           if(z==0) {
-            /*
-            graphnums[graphstep][z][1] += cell.r;
-            graphnums[graphstep][z][2] += cell.g;
-            graphnums[graphstep][z][3] += cell.b;
-            */
-            graphnums[graphstep][z][1] += cell.r>0.7 ? 1 : 0;
-            graphnums[graphstep][z][2] += cell.g>0.7 ? 1 : 0;
-            graphnums[graphstep][z][3] += cell.b>0.7 ? 1 : 0;
+            graphnums[graphstep][z][1] += c0.r>0.7 ? 1 : 0;
+            graphnums[graphstep][z][2] += c0.g>0.7 ? 1 : 0;
+            graphnums[graphstep][z][3] += c0.b>0.7 ? 1 : 0;
           }
           else if(z==1) {
-            var c0 = GetCell(x, y, 0);
-            graphnums[graphstep][z][1] += c0.r<0 ? -c0.r : 0;
-            graphnums[graphstep][z][2] += c0.g<0 ? -c0.g : 0;
-            graphnums[graphstep][z][3] += c0.b<0 ? -c0.b : 0;
+            if(1) {  // total amount
+              graphnums[graphstep][z][1] += c0.r;
+              graphnums[graphstep][z][2] += c0.g;
+              graphnums[graphstep][z][3] += c0.b;
+            }
+            else {  // amount of negative values
+              graphnums[graphstep][z][1] += c0.r<0 ? -c0.r : 0;
+              graphnums[graphstep][z][2] += c0.g<0 ? -c0.g : 0;
+              graphnums[graphstep][z][3] += c0.b<0 ? -c0.b : 0;
+            }
           }
-          
           continue;
         }
+        
+        var cell = GetCell(x, y, z);
         
         var al = DataFormat=='UI8' ? (cell.a > 0 ? 1 : 0) : (cell.a & 1);
         var v = DataFormat=='UI8' ? cell.a : (al ? cell.a << 27 >>> 28 : 0);  // cell's value
@@ -415,6 +417,9 @@ function Stats(force=false) {
     scnvs.style.margin = '0 0 5px 0';
     sctx = scnvs.getContext('2d');
   }
+  
+  if(Mode=='LFL') return;
+  
   if(false && graphnums.length==256) {
     console.log(graphnums);
     
