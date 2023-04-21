@@ -136,13 +136,19 @@ class Records {  // tracking and writing to DB population characteristics
 function SaveGlifetri(prms={}) {
   saved = true;  // in the beginning to prevent multi-saves if case of lags
   
-  if(!prms['noorga']) StatORGA();  // calc orga stats before saving
+  if(!prms['noorga'] && Mode!='LFL') StatORGA();  // calc orga stats before saving
   
   prms['family_id'] = glFamily.id;
   
   prms['FD'] = FD;
-  prms['notaset'] = Notaset;
-  prms['mutaset'] = typeof(Mutas)!=='undefined' ? EncodeMutaStr(Mutas) : '';
+  if(Mode=='LFL') {
+    prms['notaset'] = '';
+    prms['mutaset'] = RandomRulesetJSON;
+  }
+  else {
+    prms['notaset'] = Notaset;
+    prms['mutaset'] = typeof(Mutas)!=='undefined' ? EncodeMutaStr(Mutas) : '';
+  }
   prms['rseed'] = Rseed;
   prms['fseed'] = Fseed;
   prms['FW'] = FW;
@@ -325,17 +331,19 @@ function Stats(force=false) {
       for(var y=0; y<FH; y++) {
         
         if(Mode=='LFL') {
+          var fulal = 0.7;  // considered filly alive
           var c0 = GetCell(x, y, 0);
           if(z==0) {
-            graphnums[graphstep][z][1] += c0.r>0.7 ? 1 : 0;
-            graphnums[graphstep][z][2] += c0.g>0.7 ? 1 : 0;
-            graphnums[graphstep][z][3] += c0.b>0.7 ? 1 : 0;
+            graphnums[graphstep][z][1] += c0.r>=fulal ? 1 : 0;
+            graphnums[graphstep][z][2] += c0.g>=fulal ? 1 : 0;
+            graphnums[graphstep][z][3] += c0.b>=fulal ? 1 : 0;
+            if(c0.r>=fulal || c0.g>=fulal || c0.b>=fulal) rec[S1].livecells[z] ++;
           }
           else if(z==1) {
             if(1) {  // total amount
-              graphnums[graphstep][z][1] += c0.r;
-              graphnums[graphstep][z][2] += c0.g;
-              graphnums[graphstep][z][3] += c0.b;
+              graphnums[graphstep][z][1] += c0.r / fulal;
+              graphnums[graphstep][z][2] += c0.g / fulal;
+              graphnums[graphstep][z][3] += c0.b / fulal;
             }
             else {  // amount of negative values
               graphnums[graphstep][z][1] += c0.r<0 ? -c0.r : 0;
@@ -416,6 +424,26 @@ function Stats(force=false) {
     scnvs.height = scnv_height;  scnvs.style.height = scnvs.height + 'px';
     scnvs.style.margin = '0 0 5px 0';
     sctx = scnvs.getContext('2d');
+  }
+  
+  if(Mode=='LFL' && cfg.autore) {  // same for other modes is below
+    var notinteresting = false;
+         if(rec[S1].livecells[0]==0) notinteresting = true;
+    else if(rec[S1].livecells[0]>=FW*FH/2) notinteresting = true;
+    if(nturn>=500 || notinteresting) {
+      Pause(1);
+      console.log('fulal='+rec[S1].livecells[0]);
+      if(!notinteresting) SaveGlifetri({'stopped_at':nturn});
+      nGen ++;
+      if(nGen>300) {
+        ReloadPage();  // reloading page sometimes to refresh seeds and avoid potential locks
+      }
+      else {
+        ReInitSeeds();
+        Init();
+      }
+      Pause(-1);
+    }
   }
   
   if(Mode=='LFL') return;
@@ -528,7 +556,7 @@ function Stats(force=false) {
     </table>
   `;
   
-  if(Mode=='' || Mode=='PRT') {
+  if(Mode=='' || Mode=='PRT') {  // same for LFL is above
     if(cfg.autore || cfg.rerun) {
       if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
         Pause(1);

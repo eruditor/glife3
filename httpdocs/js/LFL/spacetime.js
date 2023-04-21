@@ -144,6 +144,17 @@ function InitialFiller() {
       }
     }
   }
+  else if(cfg.shape=='green') {
+    for(var x=0; x<FW; x++) {
+      for(var y=0; y<FH; y++) {
+        var rr = Math.sqrt( (sqr(x/FW-0.5) + sqr(y/FH-0.5)) * 4) / LF;
+        var density = round( (1 - rr) * 10000 * LD );
+        if(rndF(0,10000)<density) {
+          SetCell(x, y, 0,  0, rndF(1,100)/100, 0, 1);
+        }
+      }
+    }
+  }
   else if(cfg.shape=='2color') {
     for(var x=0; x<FW; x++) {
       for(var y=0; y<FH; y++) {

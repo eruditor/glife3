@@ -1,6 +1,7 @@
 var fs_ExtractRGBA = ``;
 
-var CalcFragmentShaderSource = `
+function CalcFragmentShaderSource(Uniforms4Ruleset) {
+  return `
   precision highp float;
   precision highp int;
   
@@ -15,7 +16,7 @@ var CalcFragmentShaderSource = `
   
   ////////////////////////////////////////////////////////////////
   
-  ` + GetUniforms4Ruleset() + `
+  ` + Uniforms4Ruleset + `
   
   ////////////////////////////////////////////////////////////////
   
@@ -60,20 +61,26 @@ var CalcFragmentShaderSource = `
   
   ////////////////////////////////////////////////////////////////
   
-  vec3 drawKernel(vec2 uv) {
-    ivec2 ij = ivec2(uv / 0.25);  // 0..3
-    if(ij.x>3) return vec3(0);
+  vec3 drawKernel() {
+    vec2 uv = 3. * (v_texcoord.xy / float(fieldSize.y));
+    ivec2 ij = ivec2(uv);
     
-    int l = (3-ij.y)*4 + ij.x;  // [3-ij.y][ij.x]
+    int l = 3 * ij.x + (2 - ij.y);
     if(l>=`+LL+`) return vec3(0);
     
-    vec2 xy = mod(uv, 0.25) * 8. - 1.;  // -1..1
+    vec2 xy = 2. * fract(uv) - 1.;
+    vec2 ab = abs(xy);
     float r = length(xy);
     
     vec3 rgb;
-    
-    vec2 a = abs(xy);
-    if((a.x>0.94 || a.y>0.94) && (a.x<0.98 && a.y<0.98)) { rgb[dst[l]] = 1.;  return rgb; }
+    if(ab.x>=0.98 || ab.y>=0.98) { return vec3(0); }
+    if(ab.x>=0.94 || ab.y>=0.94) { rgb[dst[l]] = 1.;  return rgb; }
+    if(xy.y<-0.84) {
+      float t = (xy.x/0.94 + 1.) / 2.;
+      float gr = eta[l] * ( bell1(t, mu[l], sigma[l]) * 2. - 1. );
+      rgb = gr>0. ? vec3(gr, gr, 0) : vec3(0, -gr, -gr);
+      return rgb;
+    }
     
     if(r>1.) return vec3(0);
     rgb[src[l]] = get1Weight(r, l);
@@ -214,10 +221,11 @@ var CalcFragmentShaderSource = `
     `
     )+`
     
-    //glFragColor[0] = vec4(drawKernel(v_texcoord.xy / float(fieldSize.y)), 1.);
+    `+(cfg.debug==-1?`glFragColor[0] = vec4(drawKernel(), 1.);`:``)+`
   }
-`;
-var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource, ["a_position", "u_fieldtexture", "u_nturn"]);
+  `;
+}
+var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource(GetUniforms4Ruleset()), ["a_position", "u_fieldtexture", "u_nturn"]);
 //console.log(CalcFragmentShaderSource);
 
 // LEGACY ////////////////////////////////////////////////////////////////

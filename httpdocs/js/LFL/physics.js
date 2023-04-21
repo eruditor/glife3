@@ -69,9 +69,32 @@ function GetUniforms4Ruleset() {
   return s4uniforms;
 }
 
+// RANDOM RULES ////////////////////////////////////////////////////////////////
+
+var RandomRulesetJSON = '';
+function RandomLFLrules() {
+  var uniforms = ParseUniformsJSON(Ruleset);
+  var fields = ['beta0', 'beta1', 'beta2', 'mu', 'sigma', 'eta', 'relR'];
+  for(var f in fields) {
+    for(var l=0; l<LL; l++) {
+      if(!uniforms[fields[f]][l]) continue;
+      uniforms[fields[f]][l] += 0.1 * (Rrand32()-Rrand32());
+    }
+  }
+  RandomRulesetJSON = JSON.stringify(uniforms);
+  console.log(RandomRulesetJSON);
+  return Mat4uniforms(uniforms);
+}
+
 // INIT RULES ////////////////////////////////////////////////////////////////
 
 function InitRules() {
+  if(typeof(CalcProgram)==='undefined') return false;
+  if(!cfg.autore) return false;
+  
+  gl.deleteProgram(CalcProgram);
+  var rules = RandomLFLrules();
+  CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource(rules), ["a_position", "u_fieldtexture", "u_nturn"]);
 }
 
 // --- ////////////////////////////////////////////////////////////////

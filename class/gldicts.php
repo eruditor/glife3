@@ -45,7 +45,7 @@ class glDicts {
   static function GetFD($gl) {
     $FD = 0;
     $fm = glDicts::GetFamily($gl->family_id);
-    if($fm->FD<0) {
+    if($fm && $fm->FD<0) {
       $FD = $fm->FD;
     }
     elseif($gl->FD) {

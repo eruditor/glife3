@@ -7,7 +7,7 @@ class GLifeJS {
       $notaset = $_GET['notaset'] ?: "Aphrodite";
     }
     
-    $fm = null;  // family is required to run
+    $fm = $gl = null;  // family is required to run
     
     if($notaset=='random') {
       $prms['randrules'] = 1;
@@ -72,7 +72,7 @@ class GLifeJS {
     
     $spacetime = $physics = $dynamics = $visualisation = '';
     
-    $named = $gl->named;
+    $named = $gl ? $gl->named : '';
     $prefnm = ($t=stripos($named,"-")) ? substr($named,0,$t) : '';
     $named4 = substr($named, 0, 4);
     $named6 = substr($named, 0, 6);

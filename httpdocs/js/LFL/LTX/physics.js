@@ -107,6 +107,8 @@ K4 = Math.ceil( LL / 4 );
 R = new jsdata_Array(4 * TXL * K4);
 R.fill(0);
 
+var RulesTexture = [];
+
 function InitRules() {
   for(var kb=0; kb<K4; kb++) {
     for(var xb=0; xb<4; xb++) {
@@ -114,24 +116,18 @@ function InitRules() {
       var K = kernels[l];
       if(!K) break;
       
-      var t ='';
       for(var ix=0; ix<=TXL1; ix++) {
         var r = ix / TXL1;
         var weight = get1Weight(r, K['betaLen'], K['relR'], K['beta0'], K['beta1'], K['beta2']);
         
         R[4*(kb*TXL+ix)+xb] = weight;
-        
-        t += ' ' + weight;
       }
-      //console.log(l + ': ' + t);
     }
   }
   
-  var RulesTexture = [];
-  RulesTexture[0] = CreateTexture(TXL, K4);
-
-  SetTexture(TT + 0, RulesTexture[0], R, TXL, K4);
+  if(!RulesTexture.length) RulesTexture[0] = CreateTexture(TXL, K4);
   
+  SetTexture(TT + 0, RulesTexture[0], R, TXL, K4);
 }
 
 // --- ////////////////////////////////////////////////////////////////
