@@ -159,12 +159,22 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     fieldSize = textureSize(u_fieldtexture, 0);
     tex3coord = ivec3(v_texcoord, 0);
     
-    `+(
+    ` + (() => {
+    var rockY0 = RD;
+    var rockY1 = FH - rockY0;
+    var ret =
     Family=='Cenia'
     ? `
     uint stage = u_nturn % 3u;
     if(stage==0u) {
-      vec3 rgb = CalcGrown();
+      vec3 rgb;
+      if(tex3coord.y>=`+rockY0+` && tex3coord.y<`+rockY1+`) {  // alive space
+        rgb = CalcGrown();
+      }
+      else {  // dead floor
+        self = GetCell( 0, 0, 0);
+        rgb = clamp(self.rgb, 0., 1.);
+      }
       glFragColor[0] = self;
       glFragColor[1] = vec4(rgb - self.rgb, 0.8);  // Delta
     }
@@ -187,27 +197,44 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     }
     else if(stage==2u) {
       self = GetCell( 0, 0, 0);
+      vec4 delta = vec4(0);
       
       vec4 above = GetCell( 0, 1, 0);
       vec4 below = GetCell( 0,-1, 0);
-      vec4 delta = vec4(0);
-      vec4 gravity = vec4(0, 0, 0.1, 0);
       
-      if(all(lessThan(self.rgb, vec3(0.1))) && all(greaterThanEqual(self.rgb, vec3(0)))) {
-        if(tex3coord.y<`+round(FH/2)+`) {
-          if(tex3coord.y<`+(round(FH/2)-1)+` && all(lessThan(above.rgb, vec3(0.1))) && all(greaterThanEqual(above.rgb, vec3(0)))) {
+      vec4 gravity = vec4(0.050, 0.075, 0.100, 0);  // gravity force
+      vec3 glm     = vec3(0.080, 0.070, 0.050);  // gravity limit: max mass gravity affects
+      
+      if(all(lessThan(self.rgb, glm)) && all(greaterThanEqual(self.rgb, vec3(0)))) {
+        if(tex3coord.y<`+round(FH/2)+` && tex3coord.y>=`+rockY0+`) {
+          if(tex3coord.y<`+(round(FH/2)-1)+` && all(lessThan(above.rgb, glm)) && all(greaterThanEqual(above.rgb, vec3(0)))) {
             delta += above * gravity;  // take
           }
-          if(tex3coord.y>0                   && all(lessThan(below.rgb, vec3(0.1))) && all(greaterThanEqual(below.rgb, vec3(0)))) {
+          if(tex3coord.y>0                   && all(lessThan(below.rgb, glm)) && all(greaterThanEqual(below.rgb, vec3(0)))) {
             delta -= self  * gravity;  // give
           }
         }
-        else {
-          if(tex3coord.y>`+round(FH/2)+`     && all(lessThan(below.rgb, vec3(0.1))) && all(greaterThanEqual(below.rgb, vec3(0)))) {
+        else if(tex3coord.y>=`+round(FH/2)+` && tex3coord.y<`+rockY1+`) {
+          if(tex3coord.y>`+round(FH/2)+`     && all(lessThan(below.rgb, glm)) && all(greaterThanEqual(below.rgb, vec3(0)))) {
             delta += below * gravity;  // take
           }
-          if(tex3coord.y<`+(FH-1)+`          && all(lessThan(above.rgb, vec3(0.1))) && all(greaterThanEqual(above.rgb, vec3(0)))) {
+          if(tex3coord.y<`+(FH-1)+`          && all(lessThan(above.rgb, glm)) && all(greaterThanEqual(above.rgb, vec3(0)))) {
             delta -= self  * gravity;  // give
+          }
+        }
+      }
+      
+      const int sunStep = 99;  // divides by 3 (see stage)
+      vec4 radiation = vec4(0.05, 0.05, 0.05, 0);  // sun radiation
+      int sunX = (int(u_nturn) / sunStep) % `+FW+`;
+      if(tex3coord.x==sunX) {
+        for(int sy=0; sy<`+rockY0+`; sy++) {
+          if(tex3coord.y==`+round(FH/2)+` - sy) {
+            vec4 bottom = texelFetch(u_fieldtexture, ivec3(tex3coord.x, sy, 0), 0);
+            delta += bottom * radiation;
+          }
+          else if(tex3coord.y==sy) {
+            delta -= self * radiation;
           }
         }
       }
@@ -218,8 +245,9 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     `
     : `
     glFragColor[0] = vec4(CalcGrown(), 1.);
-    `
-    )+`
+    `;
+    return ret.trim();
+    })() + `
     
     `+(cfg.debug==-1?`glFragColor[0] = vec4(drawKernel(), 1.);`:``)+`
   }

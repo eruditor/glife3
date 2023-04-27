@@ -111,7 +111,7 @@ class GLifeJS {
     else if($fm->mode=='FHP')  $visualisation = "<script src='/js/FHP/visualisation.js$jsget'></script>";
     else if($named6=='LeniaQ') $visualisation = "<script src='/js/LFL/QM/visualisation.js$jsget'></script>";
     else if($named4=='Leia')   $visualisation = "<script src='/js/LFL/CNSRV/visualisation.js$jsget'></script>";
-    else if($prefnm=='Cenia')  $visualisation = "<script src='/js/LFL/CNSRV/visualisation.js$jsget'></script>";
+    else if($fm->name=='Cenia')$visualisation = "<script src='/js/LFL/CNSRV/visualisation.js$jsget'></script>";
     else if($fm->mode=='LFL')  $visualisation = "<script src='/js/LFL/visualisation.js$jsget'></script>";
     
     return "

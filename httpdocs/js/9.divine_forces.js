@@ -42,8 +42,8 @@ gl.canvas.onmousedown = function(e) {
 gl.canvas.onmouseup = function(e) {
   if(e.which===1) {
     gl.canvas.removeEventListener('mousemove', Mous);
+    Pause(-1);
   }
-  Pause(-1);
 };
 
 gl.canvas.oncontextmenu = function() {

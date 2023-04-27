@@ -334,6 +334,8 @@ function Stats(force=false) {
           var fulal = 0.7;  // considered filly alive
           var c0 = GetCell(x, y, 0);
           if(z==0) {
+            if(c0.r>=0.99 && c0.g>=0.99 && c0.b>=0.99) continue;  // ignoring artificial static white borders
+            graphnums[graphstep][z][0] += c0.r>=fulal || c0.g>=fulal || c0.b>=fulal ? 1 : 0;
             graphnums[graphstep][z][1] += c0.r>=fulal ? 1 : 0;
             graphnums[graphstep][z][2] += c0.g>=fulal ? 1 : 0;
             graphnums[graphstep][z][3] += c0.b>=fulal ? 1 : 0;
@@ -427,13 +429,18 @@ function Stats(force=false) {
   }
   
   if(Mode=='LFL' && cfg.autore) {  // same for other modes is below
-    var notinteresting = false;
-         if(rec[S1].livecells[0]==0) notinteresting = true;
-    else if(rec[S1].livecells[0]>=FW*FH/2) notinteresting = true;
+    var notinteresting = 0;
+    var minc = 0.002*FW*FH;
+    var maxc = 0.05*FW*FH;
+    for(var c=1; c<=3; c++) {
+      if(graphnums[graphstep][0][c]<minc) notinteresting += 1;
+      if(graphnums[graphstep][0][c]>maxc) notinteresting += 100;
+    }
     if(nturn>=500 || notinteresting) {
       Pause(1);
-      console.log('fulal='+rec[S1].livecells[0]);
-      if(!notinteresting) SaveGlifetri({'stopped_at':nturn});
+      console.log(notinteresting);
+      console.log(graphnums[graphstep][0]);
+      if(!notinteresting && cfg.autore==1) SaveGlifetri({'stopped_at':''});
       nGen ++;
       if(nGen>300) {
         ReloadPage();  // reloading page sometimes to refresh seeds and avoid potential locks

@@ -71,7 +71,7 @@ const FDD    = glFamily.FD<0 || Named=='Leia1' ? 1 : FD;  // layers to display
 
 // LENIA PARAMS ////////////////////////////////////////////////////////////////
 
-const RD     = GetIntParam('RD', 13);  // neighbourhood radius
+const RD     = GetIntParam('RD', 10);  // neighbourhood radius
 const DT     = GetIntParam('DT',  5);  // time step = 1/DT
 const Specie = GetIntParam('specie', 11);  // species rules preset
 const QQ     = GetIntParam('qq', 0);  // some temp param
