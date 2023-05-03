@@ -23,7 +23,7 @@ gl.canvas.onmousedown = function(e) {
   else if(e.which===3) {  // right click
     console.log('xy=('+mouseX+' '+mouseY+'):');
     gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffers[T0]);
-    for(var z=0; z<FDD; z++) {
+    for(var z=0; z<FD; z++) {
       gl.readBuffer(gl.COLOR_ATTACHMENT0 + z);
       gl.readPixels(0, 0, FW, FH, gldata_Format, gldata_Type, F);
       var cell = GetCell(mouseX, mouseY, 0);

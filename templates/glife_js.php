@@ -82,6 +82,7 @@ class GLifeJS {
     else if($fm->mode=='FLD')  $spacetime = "<script src='/js/FLD/spacetime.js$jsget'></script>";
     else if($fm->mode=='XCH')  $spacetime = "<script src='/js/XCH/spacetime.js$jsget'></script>";
     else if($fm->mode=='FHP')  $spacetime = "<script src='/js/FHP/spacetime.js$jsget'></script>";
+    else if($fm->name=='Monia')$spacetime = "<script src='/js/LFL/Monia/spacetime.js$jsget'></script>";
     else if($fm->mode=='LFL')  $spacetime = "<script src='/js/LFL/spacetime.js$jsget'></script>";
     
          if($prefnm=='LTX')    $physics = "<script src='/js/LFL/LTX/physics.js$jsget'></script>";
@@ -99,6 +100,7 @@ class GLifeJS {
     else if($named4=='Leia')   $dynamics = "<script src='/js/LFL/CNSRV/dynamics.js$jsget'></script>";
     else if($prefnm=='LTX')    $dynamics = "<script src='/js/LFL/LTX/dynamics.js$jsget'></script>";
     else if($prefnm=='Test4')  $dynamics = "<script src='/js/LFL/Tests/dynamics4.js$jsget'></script>";
+    else if($fm->name=='Monia')$dynamics = "<script src='/js/LFL/Monia/dynamics.js$jsget'></script>";
     else if($fm->mode=='LFL')  $dynamics = "<script src='/js/LFL/dynamics.js$jsget'></script>";
     else                       $dynamics = "<script src='/js/!default/dynamics.js$jsget'></script>";
     
