@@ -159,28 +159,30 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     fieldSize = textureSize(u_fieldtexture, 0);
     tex3coord = ivec3(v_texcoord, 0);
     
-    const vec3 masses = vec3(1, 1, 1);  // masses of r, g, b substances
+    const vec3 masses = vec3(1, 2, 4);  // masses of r, g, b substances
     const float d = 1.;  // size of cell's side
-    const float l = 1.;  // size of transferred area (normally l=d; while l>d means temperature-like spraying)
     const float d2 = d / 2.;
-    const float l2 = l / 2.;
-    const float dd = d * d;
-    const float ll = l * l;
     
     vec4 new_am = vec4(0);  // r, g, b, a=total_mass
     vec4 new_cv = vec4(0);
     for(int dx=-1; dx<=1; dx++) {
       for(int dy=-1; dy<=1; dy++) {
+        vec4 am = GetCell(dx, dy, 0);  // r, g, b - masses of substances
         vec4 cv = GetCell(dx, dy, 1);  // cx, cy, vx, vy
+        
+        float summ = am.r + am.g + am.b;
+        float l = 1. + (summ>3. ? summ/100. : 0.);  // size of transferred area (normally l=d; while l>d means temperature-like spraying)
+        float l2 = l / 2.;
+        float ll = l * l;
+        
         vec2 qm = vec2(dx, dy) * d + cv.xy + cv.zw;  // transferring square center of mass
         vec4 Q = vec4(qm - l2, qm + l2);  // transferring square borders
         vec4 B = clamp(Q, -d2, d2);  // transferring square borders clipped to the cell
         float S = (B.z - B.x) * (B.w - B.y);  // transferred area
         if(S==0.) continue;
         vec2 Cm = (B.xy + B.zw) / 2.;  // transferred area center of mass
-        float Sd = S / dd;  // percent of transferred area
+        float Sd = S / ll;  // percent of transferred area
         
-        vec4 am = GetCell(dx, dy, 0);  // r, g, b - masses of substances
         float mass0 = dot(masses, am.rgb);
         new_am += vec4(am.rgb, mass0) * Sd;
         new_cv += vec4(Cm, cv.zw) * mass0 * Sd;

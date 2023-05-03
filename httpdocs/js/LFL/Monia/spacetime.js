@@ -12,7 +12,7 @@ function InitialFiller() {
         var density = round( (1 - rr) * 10000 * LD );
         if(rndF(0,10000)<density) {
           SetCell(x, y, 0,  rndF(1,100)/100, rndF(1,100)/100, rndF(1,100)/100, 1);
-          SetCell(x, y, 1,  0, 0, (rndF(1,100)-rndF(1,100))/10000, (rndF(1,100)-rndF(1,100))/10000);
+          SetCell(x, y, 1,  0, 0, (rndF(1,100)-rndF(1,100))/500, (rndF(1,100)-rndF(1,100))/500);
         }
       }
     }
