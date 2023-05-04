@@ -330,7 +330,29 @@ function Stats(force=false) {
       if(!qq[z][qx]) qq[z][qx] = [];
       for(var y=0; y<FH; y++) {
         
-        if(Mode=='LFL') {
+        if(Family=='Monia') {
+          var fulal = 0.7;  // considered filly alive
+          var c0 = GetCell(x, y, 0);
+          var c1 = GetCell(x, y, 1);
+          if(z==0) {
+            graphnums[graphstep][z][0] += c0.r>=fulal || c0.g>=fulal || c0.b>=fulal ? 1 : 0;
+            graphnums[graphstep][z][1] += c0.r>=fulal ? 1 : 0;
+            graphnums[graphstep][z][2] += c0.g>=fulal ? 1 : 0;
+            graphnums[graphstep][z][3] += c0.b>=fulal ? 1 : 0;
+            if(c0.r>=fulal || c0.g>=fulal || c0.b>=fulal) rec[S1].livecells[z] ++;
+          }
+          else if(z==1) {
+            graphnums[graphstep][z][1] += c0.r / fulal;
+            graphnums[graphstep][z][2] += c0.g / fulal;
+            graphnums[graphstep][z][3] += c0.b / fulal;
+          }
+          else if(z==2) {
+            graphnums[graphstep][z][0] += 0.1 + 50 * c0.a * c1.b;  // 1 + momentum.x
+            graphnums[graphstep][z][1] += 0.1 + 50 * c0.a * c1.a;  // 1 + momentum.y
+          }
+          continue;
+        }
+        else if(Mode=='LFL') {
           var fulal = 0.7;  // considered filly alive
           var c0 = GetCell(x, y, 0);
           if(z==0) {
