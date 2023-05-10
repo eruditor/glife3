@@ -1,7 +1,5 @@
 var fs_ExtractRGBA = ``;
 
-var MS = [1, 2, 4];
-
 function CalcFragmentShaderSource(Uniforms4Ruleset) {
   return `
   precision highp float;
@@ -161,30 +159,19 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     return rgb;
   }
   
-  const vec3 masses = vec3(`+MS[0]+`, `+MS[1]+`, `+MS[2]+`);  // masses of r, g, b substances
-  
-  const float hp_spread = 0.1;
-  const float hp_transf = 0.1;
-  const float heatvc = 0.01;  // heat spreading velocity
-  const float heatvc2 = heatvc * heatvc;
-  
+  const vec3 masses = vec3(1, 2, 4);  // masses of r, g, b substances
   const float D = 1.;  // size of cell's side
   const float D2 = D / 2.;
   
   vec4 am0, cv0, dd0;
   vec2 drain8mc;
   vec4 Drain8(int dx, int dy, float kk) {
-    vec4 am = GetCell(dx, dy, 0);  am.a = dot(masses, am.rgb);
+    vec4 am = GetCell(dx, dy, 0);
     vec4 cv = GetCell(dx, dy, 1);
     vec4 dd = GetCell(dx, dy, 2);
-    
     vec4 drain8 = clamp( (dd0 - dd)/kk, -abs(am0/kk), abs(am/kk) );  // am0 can drain from am no more than am has
-    
-    float d8m = dot(masses, drain8.rgb);
-    vec2 dcv = d8m>0. ? cv.zw : cv0.zw;
-    drain8mc = d8m * dcv;  // momentum
-    drain8.a = d8m * dot(dcv,dcv);  // energy
-    
+    drain8.a = dot(masses, drain8.rgb);
+    drain8mc = drain8.a * (drain8.a>0. ? cv.zw : cv0.zw);
     return drain8;
   }
   
@@ -195,48 +182,9 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     uint stage = u_nturn % 3u;
     if(stage==0u) {
       vec3 rgb = CalcGrown();
-      
-      vec4 new_am = vec4(0);  // (r, g, b); a = internal/kinetic energy
-      vec4 new_cv = vec4(0);
-      float new_m = 0.;  // total mass
-      float f;
-      for(int dx=-1; dx<=1; dx++) {
-        for(int dy=-1; dy<=1; dy++) {
-          vec4 am = GetCell(dx, dy, 0);  // r, g, b - amounts of substances
-          vec4 cv = GetCell(dx, dy, 1);  // cx, cy, vx, vy
-          
-          if(dx==0 && dy==0)  { f = -1.;  am0 = am;  cv0 = cv; }
-          else                { f = 1./8.; }
-          
-          if(am.a<=0.) continue;  // cooling only positive internal energy
-          
-          float m = dot(masses, am.rgb);
-          if(m<=0.) continue;  // cooling only when matter exists (what to do with energized empty space?)
-          
-          float hmass = hp_spread * am.a / heatvc2;  // mass to spread with heat in all 8 directions
-          float hmassp = clamp(hmass / m, 0., 0.5);  // percent of mass to spread out
-          vec3 spread = f * am.rgb * hmassp;  // rgb to spread out (a lot of free parameters here)
-          
-          float hener = hp_transf * f * am.a;  // internal energy to transfer
-          
-          float tmass = dot(masses, spread.rgb);  // transferred mass
-          new_am += vec4(spread, tmass*heatvc2 + hener);
-          new_cv.zw += tmass * heatvc * vec2(-dx, -dy);  // sum M*V (momentum), then divide by mass = velocity
-        }
-      }
-      vec4 am1 = am0 + new_am;
-      float m0 = dot(masses, am0.rgb);
-      float m1 = dot(masses, am1.rgb);
-      
-      vec4 cv1;
-      cv1.xy = cv0.xy;  // center of mass stays the same
-      cv1.zw = m1>0. ? (m0 * cv0.zw + new_cv.zw) / m1 : vec2(0);  // speed = sum(momentum) / mass
-      
-      am1.a += m0*dot(cv0.zw,cv0.zw) - m1*dot(cv1.zw,cv1.zw);  // internal energy
-      
-      glFragColor[0] = am1;  // self
-      glFragColor[1] = cv1;  // GetCell(0, 0, 1)
-      glFragColor[2] = vec4(rgb - self.rgb, 0);  // Delta
+      glFragColor[0] = self;
+      glFragColor[1] = GetCell(0, 0, 1);
+      glFragColor[2] = vec4(rgb - self.rgb, 0.8);  // Delta
     }
     else if(stage==1u) {
       am0 = GetCell( 0, 0, 0);
@@ -255,37 +203,29 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       sum8 += Drain8(-1,  0,  6.);  mc8 += drain8mc;
       
       vec4 am1 = am0 + sum8;
-      float m0 = dot(masses, am0.rgb);
-      float m1 = dot(masses, am1.rgb);
-      
-      vec4 cv1;
-      cv1.xy = cv0.xy;  // center of mass stays the same
-      cv1.zw = m1>0. ? (m0 * cv0.zw + mc8) / m1 : vec2(0);  // speed = sum(momentum) / mass
-      
-      am1.a += m0*dot(cv0.zw,cv0.zw) - m1*dot(cv1.zw,cv1.zw);  // internal energy
+      vec4 cv1 = cv0;
+      if(am1.a!=0.) cv1.zw = (am0.a * cv0.zw + mc8) / am1.a;
       
       glFragColor[0] = am1;
       glFragColor[1] = cv1;
       glFragColor[2] = dd0;
-      
-      //glFragColor[0] = am0;  glFragColor[1] = cv0;  glFragColor[2] = dd0;
     }
     else if(stage==2u) {
-      vec4 new_am = vec4(0);  // (r, g, b); a = internal/kinetic energy
+      vec4 new_am = vec4(0);  // r, g, b, a=total_mass
       vec4 new_cv = vec4(0);
-      float new_m = 0.;  // total mass
       for(int dx=-1; dx<=1; dx++) {
         for(int dy=-1; dy<=1; dy++) {
           vec4 am = GetCell(dx, dy, 0);  // r, g, b - amounts of substances
           vec4 cv = GetCell(dx, dy, 1);  // cx, cy, vx, vy
-          if(dx==0 && dy==0) am0 = am;
           
           float lplus = 0.;
           
           float summ = am.r + am.g + am.b;
           lplus += (summ>3. ? summ/100. : 0.);
+          
           float l = 1. + lplus;  // size of transferred area (normally l=D; while l>D means temperature-like spraying)
-          float l2 = l / 2., ll = l * l;
+          float l2 = l / 2.;
+          float ll = l * l;
           
           vec2 qm = vec2(dx, dy) * D + cv.xy + cv.zw;  // transferring square center of mass
           vec4 Q = vec4(qm - l2, qm + l2);  // transferring square borders
@@ -295,14 +235,12 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
           vec2 Cm = (B.xy + B.zw) / 2.;  // transferred area center of mass
           float Sd = S / ll;  // percent of transferred area
           
-          float tmass = dot(masses, am.rgb) * Sd;  // transferred mass
-          new_am += vec4(am.rgb * Sd, tmass * dot(cv.zw,cv.zw));
-          new_cv += vec4(Cm, cv.zw) * tmass;  // sum M*R and M*V (momentum), then divide by mass = CM and velocity
-          new_m += tmass;
+          float mass0 = dot(masses, am.rgb);
+          new_am += vec4(am.rgb, mass0) * Sd;
+          new_cv += vec4(Cm, cv.zw) * mass0 * Sd;
         }
       }
-      new_cv = new_m>0. ? new_cv / new_m : vec4(0);
-      new_am.a += am0.a - new_m*dot(new_cv.zw,new_cv.zw);
+      if(new_am.a>0.) new_cv = new_cv / new_am.a;
       
       glFragColor[0] = new_am;
       glFragColor[1] = new_cv;

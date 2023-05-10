@@ -253,6 +253,7 @@ function DrawRules(full=false) {
 // INIT STATS ////////////////////////////////////////////////////////////////
 
 var nGen = 1;  // number of generations produced in random-search
+var nErr = 0;  // number of errors
 
 function InitStats() {
   nturn = 0;  nturn0 = 0;
@@ -334,6 +335,11 @@ function Stats(force=false) {
           var fulal = 0.7;  // considered filly alive
           var c0 = GetCell(x, y, 0);
           var c1 = GetCell(x, y, 1);
+          if(Number.isNaN(c0.a) || Number.isNaN(c1.b) || Number.isNaN(c1.a)) {
+            if(nErr<10) console.log(nErr, 'NaN:', nturn, x, y, ':', c0.a, c1.b, c1.a);
+            nErr ++;
+            continue;
+          }
           if(z==0) {
             graphnums[graphstep][z][0] += c0.r>=fulal || c0.g>=fulal || c0.b>=fulal ? 1 : 0;
             graphnums[graphstep][z][1] += c0.r>=fulal ? 1 : 0;
@@ -347,8 +353,11 @@ function Stats(force=false) {
             graphnums[graphstep][z][3] += c0.b / fulal;
           }
           else if(z==2) {
-            graphnums[graphstep][z][0] += 0.1 + 50 * c0.a * c1.b;  // 1 + momentum.x
-            graphnums[graphstep][z][1] += 0.1 + 50 * c0.a * c1.a;  // 1 + momentum.y
+            var mass = c0.r*MS[0] + c0.g*MS[1] + c0.b*MS[2];  // total mass
+            graphnums[graphstep][z][1] += 0.1 + 50 * mass * c1.b;  // 1 + momentum.x
+            graphnums[graphstep][z][2] += 0.1 + 50 * mass * c1.a;  // 1 + momentum.y
+            graphnums[graphstep][z][3] += mass * (sqr(c1.b) + sqr(c1.a));  // kinetic energy
+            graphnums[graphstep][z][0] += mass * (sqr(c1.b) + sqr(c1.a)) + c0.a;  // total energy
           }
           continue;
         }
