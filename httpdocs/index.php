@@ -15,6 +15,10 @@ glUser::GetFromCookies();
 $echo = Router::IncludeURL();
 Page::$main .= $echo;
 
+if(glUser::$user && glUser::$user->id==1) {
+  Page::$main .= print_var($_SERVER['HTTP_REFERER']);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 Page::Make();
