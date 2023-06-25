@@ -91,11 +91,11 @@ function CreateNavButtons() {
   `;
   
   function htk_keyUp(e) {  //e.ctrlKey
-         if(e.key=='p') { Pause(); }
-    else if(e.key=='o') { Calc(1);  Show(1);  Stats(1); }
+         if(e.key=='p' || e.key=='з') { Pause(); }
+    else if(e.key=='o' || e.key=='щ') { Calc(1);  Show(1);  Stats(1); }
+    else if(e.key=='r' || e.key=='к') { if(confirm("ReField?")) { ReInitSeeds(true); Init(); } }
     else if(e.key=='-') { Speed(-1); }
     else if(e.key=='=') { Speed( 1); }
-    else if(e.key=='r') { if(confirm("ReField?")) { ReInitSeeds(true); Init(); } }
   }
   document.addEventListener('keydown', htk_keyUp);
   

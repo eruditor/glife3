@@ -165,25 +165,43 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
   
   const float hp_spread = 0.01;
   const float hp_transf = 0.01;
-  const float heatvc = 0.01;  // heat spreading velocity
+  const float heatvc = 0.1;  // heat spreading velocity
   const float heatvc2 = heatvc * heatvc;
   
   const float D = 1.;  // size of cell's side
   const float D2 = D / 2.;
   
+  vec3 clampx(vec3 x, vec3 i, vec3 a) { return clamp(x, min(i,a), max(i,a)); }
+  vec4 clampx(vec4 x, vec4 i, vec4 a) { return clamp(x, min(i,a), max(i,a)); }
+  
   vec4 am0, cv0, dd0;
   vec2 drain8mc;
   vec4 Drain8(int dx, int dy, float kk) {
-    vec4 am = GetCell(dx, dy, 0);  am.a = dot(masses, am.rgb);
+    vec4 am = GetCell(dx, dy, 0);
     vec4 cv = GetCell(dx, dy, 1);
     vec4 dd = GetCell(dx, dy, 2);
     
-    vec4 drain8 = clamp( (dd0 - dd)/kk, -abs(am0/kk), abs(am/kk) );  // am0 can drain from am no more than am has
+    vec4 drain8 = clampx( (dd0-dd)/kk, -am0/kk, am/kk );  // am0 can drain from am no more than am has
+    
+    float de = drain8.a;  // internal energy to spread
     
     float d8m = dot(masses, drain8.rgb);
     vec2 dcv = d8m>0. ? cv.zw : cv0.zw;
     drain8mc = d8m * dcv;  // momentum
     drain8.a = d8m * dot(dcv,dcv);  // energy
+    
+    if(true && de!=0.) {
+      float hmass = de/kk / heatvc2;  // mass to spread with heat in all 8 directions
+      vec3 spread = 0.5 * hmass * vec3(1./3.) / masses;  // rgb to spread out (a lot of free parameters here)
+      vec3 spread8 = clampx( spread, -(am0.rgb/kk+drain8.rgb), (am.rgb/kk-drain8.rgb) );
+      
+      float tmass = dot(masses, spread8);  // transferred mass
+      drain8.rgb += spread8;
+      drain8.a += tmass*heatvc2 + 0.5 * de/kk;
+      
+      vec2 tt = vec2(-dx, -dy);  // direction of transfer
+      drain8mc += tmass * heatvc * tt/length(tt);
+    }
     
     return drain8;
   }
@@ -194,6 +212,14 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     
     uint stage = u_nturn % 3u;
     if(stage==0u) {
+     if(true) {
+      vec3 rgb = CalcGrown();
+      
+      glFragColor[0] = self;
+      glFragColor[1] = GetCell(0, 0, 1);
+      glFragColor[2] = vec4(rgb - self.rgb, -self.a);  // Delta
+      
+      /*
       vec3 rgb = CalcGrown();
       
       vec4 new_am = vec4(0);  // (r, g, b); a = internal/kinetic energy
@@ -240,6 +266,13 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       glFragColor[0] = am1;  // self
       glFragColor[1] = cv1;  // GetCell(0, 0, 1)
       glFragColor[2] = vec4(rgb - self.rgb, 0);  // Delta
+      */
+     }
+     else {
+      glFragColor[0] = GetCell( 0, 0, 0);
+      glFragColor[1] = GetCell( 0, 0, 1);
+      glFragColor[2] = GetCell( 0, 0, 2);
+     }
     }
     else if(stage==1u) {
       am0 = GetCell( 0, 0, 0);

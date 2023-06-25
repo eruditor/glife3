@@ -354,10 +354,14 @@ function Stats(force=false) {
           }
           else if(z==2) {
             var mass = c0.r*MS[0] + c0.g*MS[1] + c0.b*MS[2];  // total mass
-            graphnums[graphstep][z][1] += 0.1 + 50 * mass * c1.b;  // 1 + momentum.x
-            graphnums[graphstep][z][2] += 0.1 + 50 * mass * c1.a;  // 1 + momentum.y
+            graphnums[graphstep][z][1] += 0.2 + 50 * mass * c1.b;  // 1 + momentum.x
+            graphnums[graphstep][z][2] += 0.2 + 50 * mass * c1.a;  // 1 + momentum.y
             graphnums[graphstep][z][3] += mass * (sqr(c1.b) + sqr(c1.a));  // kinetic energy
             graphnums[graphstep][z][0] += mass * (sqr(c1.b) + sqr(c1.a)) + c0.a;  // total energy
+            if(mass * c1.a < -0.7) {
+              if(nErr<10) console.log(nErr, 'vcy<-1:', nturn, x, y, ':', mass * c1.a, mass, c1.b, c1.a);
+              nErr ++;
+            }
           }
           continue;
         }
