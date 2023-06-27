@@ -323,6 +323,7 @@ function Stats(force=false) {
   graphstep ++;
   
   graphnums[graphstep] = [];
+  var minmx = 0;
   for(var z=0; z<FD; z++) {
     qq[z] = [];
     graphnums[graphstep][z] = [];  for(v=0; v<RB; v++) { graphnums[graphstep][z][v] = 0;  tmp[v] = 0; }
@@ -354,12 +355,13 @@ function Stats(force=false) {
           }
           else if(z==2) {
             var mass = c0.r*MS[0] + c0.g*MS[1] + c0.b*MS[2];  // total mass
-            graphnums[graphstep][z][1] += 0.2 + 50 * mass * c1.b;  // 1 + momentum.x
-            graphnums[graphstep][z][2] += 0.2 + 50 * mass * c1.a;  // 1 + momentum.y
+            graphnums[graphstep][z][1] += 0.03 + 50 * mass * c1.b;  // 1 + momentum.x
+            graphnums[graphstep][z][2] += 0.03 + 50 * mass * c1.a;  // 1 + momentum.y
             graphnums[graphstep][z][3] += mass * (sqr(c1.b) + sqr(c1.a));  // kinetic energy
             graphnums[graphstep][z][0] += mass * (sqr(c1.b) + sqr(c1.a)) + c0.a;  // total energy
+            if(minmx>mass) minmx = mass;
             if(mass * c1.a < -0.7) {
-              if(nErr<10) console.log(nErr, 'vcy<-1:', nturn, x, y, ':', mass * c1.a, mass, c1.b, c1.a);
+              if(nErr<10) console.log(nErr, 'vcy<<0:', nturn, x, y, ':', mass * c1.a, mass, c1.b, c1.a);
               nErr ++;
             }
           }
@@ -426,6 +428,8 @@ function Stats(force=false) {
       }
     }
   }
+  
+  //if(minmx) console.log('minmx=', minmx);
   
   // plotting graphs
   var StatGraphFuncFWFH = StatGraphFunc(FW*FH);

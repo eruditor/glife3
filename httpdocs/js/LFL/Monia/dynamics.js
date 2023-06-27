@@ -174,6 +174,19 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
   vec3 clampx(vec3 x, vec3 i, vec3 a) { return clamp(x, min(i,a), max(i,a)); }
   vec4 clampx(vec4 x, vec4 i, vec4 a) { return clamp(x, min(i,a), max(i,a)); }
   
+  vec3 IntersectSquares(vec2 dxdy, vec2 cm, vec2 vc, float l) {
+    float l2 = l / 2., ll = l * l;
+          
+    vec2 qm = dxdy * D + cm + vc;  // transferring square center of mass
+    vec4 Q = vec4(qm - l2, qm + l2);  // transferring square borders
+    vec4 B = clamp(Q, -D2, D2);  // transferring square borders clipped to the cell
+    float S = (B.z - B.x) * (B.w - B.y);  // transferred area
+    float Sd = S / ll;  // percent of transferred area
+    vec2 Cm = (B.xy + B.zw) / 2.;  // transferred area center of mass
+    
+    return vec3(Cm, Sd);
+  }
+  
   vec4 am0, cv0, dd0;
   vec2 drain8mc;
   vec4 Drain8(int dx, int dy, float kk) {
@@ -190,17 +203,18 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     drain8mc = d8m * dcv;  // momentum
     drain8.a = d8m * dot(dcv,dcv);  // energy
     
-    if(true && de!=0.) {
-      float hmass = de/kk / heatvc2;  // mass to spread with heat in all 8 directions
+    if(false && de!=0.) {
+      float hmass = de / heatvc2;  // mass to spread with heat in all 8 directions
       vec3 spread = 0.5 * hmass * vec3(1./3.) / masses;  // rgb to spread out (a lot of free parameters here)
       vec3 spread8 = clampx( spread, -(am0.rgb/kk+drain8.rgb), (am.rgb/kk-drain8.rgb) );
       
       float tmass = dot(masses, spread8);  // transferred mass
       drain8.rgb += spread8;
-      drain8.a += tmass*heatvc2 + 0.5 * de/kk;
+      drain8.a += tmass*heatvc2 + 0.5 * de;
       
       vec2 tt = vec2(-dx, -dy);  // direction of transfer
-      drain8mc += tmass * heatvc * tt/length(tt);
+      tt /= length(tt);
+      drain8mc += tmass * heatvc * tt;
     }
     
     return drain8;
@@ -217,7 +231,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       
       glFragColor[0] = self;
       glFragColor[1] = GetCell(0, 0, 1);
-      glFragColor[2] = vec4(rgb - self.rgb, -self.a);  // Delta
+      glFragColor[2] = vec4(rgb - self.rgb, -self.a);  // requested change
       
       /*
       vec3 rgb = CalcGrown();
@@ -324,21 +338,40 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
           float summ = am.r + am.g + am.b;
           lplus += (summ>3. ? summ/100. : 0.);
           float l = 1. + lplus;  // size of transferred area (normally l=D; while l>D means temperature-like spraying)
-          float l2 = l / 2., ll = l * l;
           
-          vec2 qm = vec2(dx, dy) * D + cv.xy + cv.zw;  // transferring square center of mass
-          vec4 Q = vec4(qm - l2, qm + l2);  // transferring square borders
-          vec4 B = clamp(Q, -D2, D2);  // transferring square borders clipped to the cell
-          float S = (B.z - B.x) * (B.w - B.y);  // transferred area
-          if(S==0.) continue;
-          vec2 Cm = (B.xy + B.zw) / 2.;  // transferred area center of mass
-          float Sd = S / ll;  // percent of transferred area
+          float M = dot(masses, am.rgb);  if(M==0.) continue;
+          float V = length(cv.zw);        //if(V==0.) continue;  // @ if l>D then V can be 0
+          
+          float M2 = M/2.;
+          
+          vec2 VE = V>0. && am.a>0. ? cv.zw / V * sqrt(am.a/M) : vec2(0);  // velocity of one half due to free energy
+          
+          //VE = vec2(0);
+          //VE = VE * 0.1;
+          
+          
+          vec2 ve1 = cv.zw+vec2(-VE.y, VE.x);  vec3 CmSd1 = IntersectSquares(vec2(dx,dy), cv.xy, ve1, l);
+          vec2 ve2 = cv.zw+vec2( VE.y,-VE.x);  vec3 CmSd2 = IntersectSquares(vec2(dx,dy), cv.xy, ve2, l);
+          
+          float Sd = (CmSd1.z + CmSd2.z) / 2.;
+          float tmass = M * Sd;  // transferred mass
+          new_am += vec4(am.rgb,0) * Sd;  // transfer matter and energy
+          new_am.a += M2 * ( CmSd1.z * dot(ve1,ve1) + CmSd2.z * dot(ve2,ve2) );
+          new_cv += M2 * ( CmSd1.z * vec4(CmSd1.xy, ve1) + CmSd2.z * vec4(CmSd2.xy, ve2) );  // sum M*R and M*V (momentum), then divide by mass = CM and velocity
+          new_m += tmass;
+          
+          
+          /*
+          vec3 CmSd = IntersectSquares(vec2(dx,dy), cv.xy, cv.zw, l);
+          vec2 Cm = CmSd.xy;  float Sd = CmSd.z;
+          if(Sd==0.) continue;
           
           float tmass = dot(masses, am.rgb) * Sd;  // transferred mass
           new_am += am * Sd;  // transfer matter and energy
           new_am.a += tmass * dot(cv.zw,cv.zw);
           new_cv += vec4(Cm, cv.zw) * tmass;  // sum M*R and M*V (momentum), then divide by mass = CM and velocity
           new_m += tmass;
+          */
         }
       }
       new_cv = new_m>0. ? new_cv / new_m : vec4(0);
