@@ -59,10 +59,10 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
     else if(z==1 && v==1) return {'r':250, 'g':150, 'b':150};  // light-green
     else if(z==1 && v==2) return {'r':150, 'g':250, 'b':150};  // light-blue
     else if(z==1 && v==3) return {'r':150, 'g':150, 'b':250};  // light-green
-    else if(z==2 && v==0) return {'r':250, 'g':250, 'b':250};  // white
-    else if(z==2 && v==1) return {'r':250, 'g':  0, 'b':250};  // magenta
-    else if(z==2 && v==2) return {'r':  0, 'g':250, 'b':250};  // cyan
-    else if(z==2 && v==3) return {'r':250, 'g':250, 'b':  0};  // yellow
+    else if(z==2 && v==0) return {'r':250, 'g':  0, 'b':250};  // magenta
+    else if(z==2 && v==1) return {'r':  0, 'g':250, 'b':250};  // cyan
+    else if(z==2 && v==2) return {'r':250, 'g':250, 'b':  0};  // yellow
+    else if(z==2 && v==3) return {'r':250, 'g':250, 'b':250};  // white
     return {'r':  0, 'g':  0, 'b':  0};
   }
   

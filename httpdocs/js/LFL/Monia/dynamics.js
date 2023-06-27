@@ -163,16 +163,8 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
   
   const vec3 masses = vec3(`+MS[0]+`, `+MS[1]+`, `+MS[2]+`);  // masses of r, g, b substances
   
-  const float hp_spread = 0.01;
-  const float hp_transf = 0.01;
-  const float heatvc = 0.1;  // heat spreading velocity
-  const float heatvc2 = heatvc * heatvc;
-  
   const float D = 1.;  // size of cell's side
   const float D2 = D / 2.;
-  
-  vec3 clampx(vec3 x, vec3 i, vec3 a) { return clamp(x, min(i,a), max(i,a)); }
-  vec4 clampx(vec4 x, vec4 i, vec4 a) { return clamp(x, min(i,a), max(i,a)); }
   
   vec3 IntersectSquares(vec2 dxdy, vec2 cm, vec2 vc, float l) {
     float l2 = l / 2., ll = l * l;
@@ -187,6 +179,9 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     return vec3(Cm, Sd);
   }
   
+  vec3 clampx(vec3 x, vec3 i, vec3 a) { return clamp(x, min(i,a), max(i,a)); }
+  vec4 clampx(vec4 x, vec4 i, vec4 a) { return clamp(x, min(i,a), max(i,a)); }
+  
   vec4 am0, cv0, dd0;
   vec2 drain8mc;
   vec4 Drain8(int dx, int dy, float kk) {
@@ -196,26 +191,10 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     
     vec4 drain8 = clampx( (dd0-dd)/kk, -am0/kk, am/kk );  // am0 can drain from am no more than am has
     
-    float de = drain8.a;  // internal energy to spread
-    
     float d8m = dot(masses, drain8.rgb);
     vec2 dcv = d8m>0. ? cv.zw : cv0.zw;
     drain8mc = d8m * dcv;  // momentum
     drain8.a = d8m * dot(dcv,dcv);  // energy
-    
-    if(false && de!=0.) {
-      float hmass = de / heatvc2;  // mass to spread with heat in all 8 directions
-      vec3 spread = 0.5 * hmass * vec3(1./3.) / masses;  // rgb to spread out (a lot of free parameters here)
-      vec3 spread8 = clampx( spread, -(am0.rgb/kk+drain8.rgb), (am.rgb/kk-drain8.rgb) );
-      
-      float tmass = dot(masses, spread8);  // transferred mass
-      drain8.rgb += spread8;
-      drain8.a += tmass*heatvc2 + 0.5 * de;
-      
-      vec2 tt = vec2(-dx, -dy);  // direction of transfer
-      tt /= length(tt);
-      drain8mc += tmass * heatvc * tt;
-    }
     
     return drain8;
   }
@@ -226,74 +205,17 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     
     uint stage = u_nturn % 3u;
     if(stage==0u) {
-     if(true) {
       vec3 rgb = CalcGrown();
       
       glFragColor[0] = self;
       glFragColor[1] = GetCell(0, 0, 1);
-      glFragColor[2] = vec4(rgb - self.rgb, -self.a);  // requested change
-      
-      /*
-      vec3 rgb = CalcGrown();
-      
-      vec4 new_am = vec4(0);  // (r, g, b); a = internal/kinetic energy
-      vec4 new_cv = vec4(0);
-      float new_m = 0.;  // total mass
-      float f;
-      for(int dx=-1; dx<=1; dx++) {
-        for(int dy=-1; dy<=1; dy++) {
-          vec4 am = GetCell(dx, dy, 0);  // r, g, b - amounts of substances
-          vec4 cv = GetCell(dx, dy, 1);  // cx, cy, vx, vy
-          
-          if(dx==0 && dy==0)  { f = -1.;  am0 = am;  cv0 = cv; }
-          else                { f = 1./8.; }
-          
-          if(am.a<=0.) continue;  // cooling only positive internal energy
-          
-          float m = dot(masses, am.rgb);
-          if(m<=0.) continue;  // cooling only when matter exists (what to do with energized empty space?)
-          
-          float hmass = hp_spread * am.a / heatvc2;  // mass to spread with heat in all 8 directions
-          float hmassp = clamp(hmass / m, 0., 0.5);  // percent of mass to spread out
-          vec3 spread = f * am.rgb * hmassp;  // rgb to spread out (a lot of free parameters here)
-          
-          float hener = hp_transf * f * am.a;  // internal energy to transfer
-          
-          float tmass = dot(masses, spread.rgb);  // transferred mass
-          new_am += vec4(spread, tmass*heatvc2 + hener);
-          
-          vec2 dd = vec2(-dx, -dy);  // direction of transfer
-          float dl = length(dd);
-          if(dl>0.) new_cv.zw += tmass * heatvc * vec2(-dx, -dy)/dl;  // sum M*V (momentum), then divide by mass = velocity
-        }
-      }
-      vec4 am1 = am0 + new_am;
-      float m0 = dot(masses, am0.rgb);
-      float m1 = dot(masses, am1.rgb);
-      
-      vec4 cv1;
-      cv1.xy = cv0.xy;  // center of mass stays the same
-      cv1.zw = m1>0. ? (m0 * cv0.zw + new_cv.zw) / m1 : vec2(0);  // speed = sum(momentum) / mass
-      
-      am1.a += m0*dot(cv0.zw,cv0.zw) - m1*dot(cv1.zw,cv1.zw);  // internal energy
-      
-      glFragColor[0] = am1;  // self
-      glFragColor[1] = cv1;  // GetCell(0, 0, 1)
-      glFragColor[2] = vec4(rgb - self.rgb, 0);  // Delta
-      */
-     }
-     else {
-      glFragColor[0] = GetCell( 0, 0, 0);
-      glFragColor[1] = GetCell( 0, 0, 1);
-      glFragColor[2] = GetCell( 0, 0, 2);
-     }
+      glFragColor[2] = vec4(rgb - self.rgb, 0);  // requested change
     }
     else if(stage==1u) {
       am0 = GetCell( 0, 0, 0);
       cv0 = GetCell( 0, 0, 1);
       dd0 = GetCell( 0, 0, 2);
       
-     if(true) {
       vec4 sum8 = vec4(0);
       vec2 mc8 = vec2(0);
       sum8 += Drain8(-1, -1, 12.);  mc8 += drain8mc;
@@ -318,10 +240,6 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       glFragColor[0] = am1;
       glFragColor[1] = cv1;
       glFragColor[2] = dd0;
-     }
-     else {
-      glFragColor[0] = am0;  glFragColor[1] = cv0;  glFragColor[2] = dd0;
-     }
     }
     else if(stage==2u) {
       vec4 new_am = vec4(0);  // (r, g, b); a = internal/kinetic energy
@@ -344,11 +262,8 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
           
           float M2 = M/2.;
           
+          // excess of internal energy goes to splitting mass into two halves with slightly different speeds
           vec2 VE = V>0. && am.a>0. ? cv.zw / V * sqrt(am.a/M) : vec2(0);  // velocity of one half due to free energy
-          
-          //VE = vec2(0);
-          //VE = VE * 0.1;
-          
           
           vec2 ve1 = cv.zw+vec2(-VE.y, VE.x);  vec3 CmSd1 = IntersectSquares(vec2(dx,dy), cv.xy, ve1, l);
           vec2 ve2 = cv.zw+vec2( VE.y,-VE.x);  vec3 CmSd2 = IntersectSquares(vec2(dx,dy), cv.xy, ve2, l);
@@ -359,19 +274,6 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
           new_am.a += M2 * ( CmSd1.z * dot(ve1,ve1) + CmSd2.z * dot(ve2,ve2) );
           new_cv += M2 * ( CmSd1.z * vec4(CmSd1.xy, ve1) + CmSd2.z * vec4(CmSd2.xy, ve2) );  // sum M*R and M*V (momentum), then divide by mass = CM and velocity
           new_m += tmass;
-          
-          
-          /*
-          vec3 CmSd = IntersectSquares(vec2(dx,dy), cv.xy, cv.zw, l);
-          vec2 Cm = CmSd.xy;  float Sd = CmSd.z;
-          if(Sd==0.) continue;
-          
-          float tmass = dot(masses, am.rgb) * Sd;  // transferred mass
-          new_am += am * Sd;  // transfer matter and energy
-          new_am.a += tmass * dot(cv.zw,cv.zw);
-          new_cv += vec4(Cm, cv.zw) * tmass;  // sum M*R and M*V (momentum), then divide by mass = CM and velocity
-          new_m += tmass;
-          */
         }
       }
       new_cv = new_m>0. ? new_cv / new_m : vec4(0);
@@ -382,30 +284,9 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       glFragColor[2] = vec4(0);
     }
     
-    //glFragColor[0] = vec4(CalcGrown(), 1.);
-    
     `+(cfg.debug==-1?`glFragColor[0] = vec4(drawKernel(), 1.);`:``)+`
   }
   `;
 }
 var CalcProgram = createProgram4Frag(gl, CalcFragmentShaderSource(GetUniforms4Ruleset()), ["a_position", "u_fieldtexture", "u_nturn"]);
 //console.log(CalcFragmentShaderSource(GetUniforms4Ruleset()));
-
-// LEGACY ////////////////////////////////////////////////////////////////
-
-/*
-// first 2 frames are awfully slow on MacBook: https://stackoverflow.com/questions/28005206/gldrawarrays-first-few-calls-very-slow-using-my-shader-and-then-very-fast
-    ` + (() => {
-      var ret = '';
-      for(var x=1; x<RD; x++) {
-        for(var y=x+1; y<RD; y++) {
-          var r = Math.sqrt(x*x+y*y) / RD;
-          if(r>1) continue;
-          ret += 'weight = getWeight('+ParseTerminateFraction(r)+');';
-          ret += 'IncSum('+x+','+y+');IncSum('+x+',-'+y+');IncSum(-'+x+','+y+');IncSum(-'+x+',-'+y+');';
-          ret += 'IncSum('+y+','+x+');IncSum('+y+',-'+x+');IncSum(-'+y+','+x+');IncSum(-'+y+',-'+x+');\n';
-        }
-      }
-      return ret;
-    })() + `
-*/
