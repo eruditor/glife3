@@ -7,7 +7,7 @@ function InitialFiller() {
     SetCell(11, 2, 1,   0,   0, -0.1, 0.05);
   }
   else if(cfg.debug==2) {
-    SetCell( 5, 8, 0,   0,   0,  1.0,    0);
+    SetCell( 5, 8, 0,   0, 1.0,    0,    0);
     SetCell( 5, 8, 1,   0,   0,  0.1,    0);
   }
   else if(cfg.debug==3) {

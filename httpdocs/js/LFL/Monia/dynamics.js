@@ -12,7 +12,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
   #define R `+RD+`.
   #define iR `+RD+`
   #define iR1 `+(RD+1)+`
-  #define dT `+(1/DT)+`
+  #define dT `+ParseTerminateFraction(1/DT)+`
   
   #define eps 0.000001
   
@@ -44,10 +44,21 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     if(s<=0.) return 0.;
     float v = (x-m)/s;
     return exp(-v*v/2.);
-    //return exp( -(x-m)*(x-m) / s / s / 2. );  // order of operands in this multiplication affects the result!!!
+  }
+  
+  float logi1(float x, float m, float s) {
+    float v = (x-m)/s;
+    return 1./(1.+exp(-v));
   }
   
   float get1Weight(float r, int l) {
+    `+(Named=='Monia-Ximia1' ? `
+           if(l==0) return logi1(r, 0.1, 0.01) - logi1(r, 0.8, 0.01);
+      else if(l==1) return logi1(r, 0.8, 0.01) - logi1(r, 1.0, 0.01);
+      else if(l==2) return logi1(r, 0.6, 0.01) - logi1(r, 0.8, 0.01);
+      else if(l==3) return 1.0 - r;
+      else          return 0.;
+    ` : ``)+`
     float Br = betaLen[l] / relR[l] * r;
     int iBr = int(Br);
     float mod1 = fract(Br);
@@ -59,6 +70,17 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     float[`+LL+`] ret;
     `+IterateGLSLarray('ret[l] = get1Weight(r, lll);')+`
     return ret;
+  }
+  
+  float get1Growth(float v, int l) {
+    `+(Named=='Monia-Ximia1' ? `
+           if(l==0) return -2.*logi1(v, 0.1, 0.01);
+      else if(l==1) return logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.3, 0.01);  //return -0.5*logi1(v, 0.0, 0.01);
+      else if(l==2) return logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.3, 0.01);
+      else if(l==3) return bell1(v, 0.2, 0.1);  //logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.5, 0.01);
+      else          return 0.;
+    ` : ``)+`
+    return eta[l] * ( bell1(v, mu[l], sigma[l]) * 2. - 1. );
   }
   
   ////////////////////////////////////////////////////////////////
@@ -79,7 +101,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     if(ab.x>=0.94 || ab.y>=0.94) { rgb[dst[l]] = 1.;  return rgb; }
     if(xy.y<-0.84) {
       float t = (xy.x/0.94 + 1.) / 2.;
-      float gr = eta[l] * ( bell1(t, mu[l], sigma[l]) * 2. - 1. );
+      float gr = get1Growth(t, l);
       rgb = gr>0. ? vec3(gr, gr, 0) : vec3(0, -gr, -gr);
       return rgb;
     }
@@ -155,7 +177,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     
     vec3 growths = vec3(0);
     float avg;
-    `+IterateGLSLarray('avg = sum[l] / total[l];  growths[dst[l]] += eta[l] * ( bell1(avg, mu[l], sigma[l]) * 2. - 1. );')+`
+    `+IterateGLSLarray('avg = sum[l] / total[l];  growths[dst[l]] += get1Growth(avg, lll);')+`
     vec3 rgb = clamp(self.rgb + dT * growths, 0., 1.);
     
     return rgb;

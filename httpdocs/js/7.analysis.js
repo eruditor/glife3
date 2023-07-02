@@ -470,16 +470,16 @@ function Stats(force=false) {
   if(Mode=='LFL' && cfg.autore) {  // same for other modes is below
     var notinteresting = 0;
     var minc = 0.002*FW*FH;
-    var maxc = 0.05*FW*FH;
+    var maxc = 0.45*FW*FH;
     for(var c=1; c<=3; c++) {
-      if(graphnums[graphstep][0][c]<minc) notinteresting += 1;
-      if(graphnums[graphstep][0][c]>maxc) notinteresting += 100;
+      if(graphnums[graphstep][1][c]<minc) notinteresting += 1;
+      if(graphnums[graphstep][1][c]>maxc) notinteresting += 100;
     }
-    if(nturn>=500 || notinteresting) {
+    if(nturn>=50000 || (nturn>=500 && notinteresting)) {
       Pause(1);
-      console.log(notinteresting);
-      console.log(graphnums[graphstep][0]);
-      if(!notinteresting && cfg.autore==1) SaveGlifetri({'stopped_at':''});
+      console.log('notinteresting=',notinteresting);
+      console.log(graphnums[graphstep][1]);
+      //if(!notinteresting && cfg.autore==1) SaveGlifetri({'stopped_at':''});
       nGen ++;
       if(nGen>300) {
         ReloadPage();  // reloading page sometimes to refresh seeds and avoid potential locks

@@ -63,7 +63,7 @@ const Lstep  = 10;  // setting to 100 will break previously saved fseeds
 
 var Notaset  = GetStrParam('notaset');  // encoded or named rules
 if(Mutaset===undefined) var Mutaset = GetStrParam('mutaset');  // encoded mutation (thinner tuning of rules)
-var Named    = GetStrParam('named');
+var Named    = GetStrParam('glife');
 var Rseed    = GetIntParam('rseed');  // seed for PRNG (Rules)
 var Fseed    = GetIntParam('fseed');  // seed for PRNG (Field)
 
