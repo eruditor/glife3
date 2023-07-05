@@ -333,9 +333,10 @@ function Stats(force=false) {
       for(var y=0; y<FH; y++) {
         
         if(Family=='Monia') {
-          var fulal = 0.7;  // considered filly alive
+          var fulal = 0.4;  // considered filly alive
           var c0 = GetCell(x, y, 0);
           var c1 = GetCell(x, y, 1);
+          var c2 = GetCell(x, y, 2);
           if(Number.isNaN(c0.a) || Number.isNaN(c1.b) || Number.isNaN(c1.a)) {
             if(nErr<10) console.log(nErr, 'NaN:', nturn, x, y, ':', c0.a, c1.b, c1.a);
             nErr ++;
@@ -358,7 +359,7 @@ function Stats(force=false) {
             graphnums[graphstep][z][0] += 0.01 + 10 * mass * c1.b;  // 1 + momentum.x
             graphnums[graphstep][z][1] += 0.01 + 10 * mass * c1.a;  // 1 + momentum.y
             graphnums[graphstep][z][2] += mass * (sqr(c1.b) + sqr(c1.a));  // kinetic energy
-            graphnums[graphstep][z][3] += mass * (sqr(c1.b) + sqr(c1.a)) + c0.a;  // total energy
+            graphnums[graphstep][z][3] += mass * (sqr(c1.b) + sqr(c1.a)) + c2.a;  // total energy
             if(minmx>mass) minmx = mass;
             if(mass * c1.a < -0.7) {
               if(nErr<10) console.log(nErr, 'vcy<<0:', nturn, x, y, ':', mass * c1.a, mass, c1.b, c1.a);

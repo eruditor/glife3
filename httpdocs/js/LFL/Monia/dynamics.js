@@ -57,6 +57,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       else if(l==1) return logi1(r, 0.8, 0.01) - logi1(r, 1.0, 0.01);
       else if(l==2) return logi1(r, 0.6, 0.01) - logi1(r, 0.8, 0.01);
       else if(l==3) return 1.0 - r;
+      else if(l==4) return logi1(r, 0.4, 0.01) - logi1(r, 0.7, 0.01);
       else          return 0.;
     ` : ``)+`
     float Br = betaLen[l] / relR[l] * r;
@@ -78,6 +79,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       else if(l==1) return logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.3, 0.01);  //return -0.5*logi1(v, 0.0, 0.01);
       else if(l==2) return logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.3, 0.01);
       else if(l==3) return bell1(v, 0.2, 0.1);  //logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.5, 0.01);
+      else if(l==4) return logi1(v, 0.3, 0.01) - 3.*logi1(v, 0.5, 0.01);
       else          return 0.;
     ` : ``)+`
     return eta[l] * ( bell1(v, mu[l], sigma[l]) * 2. - 1. );
@@ -206,6 +208,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
   
   vec4 am0, cv0, dd0;
   vec2 drain8mc;
+  float drain8e;
   vec4 Drain8(int dx, int dy, float kk) {
     vec4 am = GetCell(dx, dy, 0);
     vec4 cv = GetCell(dx, dy, 1);
@@ -216,9 +219,31 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     float d8m = dot(masses, drain8.rgb);
     vec2 dcv = d8m>0. ? cv.zw : cv0.zw;
     drain8mc = d8m * dcv;  // momentum
-    drain8.a = d8m * dot(dcv,dcv);  // energy
+    drain8e = d8m * dot(dcv,dcv);  // energy
     
     return drain8;
+  }
+  
+  vec4 CalcGravity() {
+    cv0 = GetCell( 0, 0, 1);
+    vec4 cv = cv0;
+    
+    if(false) {
+      vec2 xy = vec2(`+round(FW/2)+` - tex3coord.x, `+round(FH/2)+` - tex3coord.y);
+      float r = length(xy);
+      float RR = `+round(FW/20)+`.;
+      
+      if(r==0.) {}
+      else if(r<RR) {  // repulsion
+        if(sign(cv.z)==sign(xy.x)) cv.z = -cv.z;
+        if(sign(cv.w)==sign(xy.y)) cv.w = -cv.w;
+      }
+      else {  // attraction
+        cv.zw += (xy/r) / r * 0.0001;
+      }
+    }
+    
+    return cv;
   }
   
   void main() {
@@ -230,24 +255,23 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       vec3 rgb = CalcGrown();
       
       glFragColor[0] = self;
-      glFragColor[1] = GetCell(0, 0, 1);
-      glFragColor[2] = vec4(rgb - self.rgb, 0);  // requested change
+      glFragColor[1] = CalcGravity();
+      glFragColor[2] = vec4(rgb - self.rgb, GetCell( 0, 0, 2).a);  // requested change
     }
     else if(stage==1u) {
       am0 = GetCell( 0, 0, 0);
       cv0 = GetCell( 0, 0, 1);
       dd0 = GetCell( 0, 0, 2);
       
-      vec4 sum8 = vec4(0);
-      vec2 mc8 = vec2(0);
-      sum8 += Drain8(-1, -1, 12.);  mc8 += drain8mc;
-      sum8 += Drain8( 0, -1,  6.);  mc8 += drain8mc;
-      sum8 += Drain8( 1, -1, 12.);  mc8 += drain8mc;
-      sum8 += Drain8( 1,  0,  6.);  mc8 += drain8mc;
-      sum8 += Drain8( 1,  1, 12.);  mc8 += drain8mc;
-      sum8 += Drain8( 0,  1,  6.);  mc8 += drain8mc;
-      sum8 += Drain8(-1,  1, 12.);  mc8 += drain8mc;
-      sum8 += Drain8(-1,  0,  6.);  mc8 += drain8mc;
+      vec4 sum8 = vec4(0);  vec2 mc8 = vec2(0);  float e8 = 0.;
+      sum8 += Drain8(-1, -1, 12.);  mc8 += drain8mc;  e8 += drain8e;
+      sum8 += Drain8( 0, -1,  6.);  mc8 += drain8mc;  e8 += drain8e;
+      sum8 += Drain8( 1, -1, 12.);  mc8 += drain8mc;  e8 += drain8e;
+      sum8 += Drain8( 1,  0,  6.);  mc8 += drain8mc;  e8 += drain8e;
+      sum8 += Drain8( 1,  1, 12.);  mc8 += drain8mc;  e8 += drain8e;
+      sum8 += Drain8( 0,  1,  6.);  mc8 += drain8mc;  e8 += drain8e;
+      sum8 += Drain8(-1,  1, 12.);  mc8 += drain8mc;  e8 += drain8e;
+      sum8 += Drain8(-1,  0,  6.);  mc8 += drain8mc;  e8 += drain8e;
       
       vec4 am1 = am0 + sum8;
       float m0 = dot(masses, am0.rgb);
@@ -257,21 +281,25 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       cv1.xy = cv0.xy;  // center of mass stays the same
       cv1.zw = m1>0. ? (m0 * cv0.zw + mc8) / m1 : vec2(0);  // speed = sum(momentum) / mass
       
-      am1.a += m0*dot(cv0.zw,cv0.zw) - m1*dot(cv1.zw,cv1.zw);  // internal energy
+      vec4 dd1 = dd0;
+      dd1.a += e8 + m0*dot(cv0.zw,cv0.zw) - m1*dot(cv1.zw,cv1.zw);  // internal energy
       
       glFragColor[0] = am1;
       glFragColor[1] = cv1;
-      glFragColor[2] = dd0;
+      glFragColor[2] = dd1;
     }
     else if(stage==2u) {
-      vec4 new_am = vec4(0);  // (r, g, b); a = internal/kinetic energy
+      vec4 new_am = vec4(0);
       vec4 new_cv = vec4(0);
+      vec4 new_dd = vec4(0);
       float new_m = 0.;  // total mass
+      float new_e = 0.;  // internal energy
       for(int dx=-1; dx<=1; dx++) {
         for(int dy=-1; dy<=1; dy++) {
           vec4 am = GetCell(dx, dy, 0);  // r, g, b - amounts of substances
           vec4 cv = GetCell(dx, dy, 1);  // cx, cy, vx, vy
-          if(dx==0 && dy==0) am0 = am;
+          vec4 dd = GetCell(dx, dy, 2);  // rgb=delta; a=internal_energy
+          if(dx==0 && dy==0) { am0 = am;  cv0 = cv;  dd0 = dd; }
           
           float lplus = 0.;
           
@@ -285,7 +313,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
           float M2 = M/2.;
           
           // excess of internal energy goes to splitting mass into two halves with slightly different speeds
-          vec2 VE = V>0. && am.a>0. ? cv.zw / V * sqrt(am.a/M) : vec2(0);  // velocity of one half due to free energy
+          vec2 VE = V>0. && dd.a>0. ? cv.zw / V * sqrt(dd.a/M) : vec2(0);  // velocity of one half due to free energy
           
           vec2 ve1 = cv.zw+vec2(-VE.y, VE.x);  vec3 CmSd1 = IntersectSquares(vec2(dx,dy), cv.xy, ve1, l);
           vec2 ve2 = cv.zw+vec2( VE.y,-VE.x);  vec3 CmSd2 = IntersectSquares(vec2(dx,dy), cv.xy, ve2, l);
@@ -293,17 +321,19 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
           float Sd = (CmSd1.z + CmSd2.z) / 2.;
           float tmass = M * Sd;  // transferred mass
           new_am += vec4(am.rgb,0) * Sd;  // transfer matter and energy
-          new_am.a += M2 * ( CmSd1.z * dot(ve1,ve1) + CmSd2.z * dot(ve2,ve2) );
           new_cv += M2 * ( CmSd1.z * vec4(CmSd1.xy, ve1) + CmSd2.z * vec4(CmSd2.xy, ve2) );  // sum M*R and M*V (momentum), then divide by mass = CM and velocity
+          new_e += M2 * ( CmSd1.z * dot(ve1,ve1) + CmSd2.z * dot(ve2,ve2) );
           new_m += tmass;
         }
       }
       new_cv = new_m>0. ? new_cv / new_m : vec4(0);
-      new_am.a -= new_m * dot(new_cv.zw,new_cv.zw);
+      new_e -= new_m * dot(new_cv.zw,new_cv.zw);
+      
+      new_dd = dd0;  new_dd.a = new_e;
       
       glFragColor[0] = new_am;
       glFragColor[1] = new_cv;
-      glFragColor[2] = vec4(0);
+      glFragColor[2] = new_dd;
     }
     
     `+(cfg.debug==-1?`glFragColor[0] = vec4(drawKernel(), 1.);`:``)+`

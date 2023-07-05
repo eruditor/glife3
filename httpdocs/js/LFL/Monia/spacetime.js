@@ -22,13 +22,14 @@ function InitialFiller() {
     SetCell( 5, 2, 1,   0,   0,  0.1, 0.07);
   }
   else {
+    var t = Tmprtr / 30 * 0.001;
     for(var x=0; x<FW; x++) {
       for(var y=0; y<FH; y++) {
         var rr = Math.sqrt( (sqr(x/FW-0.5) + sqr(y/FH-0.5)) * 4) / LF;
         var density = round( (1 - rr) * 10000 * LD );
         if(rndF(0,10000)<density) {
           SetCell(x, y, 0,  rndF(1,100)/100, rndF(1,100)/100, rndF(1,100)/100, 0);
-          SetCell(x, y, 1,  0, 0, (rndF(1,100)-rndF(1,100))/1000, (rndF(1,100)-rndF(1,100))/1000);
+          SetCell(x, y, 1,  0, 0, (rndF(1,100)-rndF(1,100))*t, (rndF(1,100)-rndF(1,100))*t);
         }
       }
     }
