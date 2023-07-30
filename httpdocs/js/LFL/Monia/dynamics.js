@@ -1,6 +1,6 @@
 var fs_ExtractRGBA = ``;
 
-var MS = [1, 2, 4];
+var MS = [1, 2, 4, 1];
 
 function CalcFragmentShaderSource(Uniforms4Ruleset) {
   return `
@@ -58,6 +58,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       else if(l==2) return logi1(r, 0.6, 0.01) - logi1(r, 0.8, 0.01);
       else if(l==3) return 1.0 - r;
       else if(l==4) return logi1(r, 0.4, 0.01) - logi1(r, 0.7, 0.01);
+      else if(l==5) return 1.0 - r;
       else          return 0.;
     ` : ``)+`
     float Br = betaLen[l] / relR[l] * r;
@@ -80,6 +81,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       else if(l==2) return logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.3, 0.01);
       else if(l==3) return bell1(v, 0.2, 0.1);  //logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.5, 0.01);
       else if(l==4) return logi1(v, 0.3, 0.01) - 3.*logi1(v, 0.5, 0.01);
+      else if(l==5) return logi1(v, 0.1, 0.01) - 3.*logi1(v, 0.5, 0.01);
       else          return 0.;
     ` : ``)+`
     return eta[l] * ( bell1(v, mu[l], sigma[l]) * 2. - 1. );
@@ -185,14 +187,14 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     return rgb;
   }
   
-  const vec3 masses = vec3(`+MS[0]+`, `+MS[1]+`, `+MS[2]+`);  // masses of r, g, b substances
+  const vec4 masses = vec4(`+MS[0]+`, `+MS[1]+`, `+MS[2]+`, `+MS[3]+`);  // masses of r, g, b, a substances
   
   const float D = 1.;  // size of cell's side
   const float D2 = D / 2.;
   
   vec3 IntersectSquares(vec2 dxdy, vec2 cm, vec2 vc, float l) {
     float l2 = l / 2., ll = l * l;
-          
+    
     vec2 qm = dxdy * D + cm + vc;  // transferring square center of mass
     vec4 Q = vec4(qm - l2, qm + l2);  // transferring square borders
     vec4 B = clamp(Q, -D2, D2);  // transferring square borders clipped to the cell
@@ -209,14 +211,14 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
   vec4 am0, cv0, dd0;
   vec2 drain8mc;
   float drain8e;
-  vec4 Drain8(int dx, int dy, float kk) {
+  vec3 Drain8(int dx, int dy, float kk) {
     vec4 am = GetCell(dx, dy, 0);
     vec4 cv = GetCell(dx, dy, 1);
     vec4 dd = GetCell(dx, dy, 2);
     
-    vec4 drain8 = clampx( (dd0-dd)/kk, -am0/kk, am/kk );  // am0 can drain from am no more than am has
+    vec3 drain8 = clampx( (dd0.rgb-dd.rgb)/kk, -am0.rgb/kk, am.rgb/kk );  // am0 can drain from am no more than am has
     
-    float d8m = dot(masses, drain8.rgb);
+    float d8m = dot(masses.rgb, drain8.rgb);
     vec2 dcv = d8m>0. ? cv.zw : cv0.zw;
     drain8mc = d8m * dcv;  // momentum
     drain8e = d8m * dot(dcv,dcv);  // energy
@@ -263,7 +265,8 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       cv0 = GetCell( 0, 0, 1);
       dd0 = GetCell( 0, 0, 2);
       
-      vec4 sum8 = vec4(0);  vec2 mc8 = vec2(0);  float e8 = 0.;
+     if(true) {
+      vec3 sum8 = vec3(0);  vec2 mc8 = vec2(0);  float e8 = 0.;
       sum8 += Drain8(-1, -1, 12.);  mc8 += drain8mc;  e8 += drain8e;
       sum8 += Drain8( 0, -1,  6.);  mc8 += drain8mc;  e8 += drain8e;
       sum8 += Drain8( 1, -1, 12.);  mc8 += drain8mc;  e8 += drain8e;
@@ -273,9 +276,9 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       sum8 += Drain8(-1,  1, 12.);  mc8 += drain8mc;  e8 += drain8e;
       sum8 += Drain8(-1,  0,  6.);  mc8 += drain8mc;  e8 += drain8e;
       
-      vec4 am1 = am0 + sum8;
-      float m0 = dot(masses, am0.rgb);
-      float m1 = dot(masses, am1.rgb);
+      vec4 am1 = am0 + vec4(sum8, 0);
+      float m0 = dot(masses, am0.rgba);
+      float m1 = dot(masses, am1.rgba);
       
       vec4 cv1;
       cv1.xy = cv0.xy;  // center of mass stays the same
@@ -287,6 +290,12 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       glFragColor[0] = am1;
       glFragColor[1] = cv1;
       glFragColor[2] = dd1;
+     }
+     else {
+      glFragColor[0] = am0;
+      glFragColor[1] = cv0;
+      glFragColor[2] = dd0;
+     }
     }
     else if(stage==2u) {
       vec4 new_am = vec4(0);
@@ -296,18 +305,18 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       float new_e = 0.;  // internal energy
       for(int dx=-1; dx<=1; dx++) {
         for(int dy=-1; dy<=1; dy++) {
-          vec4 am = GetCell(dx, dy, 0);  // r, g, b - amounts of substances
+          vec4 am = GetCell(dx, dy, 0);  // r, g, b, a - amounts of substances
           vec4 cv = GetCell(dx, dy, 1);  // cx, cy, vx, vy
           vec4 dd = GetCell(dx, dy, 2);  // rgb=delta; a=internal_energy
           if(dx==0 && dy==0) { am0 = am;  cv0 = cv;  dd0 = dd; }
           
           float lplus = 0.;
           
-          float summ = am.r + am.g + am.b;
-          lplus += (summ>3. ? summ/100. : 0.);
-          float l = 1. + lplus;  // size of transferred area (normally l=D; while l>D means temperature-like spraying)
+          float summ = am.r + am.g + am.b + am.a;
+          lplus += (summ>4. ? summ/100. : 0.);
+          float l = 1.1 + lplus;  // size of transferred area (normally l=D; while l>D means temperature-like spraying)
           
-          float M = dot(masses, am.rgb);  if(M==0.) continue;
+          float M = dot(masses, am.rgba);  if(M==0.) continue;
           float V = length(cv.zw);        //if(V==0.) continue;  // @ if l>D then V can be 0
           
           float M2 = M/2.;
@@ -320,7 +329,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
           
           float Sd = (CmSd1.z + CmSd2.z) / 2.;
           float tmass = M * Sd;  // transferred mass
-          new_am += vec4(am.rgb,0) * Sd;  // transfer matter and energy
+          new_am += am * Sd;  // transfer matter and energy
           new_cv += M2 * ( CmSd1.z * vec4(CmSd1.xy, ve1) + CmSd2.z * vec4(CmSd2.xy, ve2) );  // sum M*R and M*V (momentum), then divide by mass = CM and velocity
           new_e += M2 * ( CmSd1.z * dot(ve1,ve1) + CmSd2.z * dot(ve2,ve2) );
           new_m += tmass;
@@ -336,7 +345,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       glFragColor[2] = new_dd;
     }
     
-    `+(cfg.debug==-1?`glFragColor[0] = vec4(drawKernel(), 1.);`:``)+`
+    `+(cfg.debug==-1?`glFragColor[0] = vec4(drawKernel(), 0.);`:``)+`
   }
   `;
 }

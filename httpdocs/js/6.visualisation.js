@@ -52,13 +52,14 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
   }
   else if(Mode=='LFL') {
     var z = layer;
-         if(z==0 && v==0) return {'r':  0, 'g':  0, 'b':  0};
+         if(z==0 && v==0) return {'r':  0, 'g':  0, 'b':  0};  // black
     else if(z==0 && v==1) return {'r':250, 'g':  0, 'b':  0};  // red
     else if(z==0 && v==2) return {'r':  0, 'g':250, 'b':  0};  // green
     else if(z==0 && v==3) return {'r':  0, 'g':  0, 'b':250};  // blue
-    else if(z==1 && v==1) return {'r':250, 'g':150, 'b':150};  // light-green
-    else if(z==1 && v==2) return {'r':150, 'g':250, 'b':150};  // light-blue
-    else if(z==1 && v==3) return {'r':150, 'g':150, 'b':250};  // light-green
+    else if(z==1 && v==0) return {'r':100, 'g':100, 'b':100};  // light-grey
+    else if(z==1 && v==1) return {'r':250, 'g':100, 'b':100};  // light-green
+    else if(z==1 && v==2) return {'r':100, 'g':250, 'b':100};  // light-blue
+    else if(z==1 && v==3) return {'r':100, 'g':100, 'b':250};  // light-green
     else if(z==2 && v==0) return {'r':250, 'g':  0, 'b':250};  // magenta
     else if(z==2 && v==1) return {'r':  0, 'g':250, 'b':250};  // cyan
     else if(z==2 && v==2) return {'r':250, 'g':250, 'b':  0};  // yellow

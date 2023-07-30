@@ -343,21 +343,22 @@ function Stats(force=false) {
             continue;
           }
           if(z==0) {
-            graphnums[graphstep][z][0] += c0.r>=fulal || c0.g>=fulal || c0.b>=fulal ? 1 : 0;
+            graphnums[graphstep][z][0] += c0.a>=fulal ? 1 : 0;
             graphnums[graphstep][z][1] += c0.r>=fulal ? 1 : 0;
             graphnums[graphstep][z][2] += c0.g>=fulal ? 1 : 0;
             graphnums[graphstep][z][3] += c0.b>=fulal ? 1 : 0;
             if(c0.r>=fulal || c0.g>=fulal || c0.b>=fulal) rec[S1].livecells[z] ++;
           }
           else if(z==1) {
+            graphnums[graphstep][z][0] += c0.a / fulal;
             graphnums[graphstep][z][1] += c0.r / fulal;
             graphnums[graphstep][z][2] += c0.g / fulal;
             graphnums[graphstep][z][3] += c0.b / fulal;
           }
           else if(z==2) {
-            var mass = c0.r*MS[0] + c0.g*MS[1] + c0.b*MS[2];  // total mass
-            graphnums[graphstep][z][0] += 0.01 + 10 * mass * c1.b;  // 1 + momentum.x
-            graphnums[graphstep][z][1] += 0.01 + 10 * mass * c1.a;  // 1 + momentum.y
+            var mass = c0.r*MS[0] + c0.g*MS[1] + c0.b*MS[2] + c0.a*MS[3];  // total mass
+            graphnums[graphstep][z][0] += 50 * mass * c1.b;  // 1 + momentum.x
+            graphnums[graphstep][z][1] += 50 * mass * c1.a;  // 1 + momentum.y
             graphnums[graphstep][z][2] += mass * (sqr(c1.b) + sqr(c1.a));  // kinetic energy
             graphnums[graphstep][z][3] += mass * (sqr(c1.b) + sqr(c1.a)) + c2.a;  // total energy
             if(minmx>mass) minmx = mass;
@@ -440,7 +441,8 @@ function Stats(force=false) {
   for(z=0; z<FD; z++) {
     graphpoints[graphstep][z] = [];
     for(v=0; v<RB; v++) {
-      var yv = graphnums[graphstep][z][v] ? StatGraphFunc(graphnums[graphstep][z][v]) / StatGraphFuncFWFH : 0;  // [0..1]
+      var val = graphnums[graphstep][z][v];  if(val<0) val = -val;
+      var yv = val ? StatGraphFunc(val) / StatGraphFuncFWFH : 0;  // [0..1]
       var yy = GraphY(yv);  // [scnv_height .. 0]
       var clr = Color4Cell(z, v);
       var style = 'rgba('+clr.r+','+clr.g+','+clr.b+',0.9)';
