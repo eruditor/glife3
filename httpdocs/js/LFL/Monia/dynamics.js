@@ -1,6 +1,6 @@
 var fs_ExtractRGBA = ``;
 
-var MS = [1, 2, 4, 1];
+var MS = [1, 2, 4, 0.1];
 
 function CalcFragmentShaderSource(Uniforms4Ruleset) {
   return `
@@ -15,6 +15,10 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
   #define dT `+ParseTerminateFraction(1/DT)+`
   
   #define eps 0.000001
+  #define FLT_MAX 3.402823466e+38
+  #define FLT_MIN 5.e-38
+  #define FLT_MIN2 1.e-37
+  //1.175494351e-38
   
   ////////////////////////////////////////////////////////////////
   
@@ -187,7 +191,8 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     return rgb;
   }
   
-  const vec4 masses = vec4(`+MS[0]+`, `+MS[1]+`, `+MS[2]+`, `+MS[3]+`);  // masses of r, g, b, a substances
+  const vec4 masses  = vec4(`+MS[0]+`, `+MS[1]+`, `+MS[2]+`, `+MS[3]+`);  // masses of r, g, b, a substances
+  const vec4 gmasses = vec4(`+MS[0]+`, `+MS[1]+`, `+MS[2]+`, 0);  // a-particles are not affected by gravity
   
   const float D = 1.;  // size of cell's side
   const float D2 = D / 2.;
@@ -230,7 +235,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     cv0 = GetCell( 0, 0, 1);
     vec4 cv = cv0;
     
-    if(false) {
+    if(true) {
       vec2 xy = vec2(`+round(FW/2)+` - tex3coord.x, `+round(FH/2)+` - tex3coord.y);
       float r = length(xy);
       float RR = `+round(FW/20)+`.;
@@ -241,7 +246,9 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
         if(sign(cv.w)==sign(xy.y)) cv.w = -cv.w;
       }
       else {  // attraction
-        cv.zw += (xy/r) / r * 0.0001;
+        float mt = dot(masses,  self);
+        float mg = dot(gmasses, self);
+        cv.zw += mt>FLT_MIN2 ? (xy/r) * 0.00005 * (mg / mt): vec2(0);
       }
     }
     
@@ -256,9 +263,24 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
     if(stage==0u) {
       vec3 rgb = CalcGrown();
       
+      dd0 = GetCell( 0, 0, 2);
+      
+      vec4 cv1 = CalcGravity();
+      
+      if(tex3coord.x==0) {  // && self.r<0.001 && self.g<0.001 && self.b<0.001
+        //self = vec4(0, 0, 0, 0);  rgb = vec3(0, 0, 0);  dd0.a = 0.;  cv1 = vec4(0, 0, 0, 0);
+        if(tex3coord.y%20==0) {
+          self.a = 0.5;
+          cv1.z = 0.1;
+        }
+        else {
+          self.a = 0.;
+        }
+      }
+      
       glFragColor[0] = self;
-      glFragColor[1] = CalcGravity();
-      glFragColor[2] = vec4(rgb - self.rgb, GetCell( 0, 0, 2).a);  // requested change
+      glFragColor[1] = cv1;
+      glFragColor[2] = vec4(rgb - self.rgb, dd0.a);  // requested change
     }
     else if(stage==1u) {
       am0 = GetCell( 0, 0, 0);
@@ -282,7 +304,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
       
       vec4 cv1;
       cv1.xy = cv0.xy;  // center of mass stays the same
-      cv1.zw = m1>0. ? (m0 * cv0.zw + mc8) / m1 : vec2(0);  // speed = sum(momentum) / mass
+      cv1.zw = m1>FLT_MIN2 ? (m0 * cv0.zw + mc8) / m1 : vec2(0);  // speed = sum(momentum) / mass
       
       vec4 dd1 = dd0;
       dd1.a += e8 + m0*dot(cv0.zw,cv0.zw) - m1*dot(cv1.zw,cv1.zw);  // internal energy
@@ -335,7 +357,7 @@ function CalcFragmentShaderSource(Uniforms4Ruleset) {
           new_m += tmass;
         }
       }
-      new_cv = new_m>0. ? new_cv / new_m : vec4(0);
+      new_cv = new_m>FLT_MIN2 ? new_cv / new_m : vec4(0);
       new_e -= new_m * dot(new_cv.zw,new_cv.zw);
       
       new_dd = dd0;  new_dd.a = new_e;
