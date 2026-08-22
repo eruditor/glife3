@@ -84,9 +84,11 @@ class GLifeJS {
     else if($fm->mode=='FHP')  $spacetime = "<script src='/js/FHP/spacetime.js$jsget'></script>";
     else if($fm->name=='Monia')$spacetime = "<script src='/js/LFL/Monia/spacetime.js$jsget'></script>";
     else if($fm->mode=='LFL')  $spacetime = "<script src='/js/LFL/spacetime.js$jsget'></script>";
+    else if($fm->mode=='QMF')  $spacetime = "<script src='/js/QMF/spacetime.js$jsget'></script>";
     
          if($prefnm=='LTX')    $physics = "<script src='/js/LFL/LTX/physics.js$jsget'></script>";
     else if($fm->mode=='LFL')  $physics = "<script src='/js/LFL/physics.js$jsget'></script>";
+    else if($fm->mode=='QMF')  $physics = "<script src='/js/QMF/physics.js$jsget'></script>";
     else                       $physics = "<script src='/js/!default/physics.js$jsget'></script>";
     
          if($fm->mode=='PRT')  $dynamics = "<script src='/js/PRT/dynamics.js$jsget'></script>";
@@ -102,6 +104,7 @@ class GLifeJS {
     else if($prefnm=='Test4')  $dynamics = "<script src='/js/LFL/Tests/dynamics4.js$jsget'></script>";
     else if($fm->name=='Monia')$dynamics = "<script src='/js/LFL/Monia/dynamics.js$jsget'></script>";
     else if($fm->mode=='LFL')  $dynamics = "<script src='/js/LFL/dynamics.js$jsget'></script>";
+    else if($fm->mode=='QMF')  $dynamics = "<script src='/js/QMF/dynamics.js$jsget'></script>";
     else                       $dynamics = "<script src='/js/!default/dynamics.js$jsget'></script>";
     
          if($fm->mode=='PRT')  $visualisation = "<script src='/js/PRT/visualisation.js$jsget'></script>";
@@ -116,6 +119,7 @@ class GLifeJS {
     else if($fm->name=='Cenia')$visualisation = "<script src='/js/LFL/CNSRV/visualisation.js$jsget'></script>";
     else if($fm->name=='Monia')$visualisation = "<script src='/js/LFL/Monia/visualisation.js$jsget'></script>";
     else if($fm->mode=='LFL')  $visualisation = "<script src='/js/LFL/visualisation.js$jsget'></script>";
+    else if($fm->mode=='QMF')  $visualisation = "<script src='/js/QMF/visualisation.js$jsget'></script>";
     
     return "
       <a name='cont'></a>

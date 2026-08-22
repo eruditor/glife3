@@ -119,7 +119,7 @@ function Calc(single=0) {
     gl.uniform1iv(CalcProgram.location.u_ps, PS);
   }
   
-  if(Mode=='LFL') {
+  if(Mode=='LFL' || Mode=='QMF') {
     gl.uniform1i(CalcProgram.location.u_rulestexture, TT + 0);
   }
   else {

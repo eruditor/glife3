@@ -50,7 +50,7 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
          if(v==0) return {'r':  0, 'g':  0, 'b':  0};
     else if(v==1) return {'r':170, 'g':170, 'b':170};
   }
-  else if(Mode=='LFL') {
+  else if(Mode=='LFL' || Mode=='QMF') {
     var z = layer;
          if(z==0 && v==0) return {'r':  0, 'g':  0, 'b':  0};  // black
     else if(z==0 && v==1) return {'r':250, 'g':  0, 'b':  0};  // red

@@ -20,6 +20,7 @@ const DataFormat =
   : Mode=='FLD' ? 'UI32'
   : Mode=='XCH' ? 'UI8'
   : Mode=='LFL' ? 'F32'
+  : Mode=='QMF' ? 'F32'
   :               'UI8';
 
 const data_formats = {

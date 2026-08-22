@@ -136,12 +136,12 @@ class Records {  // tracking and writing to DB population characteristics
 function SaveGlifetri(prms={}) {
   saved = true;  // in the beginning to prevent multi-saves if case of lags
   
-  if(!prms['noorga'] && Mode!='LFL') StatORGA();  // calc orga stats before saving
+  if(!prms['noorga'] && Mode!='LFL' && Mode!='QMF') StatORGA();  // calc orga stats before saving
   
   prms['family_id'] = glFamily.id;
   
   prms['FD'] = FD;
-  if(Mode=='LFL') {
+  if(Mode=='LFL' || Mode=='QMF') {
     prms['notaset'] = '';
     prms['mutaset'] = RandomRulesetJSON;
   }
@@ -370,7 +370,7 @@ function Stats(force=false) {
           
           continue;
         }
-        else if(Mode=='LFL') {
+        else if(Mode=='LFL' || Mode=='QMF') {
           var fulal = 0.7;  // considered filly alive
           var c0 = GetCell(x, y, 0);
           if(z==0) {
@@ -469,7 +469,7 @@ function Stats(force=false) {
     sctx = scnvs.getContext('2d');
   }
   
-  if(Mode=='LFL' && cfg.autore) {  // same for other modes is below
+  if((Mode=='LFL' || Mode=='QMF') && cfg.autore) {  // same for other modes is below
     var notinteresting = 0;
     var minc = 0.002*FW*FH;
     var maxc = 0.45*FW*FH;
@@ -494,7 +494,7 @@ function Stats(force=false) {
     }
   }
   
-  if(Mode=='LFL') return;
+  if(Mode=='LFL' || Mode=='QMF') return;
   
   if(false && graphnums.length==256) {
     console.log(graphnums);
@@ -604,7 +604,7 @@ function Stats(force=false) {
     </table>
   `;
   
-  if(Mode=='' || Mode=='PRT') {  // same for LFL is above
+  if(Mode=='' || Mode=='PRT') {  // same for LFL and QMF is above
     if(cfg.autore || cfg.rerun) {
       if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
         Pause(1);
