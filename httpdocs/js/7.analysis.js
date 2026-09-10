@@ -370,7 +370,16 @@ function Stats(force=false) {
           
           continue;
         }
-        else if(Mode=='LFL' || Mode=='QMF') {
+        else if(Mode=='QMF') {
+          if(z==0) {
+            var c0 = GetCell(x, y, 0);
+            graphnums[graphstep][0][1] += c0.r;
+            graphnums[graphstep][0][2] += c0.g;
+            graphnums[graphstep][0][3] += c0.b;
+          }
+          continue;
+        }
+        else if(Mode=='LFL') {
           var fulal = 0.7;  // considered filly alive
           var c0 = GetCell(x, y, 0);
           if(z==0) {
@@ -473,14 +482,15 @@ function Stats(force=false) {
     var notinteresting = 0;
     var minc = 0.002*FW*FH;
     var maxc = 0.45*FW*FH;
+    var amountLayer = Mode=='QMF' ? 0 : 1;
     for(var c=1; c<=3; c++) {
-      if(graphnums[graphstep][1][c]<minc) notinteresting += 1;
-      if(graphnums[graphstep][1][c]>maxc) notinteresting += 100;
+      if(graphnums[graphstep][amountLayer][c]<minc) notinteresting += 1;
+      if(graphnums[graphstep][amountLayer][c]>maxc) notinteresting += 100;
     }
     if(nturn>=50000 || (nturn>=500 && notinteresting)) {
       Pause(1);
       console.log('notinteresting=',notinteresting);
-      console.log(graphnums[graphstep][1]);
+      console.log(graphnums[graphstep][amountLayer]);
       //if(!notinteresting && cfg.autore==1) SaveGlifetri({'stopped_at':''});
       nGen ++;
       if(nGen>300) {

@@ -131,7 +131,12 @@ function Calc(single=0) {
   
   gl.uniform1i(CalcProgram.location.u_td, TD);
   
-  if(Mode=='FHP') gl.uniform1ui(CalcProgram.location.u_rdn, rndJ(0,10000));
+  if(Mode=='FHP') {
+    gl.uniform1ui(CalcProgram.location.u_rdn, rndJ(0,10000));
+  }
+  else if(Mode=='QMF') {
+    gl.uniform1ui(CalcProgram.location.u_rdn, rndJ(0,0x100000000));
+  }
   
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
   
