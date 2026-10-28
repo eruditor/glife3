@@ -50,7 +50,19 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
          if(v==0) return {'r':  0, 'g':  0, 'b':  0};
     else if(v==1) return {'r':170, 'g':170, 'b':170};
   }
-  else if(Mode=='LFL' || Mode=='QMF') {
+  else if(Mode=='QMF') {
+    var z = layer;
+         if(z==0 && v==0) return {'r':  0, 'g':  0, 'b':  0};  // black
+    else if(z==0 && v==1) return {'r':250, 'g':  0, 'b':  0};  // H
+    else if(z==0 && v==2) return {'r':  0, 'g':250, 'b':  0};  // O
+    else if(z==0 && v==3) return {'r':  0, 'g':  0, 'b':250};  // C
+    else if(z==1 && v==0) return {'r':250, 'g':250, 'b':250};  // unused
+    else if(z==1 && v==1) return {'r':  0, 'g':250, 'b':250};  // momentum.x
+    else if(z==1 && v==2) return {'r':250, 'g':250, 'b':  0};  // momentum.y
+    else if(z==1 && v==3) return {'r':250, 'g':  0, 'b':250};  // energy
+    return {'r':  0, 'g':  0, 'b':  0};
+  }
+  else if(Mode=='LFL') {
     var z = layer;
          if(z==0 && v==0) return {'r':  0, 'g':  0, 'b':  0};  // black
     else if(z==0 && v==1) return {'r':250, 'g':  0, 'b':  0};  // red

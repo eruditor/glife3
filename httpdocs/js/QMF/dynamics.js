@@ -1,6 +1,17 @@
 var fs_ExtractRGBA = ``;
 
-// layer 0: rgb = substance amounts; layer 1: xy = center of mass, zw = velocity
+var QMFPhysics = Object.freeze({
+  masses: [1, 16, 12],  // H, O, C
+  bondRange: 1.60,
+  bondLength: 0.90,
+  spring: 0.035,
+  repulsionRange: 0.68,
+  repulsion: 0.055
+});
+
+// Minimal particle chemistry.
+// layer 0: one-hot atom type (r=H, g=O, b=C), a=bond mask
+// layer 1: xy = sub-cell position, zw = velocity
 function CalcFragmentShaderSource() {
   var extraOutputs = '';
   for(var z=2; z<FD; z++) extraOutputs += `    glFragColor[`+z+`] = vec4(0.);\n`;
@@ -10,7 +21,7 @@ function CalcFragmentShaderSource() {
   precision highp int;
 
   uniform `+field_Sampler+` u_fieldtexture;
-  uniform highp uint u_rdn;
+  uniform highp uint u_nturn;
 
   in vec2 v_texcoord;
 
@@ -20,100 +31,185 @@ function CalcFragmentShaderSource() {
   ivec3 fieldSize;
 
   `+fs_ModuloTorus+`
-
   `+fs_GetCell()+`
 
-  uint Hash(uint x) {
-    x ^= x >> 16u;
-    x *= 0x7feb352du;
-    x ^= x >> 15u;
-    x *= 0x846ca68bu;
-    return x ^ (x >> 16u);
+  const float BOND_RANGE = `+QMFPhysics.bondRange+`;
+  const float BOND_LENGTH = `+QMFPhysics.bondLength+`;
+  const float SPRING = `+QMFPhysics.spring+`;
+  const float REPULSION_RANGE = `+QMFPhysics.repulsionRange+`;
+  const float REPULSION = `+QMFPhysics.repulsion+`;
+
+  bool HasAtom(vec4 atom) {
+    return atom.r + atom.g + atom.b > 0.5;
   }
 
-  float Random01(ivec2 coord) {
-    uint seed = uint(coord.x) * 0x9e3779b9u
-              ^ uint(coord.y) * 0x85ebca6bu
-              ^ u_rdn;
-    return float(Hash(seed)) / 4294967296.0;
+  int AtomType(vec4 atom) {
+    if(atom.r>0.5) return 1;  // H
+    if(atom.g>0.5) return 2;  // O
+    if(atom.b>0.5) return 3;  // C
+    return 0;
   }
 
-  float IntersectionArea(vec2 center, ivec2 destination) {
-    vec2 dst = vec2(destination);
-    vec2 lo = max(center - 0.5, dst - 0.5);
-    vec2 hi = min(center + 0.5, dst + 0.5);
-    vec2 size = max(hi - lo, vec2(0.));
-    return size.x * size.y;
+  int Valence(int atomType) {
+    if(atomType==1) return 1;
+    if(atomType==2) return 2;
+    if(atomType==3) return 4;
+    return 0;
   }
 
-  bool IsForward(ivec2 destination, vec2 velocity) {
-    if(destination.x<0 && velocity.x>=0.) return false;
-    if(destination.x>0 && velocity.x<=0.) return false;
-    if(destination.y<0 && velocity.y>=0.) return false;
-    if(destination.y>0 && velocity.y<=0.) return false;
-    return any(notEqual(destination, ivec2(0)));
+  float AtomMass(int atomType) {
+    if(atomType==1) return `+QMFPhysics.masses[0]+`.;
+    if(atomType==2) return `+QMFPhysics.masses[1]+`.;
+    if(atomType==3) return `+QMFPhysics.masses[2]+`.;
+    return 1.;
   }
 
-  ivec2 ChooseDestination(vec2 center, vec2 velocity, ivec2 sourceCoord) {
-    float random = Random01(sourceCoord);
-    float cumulative = 0.;
+  int BondMask(vec4 atom) {
+    return int(floor(atom.a + 0.5));
+  }
 
+  vec2 AtomPosition(ivec2 offset) {
+    return vec2(offset) + GetCell(offset.x, offset.y, 1).xy;
+  }
+
+  // A bond exists only when both atoms rank each other within their valence.
+  // Recomputing the graph permits partner exchange without molecule IDs.
+  bool IsBonded(ivec2 a, ivec2 b) {
+    vec4 atomA = GetCell(a.x, a.y, 0);
+    vec4 atomB = GetCell(b.x, b.y, 0);
+    if(!HasAtom(atomA) || !HasAtom(atomB)) return false;
+
+    float targetDistance = length(AtomPosition(b) - AtomPosition(a));
+    if(targetDistance>BOND_RANGE) return false;
+
+    int rankA = 0;
+    int rankB = 0;
     for(int dy=-1; dy<=1; dy++) {
       for(int dx=-1; dx<=1; dx++) {
-        ivec2 destination = ivec2(dx, dy);
-        if(!IsForward(destination, velocity)) continue;
-        cumulative += IntersectionArea(center, destination);
-        if(random < cumulative) return destination;
+        if(dx==0 && dy==0) continue;
+
+        ivec2 candidateA = a + ivec2(dx, dy);
+        vec4 otherA = GetCell(candidateA.x, candidateA.y, 0);
+        if(HasAtom(otherA)) {
+          float distanceA = length(AtomPosition(candidateA) - AtomPosition(a));
+          if(distanceA<BOND_RANGE && distanceA<targetDistance-0.0001) rankA++;
+        }
+
+        ivec2 candidateB = b + ivec2(dx, dy);
+        vec4 otherB = GetCell(candidateB.x, candidateB.y, 0);
+        if(HasAtom(otherB)) {
+          float distanceB = length(AtomPosition(candidateB) - AtomPosition(b));
+          if(distanceB<BOND_RANGE && distanceB<targetDistance-0.0001) rankB++;
+        }
       }
     }
 
-    return ivec2(0);
-  }
-
-  vec2 IntersectionCenter(vec2 center, ivec2 destination) {
-    vec2 dst = vec2(destination);
-    vec2 lo = max(center - 0.5, dst - 0.5);
-    vec2 hi = min(center + 0.5, dst + 0.5);
-    return (lo + hi) / 2. - dst;
+    return rankA<Valence(AtomType(atomA)) && rankB<Valence(AtomType(atomB));
   }
 
   void main() {
     fieldSize = textureSize(u_fieldtexture, 0);
     tex3coord = ivec3(v_texcoord, 0);
 
-    vec3 newAmounts = vec3(0.);
-    vec4 newMotion = vec4(0.);
-    float totalAmount = 0.;
+    vec4 atom = GetCell(0, 0, 0);
+    vec4 motion = GetCell(0, 0, 1);
+    uint stage = u_nturn % 2u;
 
-    for(int sy=-1; sy<=1; sy++) {
-      for(int sx=-1; sx<=1; sx++) {
-        ivec2 sourceOffset = ivec2(sx, sy);
-        vec4 amounts = GetCell(sx, sy, 0);
-        vec4 motion = GetCell(sx, sy, 1);
-        float amount = amounts.r + amounts.g + amounts.b;
-        if(amount<=0.) continue;
+    if(stage==1u) {
+      // Build the local bond graph and apply pairwise spring forces.
+      if(HasAtom(atom)) {
+        vec2 force = vec2(0.);
+        int bonds = 0;
+        int bitIndex = 0;
 
-        ivec2 sourceCoord = ModuloTorus(
-          ivec3(tex3coord.xy + sourceOffset, 0),
-          fieldSize
-        ).xy;
-        vec2 velocity = clamp(motion.zw, vec2(-0.25), vec2(0.25));
-        vec2 shiftedCenter = motion.xy + velocity;
-        ivec2 destination = ChooseDestination(shiftedCenter, velocity, sourceCoord);
+        for(int dy=-1; dy<=1; dy++) {
+          for(int dx=-1; dx<=1; dx++) {
+            if(dx==0 && dy==0) {
+              bitIndex++;
+              continue;
+            }
 
-        if(all(equal(destination, -sourceOffset))) {
-          vec2 center = IntersectionCenter(shiftedCenter, destination);
-          newAmounts += amounts.rgb;
-          newMotion += amount * vec4(center, motion.zw);
-          totalAmount += amount;
+            ivec2 offset = ivec2(dx, dy);
+            vec4 other = GetCell(dx, dy, 0);
+            if(HasAtom(other)) {
+              vec2 delta = AtomPosition(offset) - motion.xy;
+              float distance = length(delta);
+              if(distance>0.0001) {
+                vec2 direction = delta / distance;
+                if(IsBonded(ivec2(0), offset)) {
+                  float stretch = (distance - BOND_LENGTH) / (BOND_RANGE - BOND_LENGTH);
+                  force += SPRING * (distance - BOND_LENGTH) * (1. - stretch) * direction;
+                  bonds |= 1 << bitIndex;
+                }
+                else if(distance<REPULSION_RANGE) {
+                  force -= REPULSION * (REPULSION_RANGE - distance) * direction;
+                }
+              }
+            }
+            bitIndex++;
+          }
+        }
+
+        motion.zw += force / AtomMass(AtomType(atom));
+        atom.a = float(bonds);
+      }
+    }
+    else {
+      // Advance physical positions, then only reassign their storage cells.
+      int shift = int((u_nturn / 2u) % 2u);
+      ivec2 local = ivec2(
+        (tex3coord.x - shift + fieldSize.x) % 2,
+        (tex3coord.y - shift + fieldSize.y) % 2
+      );
+
+      vec4 atoms[4], motions[4];
+      vec2 positions[4], velocities[4];
+      ivec2 sources[4], targets[4];
+      bool used[4];
+
+      for(int i=0; i<4; i++) {
+        sources[i] = ivec2(i%2, i/2);
+        ivec2 offset = sources[i] - local;
+        atoms[i] = GetCell(offset.x, offset.y, 0);
+        motions[i] = GetCell(offset.x, offset.y, 1);
+        positions[i] = vec2(sources[i]) + motions[i].xy;
+        velocities[i] = motions[i].zw;
+        targets[i] = sources[i];
+        used[i] = false;
+        if(HasAtom(atoms[i])) positions[i] += velocities[i];
+      }
+
+      for(int i=0; i<4; i++) {
+        if(!HasAtom(atoms[i])) continue;
+        float bestCost = 1e30;
+        int best = 0;
+        for(int j=0; j<4; j++) {
+          if(!used[j]) {
+            vec2 delta = positions[i] - vec2(j%2, j/2);
+            float cost = dot(delta, delta);
+            if(cost<bestCost) {
+              bestCost = cost;
+              best = j;
+            }
+          }
+        }
+        used[best] = true;
+        targets[i] = ivec2(best%2, best/2);
+      }
+
+      atom = vec4(0.);
+      motion = vec4(0.);
+      for(int i=0; i<4; i++) {
+        if(HasAtom(atoms[i]) && all(equal(targets[i], local))) {
+          atom = atoms[i];
+          atom.a = float(BondMask(atom));
+          motion = vec4(positions[i] - vec2(local), velocities[i]);
         }
       }
     }
 
-    if(totalAmount>0.) newMotion /= totalAmount;
-
-    glFragColor[0] = vec4(newAmounts, 0.);
-    glFragColor[1] = newMotion;
+    glFragColor[0] = atom;
+    glFragColor[1] = motion;
 `+extraOutputs+`
   }
   `;
@@ -122,5 +218,5 @@ function CalcFragmentShaderSource() {
 var CalcProgram = createProgram4Frag(
   gl,
   CalcFragmentShaderSource(),
-  ["a_position", "u_fieldtexture", "u_rdn"]
+  ["a_position", "u_fieldtexture", "u_nturn"]
 );
