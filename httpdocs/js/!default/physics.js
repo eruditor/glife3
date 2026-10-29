@@ -193,7 +193,7 @@ const Rlower = r_lo;
 
 // each cell in neighborhood geometry can take one of RB values
 const RL =
-  Mode=='MVM' || Mode=='BND' || Mode=='FLD' || Mode=='XCH' || Mode=='LFL' || Mode=='QMF' ? 1 : (
+  Mode=='MVM' || Mode=='BND' || Mode=='FLD' || Mode=='XCH' || Mode=='KLP' || Mode=='LFL' || Mode=='QMF' ? 1 : (
   Mode=='FHP' ? Math.pow(2, 9) :
   Math.pow(RB, RC)
   );  // total number of all possible neibs (length of physics rule space)

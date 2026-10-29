@@ -29,7 +29,9 @@ statcanvas.style.whiteSpace = 'normal';
 statcont.append(statcanvas);
 
 var statcanvasttl = document.createElement('div');
-statcanvasttl.textContent = "species population (" + StatGraphFuncName + " scale):";
+statcanvasttl.textContent = Mode=='KLP'
+  ? "KLP diagnostics: exact norm; Px, Py and energy proxies (" + StatGraphFuncName + " scale):"
+  : "species population (" + StatGraphFuncName + " scale):";
 statcanvasttl.style.margin = '10px 0 0 0';
 statcanvas.append(statcanvasttl);
 
@@ -136,12 +138,12 @@ class Records {  // tracking and writing to DB population characteristics
 function SaveGlifetri(prms={}) {
   saved = true;  // in the beginning to prevent multi-saves if case of lags
   
-  if(!prms['noorga'] && Mode!='LFL' && Mode!='QMF') StatORGA();  // calc orga stats before saving
+  if(!prms['noorga'] && Mode!='LFL' && Mode!='QMF' && Mode!='KLP') StatORGA();  // calc orga stats before saving
   
   prms['family_id'] = glFamily.id;
   
   prms['FD'] = FD;
-  if(Mode=='LFL' || Mode=='QMF') {
+  if(Mode=='LFL' || Mode=='QMF' || Mode=='KLP') {
     prms['notaset'] = '';
     prms['mutaset'] = RandomRulesetJSON;
   }
@@ -254,6 +256,7 @@ function DrawRules(full=false) {
 
 var nGen = 1;  // number of generations produced in random-search
 var nErr = 0;  // number of errors
+var KLPInvariant0 = null;
 
 function InitStats() {
   nturn = 0;  nturn0 = 0;
@@ -261,6 +264,7 @@ function InitStats() {
   date0 = new Date;
   saved = false;
   qq0 = [];
+  KLPInvariant0 = null;
   
   rec = new Records();  
   
@@ -307,6 +311,7 @@ function Stats(force=false) {
   var qw = floor(FW / qd), qh = floor(FH / qd);  // assuming FW%qd==0 && FH%qd==0
   var nqtotal = qw * qh;  // total number of squares
   var tmp = [];
+  var klpNorm1 = 0, klpNorm2 = 0, klpPx = 0, klpPy = 0, klpEnergy = 0;
   
   rec[S1].zero();
   
@@ -441,6 +446,33 @@ function Stats(force=false) {
           }
           continue;
         }
+        else if(Mode=='KLP') {
+          var c0 = GetCell(x, y, 0);
+          var cr = GetCell((x+1)%FW, y, 0);
+          var cu = GetCell(x, (y+1)%FH, 0);
+          var rho1 = c0.r*c0.r + c0.g*c0.g;
+          var rho2 = c0.b*c0.b + c0.a*c0.a;
+          var cbx = GetCell((x+KLPPhysics.bindingRadius)%FW, y, 0);
+          var cby = GetCell(x, (y+KLPPhysics.bindingRadius)%FH, 0);
+          var bind1 = cbx.r*cbx.r + cbx.g*cbx.g + cby.r*cby.r + cby.g*cby.g;
+          var bind2 = cbx.b*cbx.b + cbx.a*cbx.a + cby.b*cby.b + cby.a*cby.a;
+          klpNorm1 += rho1;
+          klpNorm2 += rho2;
+          klpPx += c0.r*cr.g - c0.g*cr.r + c0.b*cr.a - c0.a*cr.b;
+          klpPy += c0.r*cu.g - c0.g*cu.r + c0.b*cu.a - c0.a*cu.b;
+          klpEnergy += KLPPhysics.mixing * (
+              sqr(cr.r-c0.r) + sqr(cr.g-c0.g) + sqr(cr.b-c0.b) + sqr(cr.a-c0.a)
+            + sqr(cu.r-c0.r) + sqr(cu.g-c0.g) + sqr(cu.b-c0.b) + sqr(cu.a-c0.a)
+          );
+          klpEnergy += -KLPPhysics.cubic/2 * (rho1*rho1 + rho2*rho2)
+            + KLPPhysics.quintic/3 * (rho1*rho1*rho1 + rho2*rho2*rho2)
+            - KLPPhysics.cross * rho1*rho2
+            - KLPPhysics.binding/4 * (
+              rho1*bind2 + rho2*bind1
+            );
+          if(rho1+rho2>0.00001) rec[S1].livecells[0] ++;
+          continue;
+        }
         
         var cell = GetCell(x, y, z);
         
@@ -476,6 +508,28 @@ function Stats(force=false) {
         graphnums[graphstep][z][0] += graphnums[graphstep][z][v];
       }
     }
+  }
+  if(Mode=='KLP') {
+    graphnums[graphstep][0][0] = klpNorm1 + klpNorm2;
+    graphnums[graphstep][0][1] = klpPx;
+    graphnums[graphstep][0][2] = klpPy;
+    graphnums[graphstep][0][3] = klpEnergy;
+
+    var klpNow = [klpNorm1, klpNorm2, klpPx, klpPy, klpEnergy];
+    if(!KLPInvariant0) KLPInvariant0 = klpNow.slice();
+    var n0 = KLPInvariant0[0] + KLPInvariant0[1];
+    function KLPExp(value) {
+      return Number.isFinite(value) ? value.toExponential(3) : String(value);
+    }
+    sstat = 'KLP: N=' + KLPExp(klpNorm1+klpNorm2)
+      + ' (relative drift ' + KLPExp((klpNorm1+klpNorm2-n0)/n0) + ')'
+      + ' | N1=' + KLPExp(klpNorm1)
+      + ' | N2=' + KLPExp(klpNorm2)
+      + '<br>proxy drift: ΔPx/N₀=' + KLPExp((klpPx-KLPInvariant0[2])/n0)
+      + ' | ΔPy/N₀=' + KLPExp((klpPy-KLPInvariant0[3])/n0)
+      + ' | ΔE/|E₀|=' + KLPExp(
+        (klpEnergy-KLPInvariant0[4]) / Math.max(Math.abs(KLPInvariant0[4]), 1e-30)
+      );
   }
   
   // plotting graphs
@@ -541,6 +595,10 @@ function Stats(force=false) {
     }
   }
   
+  if(Mode=='KLP') {
+    stxtstat.innerHTML = sstat;
+    return;
+  }
   if(Mode=='LFL' || Mode=='QMF') return;
   
   if(false && graphnums.length==256) {

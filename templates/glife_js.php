@@ -79,6 +79,7 @@ class GLifeJS {
     
          if($fm->mode=='MVM')  $spacetime = "<script src='/js/MVM/spacetime.js$jsget'></script>";
     else if($fm->mode=='BND')  $spacetime = "<script src='/js/BND/spacetime.js$jsget'></script>";
+    else if($fm->mode=='KLP')  $spacetime = "<script src='/js/KLP/spacetime.js$jsget'></script>";
     else if($fm->mode=='FLD')  $spacetime = "<script src='/js/FLD/spacetime.js$jsget'></script>";
     else if($fm->mode=='XCH')  $spacetime = "<script src='/js/XCH/spacetime.js$jsget'></script>";
     else if($fm->mode=='FHP')  $spacetime = "<script src='/js/FHP/spacetime.js$jsget'></script>";
@@ -88,11 +89,13 @@ class GLifeJS {
     
          if($prefnm=='LTX')    $physics = "<script src='/js/LFL/LTX/physics.js$jsget'></script>";
     else if($fm->mode=='LFL')  $physics = "<script src='/js/LFL/physics.js$jsget'></script>";
+    else if($fm->mode=='KLP')  $physics = "<script src='/js/KLP/physics.js$jsget'></script>";
     else if($fm->mode=='QMF')  $physics = "<script src='/js/QMF/physics.js$jsget'></script>";
     else                       $physics = "<script src='/js/!default/physics.js$jsget'></script>";
     
          if($fm->mode=='PRT')  $dynamics = "<script src='/js/PRT/dynamics.js$jsget'></script>";
     else if($fm->mode=='MVM')  $dynamics = "<script src='/js/MVM/dynamics.js$jsget'></script>";
+    else if($fm->mode=='KLP')  $dynamics = "<script src='/js/KLP/dynamics.js$jsget'></script>";
     else if($named=='Bond4C')  $dynamics = "<script src='/js/BND/Bond4C/dynamics.js$jsget'></script>";
     else if($named=='Bond4C2') $dynamics = "<script src='/js/BND/Bond4C2/dynamics.js$jsget'></script>";
     else if($fm->mode=='FLD')  $dynamics = "<script src='/js/FLD/dynamics.js$jsget'></script>";
@@ -109,6 +112,7 @@ class GLifeJS {
     
          if($fm->mode=='PRT')  $visualisation = "<script src='/js/PRT/visualisation.js$jsget'></script>";
     else if($fm->mode=='MVM')  $visualisation = "<script src='/js/MVM/visualisation.js$jsget'></script>";
+    else if($fm->mode=='KLP')  $visualisation = "<script src='/js/KLP/visualisation.js$jsget'></script>";
     else if($named=='Bond4C')  $visualisation = "<script src='/js/BND/Bond4C/visualisation.js$jsget'></script>";
     else if($named=='Bond4C2') $visualisation = "<script src='/js/BND/Bond4C2/visualisation.js$jsget'></script>";
     else if($fm->mode=='FLD')  $visualisation = "<script src='/js/FLD/visualisation.js$jsget'></script>";

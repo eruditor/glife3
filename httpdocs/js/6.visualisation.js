@@ -62,6 +62,12 @@ function Color4Cell(layer=0, v=1, s=1, l=0.5) {
     else if(z==1 && v==3) return {'r':250, 'g':  0, 'b':250};  // energy
     return {'r':  0, 'g':  0, 'b':  0};
   }
+  else if(Mode=='KLP') {
+         if(v==0) return {'r':240, 'g':240, 'b':240};  // norm
+    else if(v==1) return {'r':250, 'g': 80, 'b': 80};  // Px
+    else if(v==2) return {'r': 80, 'g':250, 'b': 80};  // Py
+    else if(v==3) return {'r': 80, 'g':120, 'b':250};  // energy proxy
+  }
   else if(Mode=='LFL') {
     var z = layer;
          if(z==0 && v==0) return {'r':  0, 'g':  0, 'b':  0};  // black

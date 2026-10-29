@@ -19,6 +19,7 @@ const DataFormat =
     Mode=='MVM' ? 'UI32'
   : Mode=='FLD' ? 'UI32'
   : Mode=='XCH' ? 'UI8'
+  : Mode=='KLP' ? 'F32'
   : Mode=='LFL' ? 'F32'
   : Mode=='QMF' ? 'F32'
   :               'UI8';
