@@ -9,6 +9,8 @@ var CalcFragmentShaderSource = `
   uniform float u_dt;
   uniform float u_focus;
   uniform float u_maxMove;
+  uniform float u_repulsionThreshold;
+  uniform float u_repulsion;
 
   in vec2 v_texcoord;
   out `+field_Vec4P+` glFragColor[`+FD+`];
@@ -18,6 +20,38 @@ var CalcFragmentShaderSource = `
 
   `+fs_ModuloTorus+`
   `+fs_GetCell()+`
+
+  vec4 Repelled() {
+    vec4 source = GetCell(0,0,0);
+    float mass = source.r;
+    if(mass<=0. || u_repulsion<=0.) return source;
+
+    vec2 impulse = vec2(0);
+    for(int iy=0; iy<3; iy++) {
+      for(int ix=0; ix<3; ix++) {
+        int nx = ix-1;
+        int ny = iy-1;
+        if(nx==0 && ny==0) continue;
+
+        float otherMass = GetCell(nx,ny,0).r;
+        if(otherMass<=0.) continue;
+
+        float totalMass = mass+otherMass;
+        float excess = max(totalMass-u_repulsionThreshold,0.);
+        float reducedMass = mass*otherMass/totalMass;
+        vec2 offset = vec2(nx,ny);
+        float distance2 = dot(offset,offset);
+
+        // The opposite cell computes the same impulse with the opposite
+        // direction.  Momentum is therefore conserved pair by pair.
+        impulse -= u_dt*u_repulsion*reducedMass*excess
+          * offset/distance2;
+      }
+    }
+
+    source.gb += impulse;
+    return source;
+  }
 
   vec4 Stream(vec4 source, vec2 target) {
     float mass = source.r;
@@ -60,6 +94,11 @@ var CalcFragmentShaderSource = `
     fieldSize = textureSize(u_fieldtexture,0);
     tex3coord = ivec3(v_texcoord,0);
 
+    if(u_nturn%2u==0u) {
+      glFragColor[0] = Repelled();
+      return;
+    }
+
     vec4 result = vec4(0);
     for(int iy=0; iy<5; iy++) {
       for(int ix=0; ix<5; ix++) {
@@ -78,6 +117,7 @@ var CalcProgram = createProgram4Frag(
   CalcFragmentShaderSource,
   [
     "a_position", "u_fieldtexture", "u_nturn",
-    "u_dt", "u_focus", "u_maxMove"
+    "u_dt", "u_focus", "u_maxMove",
+    "u_repulsionThreshold", "u_repulsion"
   ]
 );

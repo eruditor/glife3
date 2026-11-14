@@ -9,6 +9,14 @@ var StatGraphFuncName = 'root4';  // log, cbrt, root4
 
 var drawRzoom = 1;
 
+var statLegend = "species population (" + StatGraphFuncName + " scale):";
+if(Mode=='KLP') statLegend =
+    "<span style='background:rgb(240,240,240)'>&nbsp;</span> total mass &nbsp; "
+  + "<span style='background:rgb(250,80,80)  '>&nbsp;</span> Px + " + KLPPhysics.momentumGraphOffsetX + " &nbsp; "
+  + "<span style='background:rgb(80,250,80)'  >&nbsp;</span> Py + " + KLPPhysics.momentumGraphOffsetY + " &nbsp; "
+  + "<span style='background:rgb(80,120,250)' >&nbsp;</span> total energy &nbsp; "
+  + "<span style='background:rgb(250,220,60)' >&nbsp;</span> particles (mass > " + KLPPhysics.particleStatThreshold + ")";
+
 // CONTAINERS ////////////////////////////////////////////////////////////////
 // naming is messy, who cares
 
@@ -29,7 +37,7 @@ statcanvas.style.whiteSpace = 'normal';
 statcont.append(statcanvas);
 
 var statcanvasttl = document.createElement('div');
-statcanvasttl.textContent = "species population (" + StatGraphFuncName + " scale):";
+statcanvasttl.innerHTML = statLegend;
 statcanvasttl.style.margin = '10px 0 0 0';
 statcanvas.append(statcanvasttl);
 
@@ -308,6 +316,7 @@ function Stats(force=false) {
   var nqtotal = qw * qh;  // total number of squares
   var tmp = [];
   var klpMass = 0, klpPx = 0, klpPy = 0, klpEnergy = 0;
+  var klpParticles = 0;
   
   rec[S1].zero();
   
@@ -448,6 +457,7 @@ function Stats(force=false) {
           klpPx += c0.g;
           klpPy += c0.b;
           klpEnergy += c0.a;
+          if(c0.r>KLPPhysics.particleStatThreshold) klpParticles ++;
           if(c0.r>KLPPhysics.densityFloor) rec[S1].livecells[0] ++;
           continue;
         }
@@ -492,6 +502,7 @@ function Stats(force=false) {
     graphnums[graphstep][0][1] = klpPx;
     graphnums[graphstep][0][2] = klpPy;
     graphnums[graphstep][0][3] = klpEnergy;
+    graphnums[graphstep][0][4] = klpParticles;
   }
   
   // plotting graphs
@@ -501,13 +512,17 @@ function Stats(force=false) {
   graphpoints[graphstep] = [];
   for(z=0; z<FD; z++) {
     graphpoints[graphstep][z] = [];
-    for(v=0; v<RB; v++) {
+    var seriesCount = Mode=='KLP' ? 5 : RB;
+    for(v=0; v<seriesCount; v++) {
       var val = graphnums[graphstep][z][v];
-      if(Mode=='KLP' && (v==1 || v==2)) val += KLPPhysics.momentumGraphOffset;
+      if(Mode=='KLP' && v==1) val += KLPPhysics.momentumGraphOffsetX;
+      if(Mode=='KLP' && v==2) val += KLPPhysics.momentumGraphOffsetY;
       if(val<0) val = -val;
       var yv = val ? StatGraphFunc(val) / StatGraphFuncFWFH : 0;  // [0..1]
       var yy = GraphY(yv);  // [scnv_height .. 0]
-      var clr = Color4Cell(z, v);
+      var clr = Mode=='KLP' && v==4
+        ? {r:250,g:220,b:60}
+        : Color4Cell(z, v);
       var style = 'rgba('+clr.r+','+clr.g+','+clr.b+',0.9)';
       if(xx>0) {
         sctx.beginPath();

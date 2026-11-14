@@ -9,11 +9,15 @@ var KLPPhysics = {
   dt: KLPNumberParam('dt', 0.20),
   focus: KLPNumberParam('focus', 1.00),
   maxMove: KLPNumberParam('maxmove', 2.00),
+  repulsionThreshold: KLPNumberParam('repelat', 1.00),
+  repulsion: KLPNumberParam('repulsion', 5.00),
   densityFloor: 0.0001,
   pointMass: KLPNumberParam('mass', 1.00),
   initialSpeed: KLPNumberParam('speed', 0.35),
   thermalEnergy: KLPNumberParam('thermal', 0.05),
-  momentumGraphOffset: 1000
+  particleStatThreshold: KLPNumberParam('particleat', 0.90),
+  momentumGraphOffsetX: 800,
+  momentumGraphOffsetY: 1200
 };
 
 function InitRules() {
@@ -22,6 +26,11 @@ function InitRules() {
   gl.uniform1f(CalcProgram.location.u_dt, KLPPhysics.dt);
   gl.uniform1f(CalcProgram.location.u_focus, KLPPhysics.focus);
   gl.uniform1f(CalcProgram.location.u_maxMove, KLPPhysics.maxMove);
+  gl.uniform1f(
+    CalcProgram.location.u_repulsionThreshold,
+    KLPPhysics.repulsionThreshold
+  );
+  gl.uniform1f(CalcProgram.location.u_repulsion, KLPPhysics.repulsion);
   RandomRulesetJSON = JSON.stringify(KLPPhysics);
   return true;
 }
