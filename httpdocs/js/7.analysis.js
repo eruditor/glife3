@@ -15,7 +15,8 @@ if(Mode=='KLP') statLegend =
   + "<span style='background:rgb(250,80,80)  '>&nbsp;</span> Px + " + KLPPhysics.momentumGraphOffsetX + " &nbsp; "
   + "<span style='background:rgb(80,250,80)'  >&nbsp;</span> Py + " + KLPPhysics.momentumGraphOffsetY + " &nbsp; "
   + "<span style='background:rgb(80,120,250)' >&nbsp;</span> total energy &nbsp; "
-  + "<span style='background:rgb(250,220,60)' >&nbsp;</span> particles (mass > " + KLPPhysics.particleStatThreshold + ")";
+  + "<span style='background:rgb(250,220,60)' >&nbsp;</span> dense cells (> "
+  + KLPPhysics.particleStatThreshold + " of layer density)";
 
 // CONTAINERS ////////////////////////////////////////////////////////////////
 // naming is messy, who cares
@@ -452,13 +453,13 @@ function Stats(force=false) {
           continue;
         }
         else if(Mode=='KLP') {
-          var c0 = GetCell(x, y, 0);
+          var c0 = GetCell(x, y, z);
           klpMass += c0.r;
           klpPx += c0.g;
           klpPy += c0.b;
           klpEnergy += c0.a;
-          if(c0.r>KLPPhysics.particleStatThreshold) klpParticles ++;
-          if(c0.r>KLPPhysics.densityFloor) rec[S1].livecells[0] ++;
+          if(c0.r > KLPPhysics.particleStatThreshold*KLPPhysics.densities[z]) klpParticles ++;
+          if(c0.r > KLPPhysics.densityFloor) rec[S1].livecells[z] ++;
           continue;
         }
         
@@ -510,7 +511,8 @@ function Stats(force=false) {
   function GraphY(yv) { return round(scnv_height * (1 - yv)); }
   var xx = graphstep - IW * graphcnvnum;
   graphpoints[graphstep] = [];
-  for(z=0; z<FD; z++) {
+  var graphLayers = Mode=='KLP' ? 1 : FD;
+  for(z=0; z<graphLayers; z++) {
     graphpoints[graphstep][z] = [];
     var seriesCount = Mode=='KLP' ? 5 : RB;
     for(v=0; v<seriesCount; v++) {

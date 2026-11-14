@@ -9,8 +9,8 @@ var CalcFragmentShaderSource = `
   uniform float u_dt;
   uniform float u_focus;
   uniform float u_maxMove;
-  uniform float u_repulsionThreshold;
-  uniform float u_repulsion;
+  uniform float u_density[`+FD+`];
+  uniform float u_repulsion[`+FD+`];
 
   in vec2 v_texcoord;
   out `+field_Vec4P+` glFragColor[`+FD+`];
@@ -24,7 +24,8 @@ var CalcFragmentShaderSource = `
   vec4 Repelled() {
     vec4 source = GetCell(0,0,0);
     float mass = source.r;
-    if(mass<=0. || u_repulsion<=0.) return source;
+    float repulsion = u_repulsion[tex3coord.z];
+    if(mass<=0. || repulsion<=0.) return source;
 
     vec2 impulse = vec2(0);
     for(int iy=0; iy<3; iy++) {
@@ -37,14 +38,14 @@ var CalcFragmentShaderSource = `
         if(otherMass<=0.) continue;
 
         float totalMass = mass+otherMass;
-        float excess = max(totalMass-u_repulsionThreshold,0.);
+        float excess = max(totalMass-u_density[tex3coord.z],0.);
         float reducedMass = mass*otherMass/totalMass;
         vec2 offset = vec2(nx,ny);
         float distance2 = dot(offset,offset);
 
         // The opposite cell computes the same impulse with the opposite
         // direction.  Momentum is therefore conserved pair by pair.
-        impulse -= u_dt*u_repulsion*reducedMass*excess
+        impulse -= u_dt*repulsion*reducedMass*excess
           * offset/distance2;
       }
     }
@@ -90,15 +91,7 @@ var CalcFragmentShaderSource = `
     );
   }
 
-  void main() {
-    fieldSize = textureSize(u_fieldtexture,0);
-    tex3coord = ivec3(v_texcoord,0);
-
-    if(u_nturn%2u==0u) {
-      glFragColor[0] = Repelled();
-      return;
-    }
-
+  vec4 Advected() {
     vec4 result = vec4(0);
     for(int iy=0; iy<5; iy++) {
       for(int ix=0; ix<5; ix++) {
@@ -108,7 +101,18 @@ var CalcFragmentShaderSource = `
         result += Stream(source,-vec2(sx,sy));
       }
     }
-    glFragColor[0] = result;
+    return result;
+  }
+
+  void main() {
+    fieldSize = textureSize(u_fieldtexture,0);
+    for(int layer=0; layer<`+FD+`; layer++) {
+      tex3coord = ivec3(v_texcoord,layer);
+      vec4 result;
+      if(u_nturn%2u==0u) result = Repelled();
+      else               result = Advected();
+      `+fs_Prepare2Return('result')+`
+    }
   }
 `;
 
@@ -118,6 +122,6 @@ var CalcProgram = createProgram4Frag(
   [
     "a_position", "u_fieldtexture", "u_nturn",
     "u_dt", "u_focus", "u_maxMove",
-    "u_repulsionThreshold", "u_repulsion"
+    "u_density", "u_repulsion"
   ]
 );

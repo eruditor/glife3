@@ -192,6 +192,9 @@ var ShowFragmentShaderSource = `
     if(tex2coord.x<0 || tex2coord.y<0 || tex2coord.x>=fieldSize.x || tex2coord.y>=fieldSize.y) {
       color = vec4(0.5, 0.5, 0.5, 1.);
     }
+    else if(layer>=`+FD+`) {
+      color = vec4(0., 0., 0., 1.);
+    }
     else {
       cell = texelFetch(u_fieldtexture, ivec3(tex2coord, layer), 0);
       color = Color4Cell(cell, layer);

@@ -9,10 +9,9 @@ var KLPPhysics = {
   dt: KLPNumberParam('dt', 0.20),
   focus: KLPNumberParam('focus', 1.00),
   maxMove: KLPNumberParam('maxmove', 2.00),
-  repulsionThreshold: KLPNumberParam('repelat', 1.00),
-  repulsion: KLPNumberParam('repulsion', 5.00),
+  densities: [1.00, 1.40, 0.70, 1.00],
+  repulsions: [5.00, 8.00, 3.00, 5.00],
   densityFloor: 0.0001,
-  pointMass: KLPNumberParam('mass', 1.00),
   initialSpeed: KLPNumberParam('speed', 0.35),
   thermalEnergy: KLPNumberParam('thermal', 0.05),
   particleStatThreshold: KLPNumberParam('particleat', 0.90),
@@ -26,11 +25,14 @@ function InitRules() {
   gl.uniform1f(CalcProgram.location.u_dt, KLPPhysics.dt);
   gl.uniform1f(CalcProgram.location.u_focus, KLPPhysics.focus);
   gl.uniform1f(CalcProgram.location.u_maxMove, KLPPhysics.maxMove);
-  gl.uniform1f(
-    CalcProgram.location.u_repulsionThreshold,
-    KLPPhysics.repulsionThreshold
+  gl.uniform1fv(
+    CalcProgram.location.u_density,
+    KLPPhysics.densities.slice(0,FD)
   );
-  gl.uniform1f(CalcProgram.location.u_repulsion, KLPPhysics.repulsion);
+  gl.uniform1fv(
+    CalcProgram.location.u_repulsion,
+    KLPPhysics.repulsions.slice(0,FD)
+  );
   RandomRulesetJSON = JSON.stringify(KLPPhysics);
   return true;
 }
