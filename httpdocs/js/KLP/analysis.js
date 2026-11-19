@@ -3,26 +3,26 @@ statLegend =
   + "<span style='background:rgb(250,80,80)  '>&nbsp;</span> Px + " + KLPPhysics.momentumGraphOffsetX + " &nbsp; "
   + "<span style='background:rgb(80,250,80)'  >&nbsp;</span> Py + " + KLPPhysics.momentumGraphOffsetY + " &nbsp; "
   + "<span style='background:rgb(80,120,250)' >&nbsp;</span> total energy &nbsp; "
-  + "<span style='background:rgb(250,220,60)' >&nbsp;</span> dense cells (> "
-  + KLPPhysics.particleStatThreshold + " of layer density)";
+  + "<span style='background:rgb(250,220,60)' >&nbsp;</span> occupied cells";
 
-var klpMass = 0, klpPx = 0, klpPy = 0, klpEnergy = 0, klpParticles = 0;
+var klpMass = 0, klpPx = 0, klpPy = 0, klpEnergy = 0, klpOccupied = 0;
 
 function StatBeforeCells() {
-  klpMass = 0;  klpPx = 0;  klpPy = 0;  klpEnergy = 0;  klpParticles = 0;
+  klpMass = 0;  klpPx = 0;  klpPy = 0;  klpEnergy = 0;  klpOccupied = 0;
 }
 
 function StatAccumulateCell(x, y, z) {
-  var c0 = GetCell(x, y, z);
+  if(z!=0) return;
+  var c0 = GetCell(x, y, 0);
+  var c1 = GetCell(x, y, 1);
   klpMass += c0.r;
-  klpPx += c0.g;
-  klpPy += c0.b;
-  klpEnergy += c0.a;
-  if(c0.r>0) {
-    klpEnergy += 0.5*(c0.g*c0.g+c0.b*c0.b)/c0.r;
+  klpPx += c0.r*c1.b;
+  klpPy += c0.r*c1.a;
+  klpEnergy += c0.g + 0.5*c0.r*(c1.b*c1.b+c1.a*c1.a);
+  if(c0.r > KLPPhysics.densityFloor) {
+    klpOccupied ++;
+    StatMarkLive(x,y,0);
   }
-  if(c0.r > KLPPhysics.particleStatThreshold*KLPPhysics.densities[z]) klpParticles ++;
-  if(c0.r > KLPPhysics.densityFloor) rec[S1].livecells[z] ++;
 }
 
 function StatAfterCells() {
@@ -30,7 +30,7 @@ function StatAfterCells() {
   graphnums[graphstep][0][1] = klpPx;
   graphnums[graphstep][0][2] = klpPy;
   graphnums[graphstep][0][3] = klpEnergy;
-  graphnums[graphstep][0][4] = klpParticles;
+  graphnums[graphstep][0][4] = klpOccupied;
 }
 
 function StatGraphLayers() { return 1; }
