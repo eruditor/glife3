@@ -74,7 +74,7 @@ class GLifeJS {
     
     $send2js .= "gl_bgc4records = JSON.parse(`" . json_encode(glRecords::$bgc4records) . "`);\n";
     
-    $spacetime = $physics = $dynamics = $visualisation = '';
+    $spacetime = $physics = $dynamics = $visualisation = $analysis = '';
     
     $named = $gl ? $gl->named : '';
     $prefnm = ($t=stripos($named,"-")) ? substr($named,0,$t) : '';
@@ -129,6 +129,13 @@ class GLifeJS {
     else if($fm->mode=='LFL')  $visualisation = "<script src='/js/LFL/visualisation.js$jsget'></script>";
     else if($fm->mode=='QMF')  $visualisation = "<script src='/js/QMF/visualisation.js$jsget'></script>";
     
+         if($fm->mode=='MVM')  $analysis = "<script src='/js/MVM/analysis.js$jsget'></script>";
+    else if($fm->mode=='BND')  $analysis = "<script src='/js/BND/analysis.js$jsget'></script>";
+    else if($fm->mode=='KLP')  $analysis = "<script src='/js/KLP/analysis.js$jsget'></script>";
+    else if($fm->name=='Monia')$analysis = "<script src='/js/LFL/Monia/analysis.js$jsget'></script>";
+    else if($fm->mode=='LFL')  $analysis = "<script src='/js/LFL/analysis.js$jsget'></script>";
+    else if($fm->mode=='QMF')  $analysis = "<script src='/js/QMF/analysis.js$jsget'></script>";
+    
     return "
       <a name='cont'></a>
       <div id=GLifeCont></div>
@@ -145,7 +152,7 @@ class GLifeJS {
       <script src='/js/4.physics_laws.js$jsget'></script>$physics
       <script src='/js/5.dynamics.js$jsget'></script>$dynamics$visualisation
       <script src='/js/6.visualisation.js$jsget'></script>
-      <script src='/js/7.analysis.js$jsget'></script>
+      <script src='/js/7.analysis.js$jsget'></script>$analysis
       <script src='/js/8.interface.js$jsget'></script>
       <script src='/js/9.divine_forces.js$jsget'></script>
       <script src='/main.js$jsget'></script>

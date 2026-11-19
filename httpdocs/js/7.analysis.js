@@ -10,13 +10,6 @@ var StatGraphFuncName = 'root4';  // log, cbrt, root4
 var drawRzoom = 1;
 
 var statLegend = "species population (" + StatGraphFuncName + " scale):";
-if(Mode=='KLP') statLegend =
-    "<span style='background:rgb(240,240,240)'>&nbsp;</span> total mass &nbsp; "
-  + "<span style='background:rgb(250,80,80)  '>&nbsp;</span> Px + " + KLPPhysics.momentumGraphOffsetX + " &nbsp; "
-  + "<span style='background:rgb(80,250,80)'  >&nbsp;</span> Py + " + KLPPhysics.momentumGraphOffsetY + " &nbsp; "
-  + "<span style='background:rgb(80,120,250)' >&nbsp;</span> total energy &nbsp; "
-  + "<span style='background:rgb(250,220,60)' >&nbsp;</span> dense cells (> "
-  + KLPPhysics.particleStatThreshold + " of layer density)";
 
 // CONTAINERS ////////////////////////////////////////////////////////////////
 // naming is messy, who cares
@@ -38,7 +31,6 @@ statcanvas.style.whiteSpace = 'normal';
 statcont.append(statcanvas);
 
 var statcanvasttl = document.createElement('div');
-statcanvasttl.innerHTML = statLegend;
 statcanvasttl.style.margin = '10px 0 0 0';
 statcanvas.append(statcanvasttl);
 
@@ -271,15 +263,73 @@ function InitStats() {
   saved = false;
   qq0 = [];
   
-  rec = new Records();  
+  rec = new Records();
+  qq = [];
   
   graphpoints = [], graphnums = [], graphstep = -1, graphcnvnum = 0;
+  statcanvasttl.innerHTML = statLegend;
   
   S0 = 0;  S1 = 1;  // time moments for Stats
   
   sctx.clearRect(0, 0, scnvs.width, scnvs.height);
   
   DrawRules();
+}
+
+// MODE HOOKS (overridden by /js/<Mode>/analysis.js) ////////////////////////////////////////////////////////////////
+
+function StatSkipCollect() { return false; }
+function StatBeforeCells() {}
+function StatAfterLayer(z) {}
+function StatAfterCells() {}
+function StatAfterGraph() {}
+function StatSkipCommon() { return false; }
+function StatGraphLayers() { return FD; }
+function StatGraphSeries() { return RB; }
+function StatPrepareGraphValue(z, v, val) { return val<0 ? -val : val; }
+function StatGraphColor(z, v) { return Color4Cell(z, v); }
+
+function StatMarkLive(x, y, z) {
+  rec[S1].livecells[z] ++;
+  var qx = floor(x / 10);
+  var qy = floor(y / 10);
+  if(!qq[z][qx][qy]) qq[z][qx][qy] = 0;
+  qq[z][qx][qy] ++;
+  rec[S1].icehsh[z] += (x + y);
+}
+
+function StatAccumulateCell(x, y, z) {
+  var cell = GetCell(x, y, z);
+  var al = DataFormat=='UI8' ? (cell.a > 0 ? 1 : 0) : (cell.a & 1);
+  var v = DataFormat=='UI8' ? cell.a : (al ? cell.a << 27 >>> 28 : 0);
+  if(al==0) return;
+  graphnums[graphstep][z][v] ++;
+  StatMarkLive(x, y, z);
+}
+
+function StatAutoreByAmount(amountLayer) {
+  if(!cfg.autore) return;
+  var notinteresting = 0;
+  var minc = 0.002*FW*FH;
+  var maxc = 0.45*FW*FH;
+  for(var c=1; c<=3; c++) {
+    if(graphnums[graphstep][amountLayer][c]<minc) notinteresting += 1;
+    if(graphnums[graphstep][amountLayer][c]>maxc) notinteresting += 100;
+  }
+  if(nturn>=50000 || (nturn>=500 && notinteresting)) {
+    Pause(1);
+    console.log('notinteresting=',notinteresting);
+    console.log(graphnums[graphstep][amountLayer]);
+    nGen ++;
+    if(nGen>300) {
+      ReloadPage();
+    }
+    else {
+      ReInitSeeds();
+      Init();
+    }
+    Pause(-1);
+  }
 }
 
 // STATS MAIN ////////////////////////////////////////////////////////////////
@@ -303,21 +353,16 @@ function Stats(force=false) {
   
   if(!force && (cfg.paused || cfg.pausestat)) return;
   
-  if(Mode=='BND') {
-    if(cfg.maxfps>=1000) sleep(cfg.sleep);  // overwise GPU can freeze system UI
-    return;
-  }
+  if(StatSkipCollect()) return;
   
   var sstat = '';
   
   var x, y, z, v;
   
-  var qd = 10, qx, qy, qq = []; // grid of squares qd*qd with coordinates (qx,qy) is to measure how species spread
+  var qd = 10, qx, qy; // grid of squares qd*qd with coordinates (qx,qy) is to measure how species spread
   var qw = floor(FW / qd), qh = floor(FH / qd);  // assuming FW%qd==0 && FH%qd==0
   var nqtotal = qw * qh;  // total number of squares
-  var tmp = [];
-  var klpMass = 0, klpPx = 0, klpPy = 0, klpEnergy = 0;
-  var klpParticles = 0;
+  qq = [];
   
   rec[S1].zero();
   
@@ -333,201 +378,41 @@ function Stats(force=false) {
   
   graphstep ++;
   
+  var seriesCount = StatGraphSeries();
   graphnums[graphstep] = [];
   for(var z=0; z<FD; z++) {
     qq[z] = [];
-    graphnums[graphstep][z] = [];  for(v=0; v<RB; v++) { graphnums[graphstep][z][v] = 0;  tmp[v] = 0; }
+    graphnums[graphstep][z] = [];  for(v=0; v<seriesCount; v++) graphnums[graphstep][z][v] = 0;
   }
+  
+  StatBeforeCells();
   
   for(var z=0; z<FDD; z++) {
     for(var x=0; x<FW; x++) {
       qx = floor(x / qd);
       if(!qq[z][qx]) qq[z][qx] = [];
       for(var y=0; y<FH; y++) {
-        
-        if(Family=='Monia') {
-          var fulal = 0.4;  // considered filly alive
-          var c0 = GetCell(x, y, 0);
-          var c1 = GetCell(x, y, 1);
-          var c2 = GetCell(x, y, 2);
-          
-          if(Number.isNaN(c1.b) || Number.isNaN(c1.a)) {
-            if(nErr<10) console.log(nErr, 'NaN:', nturn, x, y, ':', c1);
-            nErr ++;
-            continue;
-          }
-          
-          graphnums[graphstep][0][0] += c0.a>=fulal ? 1 : 0;
-          graphnums[graphstep][0][1] += c0.r>=fulal ? 1 : 0;
-          graphnums[graphstep][0][2] += c0.g>=fulal ? 1 : 0;
-          graphnums[graphstep][0][3] += c0.b>=fulal ? 1 : 0;
-          if(c0.r>=fulal || c0.g>=fulal || c0.b>=fulal) rec[S1].livecells[0] ++;
-          
-          graphnums[graphstep][1][0] += c0.a / fulal;
-          graphnums[graphstep][1][1] += c0.r / fulal;
-          graphnums[graphstep][1][2] += c0.g / fulal;
-          graphnums[graphstep][1][3] += c0.b / fulal;
-          
-          var mass = c0.r*MS[0] + c0.g*MS[1] + c0.b*MS[2] + c0.a*MS[3];  // total mass
-          graphnums[graphstep][2][0] += 50 * mass * c1.b;  // 1 + momentum.x
-          graphnums[graphstep][2][1] += 50 * mass * c1.a;  // 1 + momentum.y
-          graphnums[graphstep][2][2] += mass * (sqr(c1.b) + sqr(c1.a));  // kinetic energy
-          graphnums[graphstep][2][3] += mass * (sqr(c1.b) + sqr(c1.a)) + c2.a;  // total energy
-          
-          if(mass * c1.a < -0.7) {
-            if(nErr<10) console.log(nErr, 'vcy<<0:', nturn, x, y, ':', mass * c1.a, mass, c1.b, c1.a);
-            nErr ++;
-          }
-          
-          continue;
-        }
-        else if(Mode=='QMF') {
-          var c0 = GetCell(x, y, 0);
-          if(z==0) {
-            graphnums[graphstep][0][1] += c0.r;
-            graphnums[graphstep][0][2] += c0.g;
-            graphnums[graphstep][0][3] += c0.b;
-
-            if(c0.r+c0.g+c0.b>0.5) {
-              var c1 = GetCell(x, y, 1);
-              var mass = c0.r*QMFPhysics.masses[0]
-                       + c0.g*QMFPhysics.masses[1]
-                       + c0.b*QMFPhysics.masses[2];
-              var graphScale = 1000;
-              graphnums[graphstep][1][1] += graphScale * mass * c1.b;  // momentum.x
-              graphnums[graphstep][1][2] += graphScale * mass * c1.a;  // momentum.y
-              graphnums[graphstep][1][3] += graphScale * 0.5 * mass * (sqr(c1.b) + sqr(c1.a));
-
-              var mask = Math.floor(c0.a + 0.5) % 1024;
-              for(var d of [[1,0,5], [-1,1,6], [0,1,7], [1,1,8]]) {
-                var nx = (x + d[0] + FW) % FW;
-                var ny = (y + d[1] + FH) % FH;
-                var other = GetCell(nx, ny, 0);
-                if(other.r+other.g+other.b<=0.5) continue;
-
-                var otherMotion = GetCell(nx, ny, 1);
-                var distance = Math.hypot(
-                  d[0] + otherMotion.r - c1.r,
-                  d[1] + otherMotion.g - c1.g
-                );
-                if(mask & (1 << d[2])) {
-                  var stretch = distance - QMFPhysics.bondLength;
-                  var bondWidth = QMFPhysics.bondRange - QMFPhysics.bondLength;
-                  graphnums[graphstep][1][3] += graphScale * QMFPhysics.spring * (
-                    0.5*sqr(stretch) - stretch*stretch*stretch/(3*bondWidth)
-                    - sqr(bondWidth)/6
-                  );
-                }
-                else if(distance<QMFPhysics.repulsionRange) {
-                  graphnums[graphstep][1][3] += graphScale * 0.5 * QMFPhysics.repulsion
-                    * sqr(QMFPhysics.repulsionRange - distance);
-                }
-              }
-            }
-          }
-          continue;
-        }
-        else if(Mode=='LFL') {
-          var fulal = 0.7;  // considered filly alive
-          var c0 = GetCell(x, y, 0);
-          if(z==0) {
-            if(c0.r>=0.99 && c0.g>=0.99 && c0.b>=0.99) continue;  // ignoring artificial static white borders
-            graphnums[graphstep][z][0] += c0.r>=fulal || c0.g>=fulal || c0.b>=fulal ? 1 : 0;
-            graphnums[graphstep][z][1] += c0.r>=fulal ? 1 : 0;
-            graphnums[graphstep][z][2] += c0.g>=fulal ? 1 : 0;
-            graphnums[graphstep][z][3] += c0.b>=fulal ? 1 : 0;
-            if(c0.r>=fulal || c0.g>=fulal || c0.b>=fulal) rec[S1].livecells[z] ++;
-          }
-          else if(z==1) {
-            if(1) {  // total amount
-              graphnums[graphstep][z][1] += c0.r / fulal;
-              graphnums[graphstep][z][2] += c0.g / fulal;
-              graphnums[graphstep][z][3] += c0.b / fulal;
-            }
-            else {  // amount of negative values
-              graphnums[graphstep][z][1] += c0.r<0 ? -c0.r : 0;
-              graphnums[graphstep][z][2] += c0.g<0 ? -c0.g : 0;
-              graphnums[graphstep][z][3] += c0.b<0 ? -c0.b : 0;
-            }
-          }
-          continue;
-        }
-        else if(Mode=='KLP') {
-          var c0 = GetCell(x, y, z);
-          klpMass += c0.r;
-          klpPx += c0.g;
-          klpPy += c0.b;
-          klpEnergy += c0.a;
-          if(c0.r>0) {
-            klpEnergy += 0.5*(c0.g*c0.g+c0.b*c0.b)/c0.r;
-          }
-          if(c0.r > KLPPhysics.particleStatThreshold*KLPPhysics.densities[z]) klpParticles ++;
-          if(c0.r > KLPPhysics.densityFloor) rec[S1].livecells[z] ++;
-          continue;
-        }
-        
-        var cell = GetCell(x, y, z);
-        
-        var al = DataFormat=='UI8' ? (cell.a > 0 ? 1 : 0) : (cell.a & 1);
-        var v = DataFormat=='UI8' ? cell.a : (al ? cell.a << 27 >>> 28 : 0);  // cell's value
-        if(al==0) continue;  // dead cell
-        
-        if(Mode=='MVM') {
-          var vx = ((cell.r >>> 16) - 32768) / 200;
-          var vy = ((cell.g >>> 16) - 32768) / 200;
-          var am = v; // @ sync with shader!
-          var KE = am * (vx*vx + vy*vy) / 2;
-          graphnums[graphstep][z][v] += 1000 * KE;
-          tmp[v] ++;
-        }
-        else {
-          graphnums[graphstep][z][v] ++;
-        }
-        
-        rec[S1].livecells[z] ++;
-        
-        qy = floor(y / qd);
-        if(!qq[z][qx][qy]) qq[z][qx][qy] = 0;
-        qq[z][qx][qy] ++;  // each element of qq stores number of living cells in this square
-        
-        rec[S1].icehsh[z] += (x + y);  // hash-like sum of living cells
+        StatAccumulateCell(x, y, z);
       }
     }
-    if(Mode=='MVM') {
-      graphnums[graphstep][z][0] = 0;
-      for(var v=1; v<RB; v++) {
-        if(tmp[v]>0) graphnums[graphstep][z][v] /= tmp[v];
-        graphnums[graphstep][z][0] += graphnums[graphstep][z][v];
-      }
-    }
+    StatAfterLayer(z);
   }
-  if(Mode=='KLP') {
-    graphnums[graphstep][0][0] = klpMass;
-    graphnums[graphstep][0][1] = klpPx;
-    graphnums[graphstep][0][2] = klpPy;
-    graphnums[graphstep][0][3] = klpEnergy;
-    graphnums[graphstep][0][4] = klpParticles;
-  }
+  
+  StatAfterCells();
   
   // plotting graphs
   var StatGraphFuncFWFH = StatGraphFunc(FW*FH);
   function GraphY(yv) { return round(scnv_height * (1 - yv)); }
   var xx = graphstep - IW * graphcnvnum;
   graphpoints[graphstep] = [];
-  var graphLayers = Mode=='KLP' ? 1 : FD;
+  var graphLayers = StatGraphLayers();
   for(z=0; z<graphLayers; z++) {
     graphpoints[graphstep][z] = [];
-    var seriesCount = Mode=='KLP' ? 5 : RB;
     for(v=0; v<seriesCount; v++) {
-      var val = graphnums[graphstep][z][v];
-      if(Mode=='KLP' && v==1) val += KLPPhysics.momentumGraphOffsetX;
-      if(Mode=='KLP' && v==2) val += KLPPhysics.momentumGraphOffsetY;
-      if(val<0) val = -val;
+      var val = StatPrepareGraphValue(z, v, graphnums[graphstep][z][v]);
       var yv = val ? StatGraphFunc(val) / StatGraphFuncFWFH : 0;  // [0..1]
       var yy = GraphY(yv);  // [scnv_height .. 0]
-      var clr = Mode=='KLP' && v==4
-        ? {r:250,g:220,b:60}
-        : Color4Cell(z, v);
+      var clr = StatGraphColor(z, v);
       var style = 'rgba('+clr.r+','+clr.g+','+clr.b+',0.9)';
       if(xx>0) {
         sctx.beginPath();
@@ -553,34 +438,8 @@ function Stats(force=false) {
     sctx = scnvs.getContext('2d');
   }
   
-  if((Mode=='LFL' || Mode=='QMF') && cfg.autore) {  // same for other modes is below
-    var notinteresting = 0;
-    var minc = 0.002*FW*FH;
-    var maxc = 0.45*FW*FH;
-    var amountLayer = Mode=='QMF' ? 0 : 1;
-    for(var c=1; c<=3; c++) {
-      if(graphnums[graphstep][amountLayer][c]<minc) notinteresting += 1;
-      if(graphnums[graphstep][amountLayer][c]>maxc) notinteresting += 100;
-    }
-    if(nturn>=50000 || (nturn>=500 && notinteresting)) {
-      Pause(1);
-      console.log('notinteresting=',notinteresting);
-      console.log(graphnums[graphstep][amountLayer]);
-      //if(!notinteresting && cfg.autore==1) SaveGlifetri({'stopped_at':''});
-      nGen ++;
-      if(nGen>300) {
-        ReloadPage();  // reloading page sometimes to refresh seeds and avoid potential locks
-      }
-      else {
-        ReInitSeeds();
-        Init();
-      }
-      Pause(-1);
-    }
-  }
-  
-  if(Mode=='KLP') return;
-  if(Mode=='LFL' || Mode=='QMF') return;
+  StatAfterGraph();
+  if(StatSkipCommon()) return;
   
   if(false && graphnums.length==256) {
     console.log(graphnums);
@@ -690,7 +549,7 @@ function Stats(force=false) {
     </table>
   `;
   
-  if(Mode=='' || Mode=='PRT') {  // same for LFL and QMF is above
+  if(Mode=='' || Mode=='PRT') {  // LFL/QMF/KLP skip this via StatSkipCommon
     if(cfg.autore || cfg.rerun) {
       if((!interesting_z && nturn>500) || (nturn>=5000)) {  // if no interesting planes left - restart
         Pause(1);
