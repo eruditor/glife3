@@ -11,6 +11,8 @@ var CalcFragmentShaderSource = `
   uniform float u_maxMove;
   uniform float u_density[`+FD+`];
   uniform float u_repulsion[`+FD+`];
+  uniform float u_bonding[`+FD+`];
+  uniform float u_adhesion;
 
   in vec2 v_texcoord;
   out `+field_Vec4P+` glFragColor[`+FD+`];
@@ -21,40 +23,73 @@ var CalcFragmentShaderSource = `
   `+fs_ModuloTorus+`
   `+fs_GetCell()+`
 
-  vec4 Repelled() {
+  vec4 Interacted() {
     vec4 source = GetCell(0,0,0);
     float mass = source.r;
+    if(mass<=0.) return source;
+
+    float kinetic0 = 0.5*dot(source.gb,source.gb)/mass;
+    vec2 velocity = source.gb/mass;
     float repulsion = u_repulsion[tex3coord.z];
-    if(mass<=0. || repulsion<=0.) return source;
-
     vec2 impulse = vec2(0);
-    for(int iy=0; iy<3; iy++) {
-      for(int ix=0; ix<3; ix++) {
-        int nx = ix-1;
-        int ny = iy-1;
-        if(nx==0 && ny==0) continue;
 
-        float otherMass = GetCell(nx,ny,0).r;
-        if(otherMass<=0.) continue;
+    if(repulsion>0.) {
+      for(int iy=0; iy<3; iy++) {
+        for(int ix=0; ix<3; ix++) {
+          int nx = ix-1;
+          int ny = iy-1;
+          if(nx==0 && ny==0) continue;
 
-        float totalMass = mass+otherMass;
-        float excess = max(totalMass-u_density[tex3coord.z],0.);
-        float reducedMass = mass*otherMass/totalMass;
-        vec2 offset = vec2(nx,ny);
-        float distance2 = dot(offset,offset);
+          vec4 other = GetCell(nx,ny,0);
+          float otherMass = other.r;
+          if(otherMass<=0.) continue;
 
-        // The opposite cell computes the same impulse with the opposite
-        // direction.  Momentum is therefore conserved pair by pair.
-        impulse -= u_dt*repulsion*reducedMass*excess
-          * offset/distance2;
+          float totalMass = mass+otherMass;
+          float excess = max(totalMass-u_density[tex3coord.z],0.);
+          if(excess<=0.) continue;
+
+          float reducedMass = mass*otherMass/totalMass;
+          vec2 offset = vec2(nx,ny);
+          vec2 direction = offset/length(offset);
+          float approach =
+            dot(other.gb/otherMass-velocity,direction);
+          if(approach>=0.) continue;
+
+          float response = clamp(
+            u_dt*repulsion*excess/u_density[tex3coord.z],
+            0., 1.
+          );
+
+          // A partial elastic collision: response=1 reflects the normal
+          // relative velocity, while smaller values dissipate part of it.
+          float collisionImpulse =
+            -2.*response*reducedMass*approach;
+          impulse -= collisionImpulse*direction;
+        }
       }
     }
 
+    for(int otherLayer=0; otherLayer<`+FD+`; otherLayer++) {
+      if(otherLayer==tex3coord.z) continue;
+      float bonding = u_bonding[tex3coord.z]*u_bonding[otherLayer];
+      if(bonding<=0.) continue;
+
+      vec4 other = GetCell(0,0,otherLayer-tex3coord.z);
+      float otherMass = other.r;
+      if(otherMass<=0.) continue;
+
+      float reducedMass = mass*otherMass/(mass+otherMass);
+      impulse += u_adhesion*bonding*reducedMass
+        * (other.gb/otherMass-velocity);
+    }
+
     source.gb += impulse;
+    source.a += kinetic0-0.5*dot(source.gb,source.gb)/mass;
     return source;
   }
 
-  vec4 Stream(vec4 source, vec2 target) {
+  vec4 Stream(vec4 source, vec2 target, out float kinetic) {
+    kinetic = 0.;
     float mass = source.r;
     if(mass<=0.) return vec4(0);
 
@@ -64,11 +99,14 @@ var CalcFragmentShaderSource = `
     float weight = overlap.x*overlap.y;
     if(weight<=0.) return vec4(0);
 
-    // target-move is the error introduced by snapping this part of the
-    // translated unit square to a cell centre.  Its area-weighted mean is
-    // exactly zero, so this correction cannot change total momentum.
+    // Correct the snapping error over roughly one cell-crossing time.
+    // The correction velocity therefore stays comparable to velocity.
+    float correction = min(
+      u_focus*max(abs(move.x),abs(move.y)),
+      1.
+    );
     vec2 correctedVelocity =
-      velocity-u_focus*(target-move)/u_dt;
+      velocity-correction*(target-move)/u_dt;
 
     // Keep total energy as well as momentum.  The correction creates a
     // velocity variance.  It is paid for by the cell's internal energy.
@@ -76,30 +114,38 @@ var CalcFragmentShaderSource = `
     vec2 variance1 = fraction*(1.-fraction);
     float meanKinetic = 0.5*(
       dot(velocity,velocity)
-      + u_focus*u_focus*(variance1.x+variance1.y)/(u_dt*u_dt)
+      + correction*correction
+        *(variance1.x+variance1.y)/(u_dt*u_dt)
     );
-    float internal = source.a/mass-meanKinetic;
+    float excess = source.a/mass
+      + 0.5*dot(velocity,velocity)-meanKinetic;
     float streamMass = weight*mass;
-    float streamEnergy = streamMass*(
-      internal+0.5*dot(correctedVelocity,correctedVelocity)
-    );
+    kinetic = 0.5*streamMass
+      * dot(correctedVelocity,correctedVelocity);
 
     return vec4(
       streamMass,
       streamMass*correctedVelocity,
-      streamEnergy
+      streamMass*excess
     );
   }
 
   vec4 Advected() {
     vec4 result = vec4(0);
+    float kineticSum = 0.;
     for(int iy=0; iy<5; iy++) {
       for(int ix=0; ix<5; ix++) {
         int sx = ix-2;
         int sy = iy-2;
         vec4 source = GetCell(sx,sy,0);
-        result += Stream(source,-vec2(sx,sy));
+        float kinetic;
+        result += Stream(source,-vec2(sx,sy),kinetic);
+        kineticSum += kinetic;
       }
+    }
+    if(result.r>0.) {
+      result.a += kineticSum
+        - 0.5*dot(result.gb,result.gb)/result.r;
     }
     return result;
   }
@@ -109,7 +155,7 @@ var CalcFragmentShaderSource = `
     for(int layer=0; layer<`+FD+`; layer++) {
       tex3coord = ivec3(v_texcoord,layer);
       vec4 result;
-      if(u_nturn%2u==0u) result = Repelled();
+      if(u_nturn%2u==0u) result = Interacted();
       else               result = Advected();
       `+fs_Prepare2Return('result')+`
     }
@@ -122,6 +168,6 @@ var CalcProgram = createProgram4Frag(
   [
     "a_position", "u_fieldtexture", "u_nturn",
     "u_dt", "u_focus", "u_maxMove",
-    "u_density", "u_repulsion"
+    "u_density", "u_repulsion", "u_bonding", "u_adhesion"
   ]
 );

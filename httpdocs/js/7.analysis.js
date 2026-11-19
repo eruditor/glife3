@@ -458,6 +458,9 @@ function Stats(force=false) {
           klpPx += c0.g;
           klpPy += c0.b;
           klpEnergy += c0.a;
+          if(c0.r>0) {
+            klpEnergy += 0.5*(c0.g*c0.g+c0.b*c0.b)/c0.r;
+          }
           if(c0.r > KLPPhysics.particleStatThreshold*KLPPhysics.densities[z]) klpParticles ++;
           if(c0.r > KLPPhysics.densityFloor) rec[S1].livecells[z] ++;
           continue;

@@ -58,7 +58,10 @@ class GLifeJS {
     
     if(!$fm) $fm = glDicts::GetFamily($prms['family'] ?: $_GET['family']);  if(!$fm) dierr("#48379230");
     $prms['family'] = $fm->name;
-    if($fm->mode=='KLP') $prms['FD'] = 3;
+    if($fm->mode=='KLP') {
+      $prms['FD'] = 3;
+      $prms['TT'] = 2;
+    }
     $send2js .= "glFamily = JSON.parse(`" . json_encode($fm) . "`);\n";
     
     $rseed = $prms['rseed'] ?: intval($_GET['rseed']) ?: rand(1,getrandmax());

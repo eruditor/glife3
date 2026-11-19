@@ -11,9 +11,10 @@ var KLPPhysics = {
   maxMove: KLPNumberParam('maxmove', 2.00),
   densities: [1.00, 1.40, 0.70, 1.00],
   repulsions: [5.00, 8.00, 3.00, 5.00],
+  bonding: [1.50, 1.00, 0.50, 0.00],
+  adhesion: 0.08,
   densityFloor: 0.0001,
-  initialSpeed: KLPNumberParam('speed', 0.35),
-  thermalEnergy: KLPNumberParam('thermal', 0.05),
+  initialSpeed: KLPNumberParam('speed', 0.20),
   particleStatThreshold: KLPNumberParam('particleat', 0.90),
   momentumGraphOffsetX: 800,
   momentumGraphOffsetY: 1200
@@ -33,6 +34,11 @@ function InitRules() {
     CalcProgram.location.u_repulsion,
     KLPPhysics.repulsions.slice(0,FD)
   );
+  gl.uniform1fv(
+    CalcProgram.location.u_bonding,
+    KLPPhysics.bonding.slice(0,FD)
+  );
+  gl.uniform1f(CalcProgram.location.u_adhesion, KLPPhysics.adhesion);
   RandomRulesetJSON = JSON.stringify(KLPPhysics);
   return true;
 }
