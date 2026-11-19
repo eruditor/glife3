@@ -2,13 +2,16 @@ statLegend =
     "<span style='background:rgb(240,240,240)'>&nbsp;</span> total mass &nbsp; "
   + "<span style='background:rgb(250,80,80)  '>&nbsp;</span> Px + " + KLPPhysics.momentumGraphOffsetX + " &nbsp; "
   + "<span style='background:rgb(80,250,80)'  >&nbsp;</span> Py + " + KLPPhysics.momentumGraphOffsetY + " &nbsp; "
-  + "<span style='background:rgb(80,120,250)' >&nbsp;</span> total energy &nbsp; "
+  + "<span style='background:rgb(80,120,250)' >&nbsp;</span> total energy ×1000 &nbsp; "
+  + "<span style='background:rgb(0,220,220)'   >&nbsp;</span> excess energy ×1000 &nbsp; "
   + "<span style='background:rgb(250,220,60)' >&nbsp;</span> occupied cells";
 
-var klpMass = 0, klpPx = 0, klpPy = 0, klpEnergy = 0, klpOccupied = 0;
+var klpMass = 0, klpPx = 0, klpPy = 0;
+var klpEnergy = 0, klpExcessEnergy = 0, klpOccupied = 0;
 
 function StatBeforeCells() {
-  klpMass = 0;  klpPx = 0;  klpPy = 0;  klpEnergy = 0;  klpOccupied = 0;
+  klpMass = 0;  klpPx = 0;  klpPy = 0;
+  klpEnergy = 0;  klpExcessEnergy = 0;  klpOccupied = 0;
 }
 
 function StatAccumulateCell(x, y, z) {
@@ -19,7 +22,8 @@ function StatAccumulateCell(x, y, z) {
   klpPx += c0.r*c1.b;
   klpPy += c0.r*c1.a;
   klpEnergy += c0.g + 0.5*c0.r*(c1.b*c1.b+c1.a*c1.a);
-  if(c0.r > KLPPhysics.densityFloor) {
+  klpExcessEnergy += c0.g;
+  if(c0.r > 0.45) {
     klpOccupied ++;
     StatMarkLive(x,y,0);
   }
@@ -30,20 +34,23 @@ function StatAfterCells() {
   graphnums[graphstep][0][1] = klpPx;
   graphnums[graphstep][0][2] = klpPy;
   graphnums[graphstep][0][3] = klpEnergy;
-  graphnums[graphstep][0][4] = klpOccupied;
+  graphnums[graphstep][0][4] = klpExcessEnergy;
+  graphnums[graphstep][0][5] = klpOccupied;
 }
 
 function StatGraphLayers() { return 1; }
-function StatGraphSeries() { return 5; }
+function StatGraphSeries() { return 6; }
 
 function StatPrepareGraphValue(z, v, val) {
   if(v==1) val += KLPPhysics.momentumGraphOffsetX;
   if(v==2) val += KLPPhysics.momentumGraphOffsetY;
+  if(v==3 || v==4) val *= 1000;
   return val<0 ? -val : val;
 }
 
 function StatGraphColor(z, v) {
-  if(v==4) return {r:250,g:220,b:60};
+  if(v==4) return {r:0,g:220,b:220};
+  if(v==5) return {r:250,g:220,b:60};
   return Color4Cell(z, v);
 }
 

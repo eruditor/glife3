@@ -11,7 +11,6 @@ var KLPPhysics = {
     Math.abs(KLPNumberParam('speed', 0.10)),
     0.099999
   ),
-  densityFloor: 0.0001,
   momentumGraphOffsetX: 800,
   momentumGraphOffsetY: 1200
 };
